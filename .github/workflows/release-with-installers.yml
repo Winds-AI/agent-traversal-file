@@ -1,0 +1,259 @@
+name: Build and Release with Installers
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-binaries:
+    name: Build Binaries
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      
+      - name: Get version
+        id: version
+        run: |
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          else
+            echo "VERSION=dev-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Build binaries
+        run: |
+          cd go
+          mkdir -p ../dist
+          
+          # Windows
+          GOOS=windows GOARCH=amd64 go build -o ../dist/atf-windows-amd64.exe -ldflags="-s -w" main.go
+          
+          # macOS
+          GOOS=darwin GOARCH=amd64 go build -o ../dist/atf-darwin-amd64 -ldflags="-s -w" main.go
+          GOOS=darwin GOARCH=arm64 go build -o ../dist/atf-darwin-arm64 -ldflags="-s -w" main.go
+          
+          # Linux
+          GOOS=linux GOARCH=amd64 go build -o ../dist/atf-linux-amd64 -ldflags="-s -w" main.go
+          GOOS=linux GOARCH=arm64 go build -o ../dist/atf-linux-arm64 -ldflags="-s -w" main.go
+      
+      - name: Generate checksums
+        run: |
+          cd dist
+          sha256sum * > SHA256SUMS
+      
+      - name: Upload binaries
+        uses: actions/upload-artifact@v4
+        with:
+          name: binaries
+          path: dist/
+  
+  build-windows-installer:
+    name: Build Windows MSI
+    needs: build-binaries
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries
+          path: dist/
+      
+      - name: Install WiX Toolset
+        run: |
+          choco install wixtoolset -y
+          echo "C:\Program Files (x86)\WiX Toolset v3.11\bin" | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      
+      - name: Build MSI
+        run: |
+          cd installers/windows
+          powershell -ExecutionPolicy Bypass -File build-msi.ps1
+      
+      - name: Upload MSI
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-installer
+          path: installers/windows/ATF-Tools-*.msi
+  
+  build-macos-installer:
+    name: Build macOS PKG
+    needs: build-binaries
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries
+          path: dist/
+      
+      - name: Make scripts executable
+        run: chmod +x installers/macos/*.sh installers/macos/scripts/*
+      
+      - name: Build PKG
+        run: |
+          cd installers/macos
+          ./build-pkg.sh
+      
+      - name: Upload PKG
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-installer
+          path: installers/macos/ATF-Tools-*-Installer.pkg
+  
+  build-linux-packages:
+    name: Build Linux Packages
+    needs: build-binaries
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download binaries
+        uses: actions/download-artifact@v4
+        with:
+          name: binaries
+          path: dist/
+      
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rpm
+      
+      - name: Make scripts executable
+        run: chmod +x installers/linux/*.sh
+      
+      - name: Build DEB packages
+        run: |
+          cd installers/linux
+          ./build-deb.sh
+      
+      - name: Build RPM packages
+        run: |
+          cd installers/linux
+          ./build-rpm.sh
+      
+      - name: Upload DEB packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-deb-packages
+          path: installers/linux/atf-tools_*.deb
+      
+      - name: Upload RPM packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-rpm-packages
+          path: installers/linux/atf-tools-*.rpm
+  
+  create-release:
+    name: Create GitHub Release
+    needs: [build-binaries, build-windows-installer, build-macos-installer, build-linux-packages]
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            binaries/atf-windows-amd64.exe
+            binaries/atf-darwin-amd64
+            binaries/atf-darwin-arm64
+            binaries/atf-linux-amd64
+            binaries/atf-linux-arm64
+            binaries/SHA256SUMS
+            windows-installer/*.msi
+            macos-installer/*.pkg
+            linux-deb-packages/*.deb
+            linux-rpm-packages/*.rpm
+          body: |
+            ## ATF Tools ${{ github.ref_name }}
+            
+            ### Installers (Recommended)
+            
+            **Windows:**
+            - [ATF-Tools.msi](installer) - Double-click to install, auto-adds to PATH
+            
+            **macOS:**
+            - [ATF-Tools-Installer.pkg](installer) - Double-click to install
+            
+            **Linux (Debian/Ubuntu):**
+            ```bash
+            wget https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/atf-tools_*_amd64.deb
+            sudo dpkg -i atf-tools_*_amd64.deb
+            ```
+            
+            **Linux (Fedora/RHEL):**
+            ```bash
+            wget https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/atf-tools-*.x86_64.rpm
+            sudo rpm -i atf-tools-*.x86_64.rpm
+            ```
+            
+            ---
+            
+            ### Manual Installation (Binaries Only)
+            
+            **Windows:**
+            ```powershell
+            Invoke-WebRequest -Uri "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/atf-windows-amd64.exe" -OutFile "atf.exe"
+            ```
+            
+            **macOS (Intel):**
+            ```bash
+            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/atf-darwin-amd64" -o atf
+            chmod +x atf
+            sudo mv atf /usr/local/bin/
+            ```
+            
+            **macOS (Apple Silicon):**
+            ```bash
+            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/atf-darwin-arm64" -o atf
+            chmod +x atf
+            sudo mv atf /usr/local/bin/
+            ```
+            
+            **Linux:**
+            ```bash
+            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/atf-linux-amd64" -o atf
+            chmod +x atf
+            sudo mv atf /usr/local/bin/
+            ```
+            
+            ---
+            
+            ### Verify Installation
+            
+            ```bash
+            atf --version
+            atf --help
+            ```
+            
+            ### Checksums
+            
+            Download [SHA256SUMS](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/SHA256SUMS) to verify file integrity.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

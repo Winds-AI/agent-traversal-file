@@ -1,0 +1,16 @@
+#!/bin/bash
+# Post-installation script for ATF Tools
+
+# Make sure binary is executable
+chmod +x /usr/local/bin/atf
+
+# Verify installation
+if [ -x "/usr/local/bin/atf" ]; then
+    echo "ATF Tools installed successfully"
+    /usr/local/bin/atf --version
+else
+    echo "Warning: Installation may not have completed correctly"
+    exit 1
+fi
+
+exit 0

@@ -1,0 +1,93 @@
+:::ATF/1.0
+@title: Simple Example
+@author: ATF Tools Project
+
+
+
+
+
+
+
+===INDEX===
+<!-- AUTO-GENERATED - DO NOT EDIT -->
+<!-- Generated: 2026-01-19T19:37:27.369036+00:00 -->
+
+# How It Works {#intro | lines:29-49}
+> Introduction to ATF format
+  Created: 2025-01-20 | Modified: 2025-01-20
+
+# Validate {#usage | lines:51-78}
+> Basic usage examples
+  Created: 2025-01-20 | Modified: 2025-01-20
+
+# Next Steps {#next-steps | lines:80-92}
+> What to do next
+  Created: 2025-01-20 | Modified: 2025-01-20
+
+
+===CONTENT===
+
+{#intro}
+@summary: Introduction to ATF format
+@created: 2025-01-20
+@modified: 2025-01-20
+# Introduction
+
+ATF (Agent Traversable File) is a document format designed for AI agents.
+
+## Why ATF?
+
+- **Token efficient**: Agents load only what they need
+- **Self-indexing**: INDEX auto-generated from CONTENT
+- **Human readable**: Plain text, works with any editor
+- **Line-addressable**: Direct access to sections
+
+## How It Works
+
+1. Write content in CONTENT section
+2. Run `atf rebuild` to generate INDEX
+3. Agents read INDEX to navigate efficiently
+{/intro}
+
+{#usage}
+@summary: Basic usage examples
+@created: 2025-01-20
+@modified: 2025-01-20
+# Usage
+
+## Rebuild Index
+
+```bash
+atf rebuild document.atf
+```
+
+## Watch Mode
+
+```bash
+atf watch document.atf
+```
+
+File will auto-rebuild when you save changes.
+
+## Validate
+
+```bash
+atf validate document.atf
+```
+
+Checks if the file structure is valid.
+{/usage}
+
+{#next-steps}
+@summary: What to do next
+@created: 2025-01-20
+@modified: 2025-01-20
+# Next Steps
+
+1. Create your own ATF file
+2. Try the rebuild command
+3. Use watch mode while editing
+4. Read the full specification at [SPECIFICATION.md](../SPECIFICATION.md)
+
+Happy documenting!
+{/next-steps}

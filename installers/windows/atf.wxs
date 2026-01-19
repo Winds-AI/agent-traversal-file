@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+  <!-- 
+    ATF Tools Windows Installer (.msi)
+    
+    Build instructions:
+    1. Install WiX Toolset: https://wixtoolset.org/
+    2. Place atf.exe in same directory as this file
+    3. Run: candle atf.wxs
+    4. Run: light -ext WixUIExtension -out ATF-Tools-1.0.0.msi atf.wixobj
+  -->
+  
+  <Product 
+    Id="*" 
+    Name="ATF Tools" 
+    Language="1033" 
+    Version="1.0.0" 
+    Manufacturer="ATF Project" 
+    UpgradeCode="12345678-1234-1234-1234-123456789ABC">
+    
+    <Package 
+      InstallerVersion="200" 
+      Compressed="yes" 
+      InstallScope="perMachine" 
+      Description="ATF - Agent Traversable File Tools"
+      Comments="Self-indexing document format for AI agents" />
+    
+    <!-- Major upgrade support -->
+    <MajorUpgrade 
+      DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
+    
+    <!-- Embed CAB in MSI -->
+    <MediaTemplate EmbedCab="yes" />
+    
+    <!-- License (MIT) -->
+    <WixVariable Id="WixUILicenseRtf" Value="License.rtf" />
+    
+    <!-- Directory structure -->
+    <Directory Id="TARGETDIR" Name="SourceDir">
+      <!-- Install to Program Files -->
+      <Directory Id="ProgramFilesFolder">
+        <Directory Id="INSTALLFOLDER" Name="ATF Tools">
+          
+          <!-- Main executable -->
+          <Component Id="AtfExecutable" Guid="87654321-4321-4321-4321-210987654321">
+            <File 
+              Id="AtfExe" 
+              Source="atf.exe" 
+              KeyPath="yes" 
+              Checksum="yes" />
+            
+            <!-- Add to system PATH -->
+            <Environment 
+              Id="PATH" 
+              Name="PATH" 
+              Value="[INSTALLFOLDER]" 
+              Permanent="no" 
+              Part="last" 
+              Action="set" 
+              System="yes" />
+          </Component>
+          
+          <!-- Documentation -->
+          <Component Id="Documentation" Guid="11111111-2222-3333-4444-555555555555">
+            <File Id="ReadmeTxt" Source="README.txt" KeyPath="yes" />
+            <File Id="LicenseTxt" Source="LICENSE.txt" />
+          </Component>
+          
+        </Directory>
+      </Directory>
+      
+      <!-- Start Menu shortcut -->
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="ATF Tools">
+          <Component Id="ApplicationShortcut" Guid="22222222-3333-4444-5555-666666666666">
+            <Shortcut 
+              Id="ReadmeShortcut"
+              Name="ATF Tools README"
+              Description="ATF Tools Documentation"
+              Target="[INSTALLFOLDER]README.txt"
+              WorkingDirectory="INSTALLFOLDER" />
+            
+            <Shortcut
+              Id="UninstallShortcut"
+              Name="Uninstall ATF Tools"
+              Description="Uninstalls ATF Tools"
+              Target="[SystemFolder]msiexec.exe"
+              Arguments="/x [ProductCode]" />
+            
+            <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
+            <RegistryValue 
+              Root="HKLM" 
+              Key="Software\ATF\ATF Tools" 
+              Type="string" 
+              Value="" 
+              KeyPath="yes" />
+          </Component>
+        </Directory>
+      </Directory>
+    </Directory>
+      </Directory>
+    </Directory>
+    
+    <!-- Features to install -->
+    <Feature Id="ProductFeature" Title="ATF Tools" Level="1">
+      <ComponentRef Id="AtfExecutable" />
+      <ComponentRef Id="Documentation" />
+      <ComponentRef Id="ApplicationShortcut" />
+    </Feature>
+    
+    <!-- UI -->
+    <UI>
+      <UIRef Id="WixUI_Minimal" />
+      <UIRef Id="WixUI_ErrorProgressText" />
+    </UI>
+    
+  </Product>
+</Wix>
