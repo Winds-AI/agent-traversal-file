@@ -166,6 +166,7 @@ Each index entry follows this format:
 2. Skipping levels is allowed (# followed by ###)
 3. Parent sections' line ranges MUST contain children's ranges
 4. IDs MUST be unique within the document
+5. Implementations may enforce a maximum nesting depth (this project enforces 2 levels)
 
 ## 4. Content Section
 
@@ -345,8 +346,6 @@ JavaScript object: {{ key: "value" }}
 ## 10. File Extension
 
 Recommended extension: `.atf`
-
-Alternative: `.atf.md` (for editors that support Markdown)
 
 ## 11. MIME Type
 

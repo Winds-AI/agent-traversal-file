@@ -184,10 +184,6 @@ Rebuild index for a single file.
 atf rebuild document.atf
 ```
 
-**Options:**
-- `--check` - Check if rebuild is needed (don't write)
-- `--dry-run` - Show what would change
-
 ### `atf rebuild-all [directory]`
 
 Rebuild all `.atf` files in a directory (recursive).
@@ -216,7 +212,7 @@ atf watch document.atf
 atf unwatch document.atf
 ```
 
-**Watch mode runs in the background** - you can close the terminal and it keeps running (uses a daemon process).
+**Watch mode runs in the foreground** - keep the terminal open while watching.
 
 ### `atf unwatch <file>`
 
@@ -240,12 +236,15 @@ atf validate document.atf
 ```
 
 **Checks:**
-- ✓ Has format declaration (`:::ATF/1.0`)
-- ✓ Has INDEX and CONTENT sections
-- ✓ All section IDs are unique
-- ✓ INDEX matches CONTENT
-- ✓ Line numbers are accurate
-- ✓ Timestamps are valid
+- Has format declaration (`:::ATF/1.0`)
+- Has INDEX section (warns if missing)
+- Has CONTENT section
+- INDEX/CONTENT sections are unique and ordered correctly
+- INDEX Content-Hash matches CONTENT (warns if missing)
+- INDEX entries match CONTENT sections and line ranges
+- CONTENT has no lines outside section blocks
+- All section IDs are unique
+- All sections are properly closed
 
 **Exit codes:**
 - `0` - File is valid
@@ -291,29 +290,19 @@ Each section can have:
 
 All are optional but recommended.
 
+**Nesting limit:** This implementation enforces a maximum depth of 2 (section + subsection).
+
 ---
 
 ## Watch Mode Details
 
 **Question: How long does watch mode run?**
 
-**Answer:** Watch mode creates a background daemon that runs until:
+**Answer:** Watch runs in the foreground and stops when:
 
 1. **You explicitly stop it:** `atf unwatch <file>`
-2. **Terminal closes:** If you close the terminal, daemon continues running
-3. **System restarts:** Daemon stops on reboot (not persistent across reboots)
-
-**To make watch persistent across reboots:**
-
-```bash
-# macOS/Linux
-atf watch --persistent document.atf
-# Creates system service that auto-starts on boot
-
-# Windows
-atf watch --persistent document.atf
-# Registers as Windows Service
-```
+2. **You press Ctrl+C**
+3. **Terminal closes**
 
 **Check what's being watched:**
 ```bash
