@@ -1,0 +1,80 @@
+# Binaries
+dist/
+*.exe
+*.dll
+*.so
+*.dylib
+atf
+atf-*
+
+# Go
+go/atf
+*.test
+*.out
+go.sum
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+*.pyc
+
+# Installer build artifacts
+installers/windows/*.msi
+installers/windows/*.wixobj
+installers/windows/*.wixpdb
+installers/windows/atf.exe
+installers/windows/README.txt
+installers/windows/LICENSE.txt
+installers/windows/License.rtf
+installers/windows/atf-versioned.wxs
+
+installers/macos/*.pkg
+installers/macos/atf
+installers/macos/package-root/
+installers/macos/distribution.xml
+installers/macos/welcome.html
+installers/macos/license.html
+installers/macos/conclusion.html
+
+installers/linux/*.deb
+installers/linux/*.rpm
+installers/linux/atf-tools_*/
+~/rpmbuild/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+
+# Test files
+test.atf
+temp*.atf
