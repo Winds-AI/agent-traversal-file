@@ -31,64 +31,64 @@ Copy-Item $BinaryPath "atf.exe" -Force
 
 # Create README.txt
 Write-Host "Creating documentation..." -ForegroundColor Cyan
-$readme = @"
-ATF Tools v$Version
-
-Agent Traversable File - Self-indexing documents for AI agents
-
-USAGE:
-  atf rebuild <file>              Rebuild index for a file
-  atf rebuild-all [directory]     Rebuild all .atf files
-  atf watch <file>                Watch and auto-rebuild
-  atf unwatch <file>              Stop watching
-  atf validate <file>             Validate file
-
-EXAMPLES:
-  atf rebuild document.atf
-  atf rebuild-all ./docs
-  atf watch api-reference.atf
-
-DOCUMENTATION:
-  https://github.com/atf-tools/atf
-
-LICENSE: MIT
-"@
-$readme | Out-File -FilePath "README.txt" -Encoding utf8
+$readmeLines = @(
+    "ATF Tools v$Version",
+    "",
+    "Agent Traversable File - Self-indexing documents for AI agents",
+    "",
+    "USAGE:",
+    "  atf rebuild <file>              Rebuild index for a file",
+    "  atf rebuild-all [directory]     Rebuild all .atf files",
+    "  atf watch <file>                Watch and auto-rebuild",
+    "  atf unwatch <file>              Stop watching",
+    "  atf validate <file>             Validate file",
+    "",
+    "EXAMPLES:",
+    "  atf rebuild document.atf",
+    "  atf rebuild-all ./docs",
+    "  atf watch api-reference.atf",
+    "",
+    "DOCUMENTATION:",
+    "  https://github.com/atf-tools/atf",
+    "",
+    "LICENSE: MIT"
+)
+$readmeLines -join "`r`n" | Out-File -FilePath "README.txt" -Encoding utf8
 
 # Create LICENSE.txt
 Copy-Item "..\..\LICENSE" "LICENSE.txt" -ErrorAction SilentlyContinue
 
 # Create License.rtf for installer
 Write-Host "Creating license RTF..." -ForegroundColor Cyan
-$licenseRtf = @"
-{\rtf1\ansi\deff0
-{\fonttbl{\f0\fswiss Arial;}}
-{\colortbl;\red0\green0\blue0;}
-\f0\fs20
-MIT License\par
-\par
-Copyright (c) 2025 ATF Project\par
-\par
-Permission is hereby granted, free of charge, to any person obtaining a copy\par
-of this software and associated documentation files (the "Software"), to deal\par
-in the Software without restriction, including without limitation the rights\par
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\par
-copies of the Software, and to permit persons to whom the Software is\par
-furnished to do so, subject to the following conditions:\par
-\par
-The above copyright notice and this permission notice shall be included in all\par
-copies or substantial portions of the Software.\par
-\par
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\par
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\par
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\par
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\par
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\par
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\par
-SOFTWARE.\par
-}
-"@
-$licenseRtf | Out-File -FilePath "License.rtf" -Encoding ascii
+$licenseLines = @(
+    '{\\rtf1\\ansi\\deff0',
+    '{\\fonttbl{\\f0\\fswiss Arial;}}',
+    '{\\colortbl;\\red0\\green0\\blue0;}',
+    '\\f0\\fs20',
+    'MIT License\\par',
+    '\\par',
+    'Copyright (c) 2025 ATF Project\\par',
+    '\\par',
+    'Permission is hereby granted, free of charge, to any person obtaining a copy\\par',
+    'of this software and associated documentation files (the "Software"), to deal\\par',
+    'in the Software without restriction, including without limitation the rights\\par',
+    'to use, copy, modify, merge, publish, distribute, sublicense, and/or sell\\par',
+    'copies of the Software, and to permit persons to whom the Software is\\par',
+    'furnished to do so, subject to the following conditions:\\par',
+    '\\par',
+    'The above copyright notice and this permission notice shall be included in all\\par',
+    'copies or substantial portions of the Software.\\par',
+    '\\par',
+    'THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR\\par',
+    'IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,\\par',
+    'FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE\\par',
+    'AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER\\par',
+    'LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\\par',
+    'OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\\par',
+    'SOFTWARE.\\par',
+    '}'
+)
+$licenseLines -join "`r`n" | Out-File -FilePath "License.rtf" -Encoding ascii
 
 # Update version in WXS file
 Write-Host "Updating version in WXS..." -ForegroundColor Cyan

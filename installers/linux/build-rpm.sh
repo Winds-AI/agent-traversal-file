@@ -21,9 +21,16 @@ fi
 build_rpm() {
     local ARCH=$1
     local BINARY=$2
+    local HOST_ARCH
     
     echo ""
     echo "Building RPM for $ARCH..."
+
+    HOST_ARCH=$(rpmbuild --eval '%{_host_cpu}' 2>/dev/null || echo "")
+    if [ -n "$HOST_ARCH" ] && [ "$ARCH" != "$HOST_ARCH" ]; then
+        echo "Warning: Host architecture $HOST_ARCH cannot build $ARCH RPM, skipping"
+        return
+    fi
     
     # Check binary exists
     if [ ! -f "$BINARY" ]; then
