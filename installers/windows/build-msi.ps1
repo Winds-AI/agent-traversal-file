@@ -116,7 +116,7 @@ Write-Host "Cleaning up..." -ForegroundColor Cyan
 Remove-Item "atf.exe", "atf.wixobj", "atf-versioned.wxs", "ATF-Tools-$Version.wixpdb" -ErrorAction SilentlyContinue
 
 Write-Host ""
-Write-Host "✓ Installer created: ATF-Tools-$Version.msi" -ForegroundColor Green
+Write-Host "Installer created: ATF-Tools-$Version.msi" -ForegroundColor Green
 Write-Host ""
 Write-Host "Test it:" -ForegroundColor Yellow
 Write-Host "  msiexec /i ATF-Tools-$Version.msi" -ForegroundColor Cyan
