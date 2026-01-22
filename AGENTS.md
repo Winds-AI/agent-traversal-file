@@ -24,7 +24,12 @@
 
 ## Testing Guidelines
 - No dedicated test suite is present yet. Validate changes by running the five commands (rebuild, rebuild-all, watch, unwatch, validate) on files in `examples/`.
+- Always do manual testing for task requirements in both implementations: build/run/validate with the Go CLI and run the equivalent commands with the Python CLI.
 - Go tests are noted as TODO; `go test` should remain clean if added.
+
+## Documentation Guidelines
+- Do not repeat information across docs. If something is explained in one place, reference it rather than duplicating.
+- Keep docs DRY (Don't Repeat Yourself) - single source of truth for each concept.
 
 ## Commit & Pull Request Guidelines
 - Auto commits and PR's NOT ALLOWED.

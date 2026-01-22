@@ -1,0 +1,75 @@
+:::ATF/1.0
+@title: Checklist Example
+@purpose: Manual test coverage for lists, code blocks, and metadata
+
+
+
+
+===INDEX===
+<!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
+<!-- Generated: 2026-01-22T13:18:40Z -->
+<!-- Content-Hash: sha256:34e666c -->
+
+# Setup Checklist {#setup | lines:28-43 | words:48}
+> Setup checklist for local testing
+  Created: 2025-01-20 | Modified: 2026-01-22
+
+# Workflow {#workflow | lines:45-63 | words:38}
+> Typical workflow with commands
+  Created: 2025-01-20 | Modified: 2026-01-22
+
+# Acceptance Criteria {#acceptance | lines:65-75 | words:21}
+> Acceptance criteria for manual testing
+  Created: 2025-01-20 | Modified: 2026-01-22
+
+
+===CONTENT===
+
+{#setup}
+@summary: Setup checklist for local testing
+@created: 2025-01-20
+@modified: 2026-01-22
+@hash: 31d7a93
+# Setup Checklist
+
+- [ ] Confirm Go is installed
+- [ ] Confirm Python 3 is installed
+- [ ] Build the Go CLI
+- [ ] Run a sample rebuild
+
+Notes:
+- Keep the terminal in the repo root
+- Use `examples/simple.atf` for quick sanity checks
+{/setup}
+
+{#workflow}
+@summary: Typical workflow with commands
+@created: 2025-01-20
+@modified: 2026-01-22
+@hash: 4eee73b
+# Workflow
+
+1. Build the CLI
+2. Rebuild the file
+3. Validate structure
+
+```bash
+go build -o atf ./go
+./atf rebuild examples/checklist.atf
+./atf validate examples/checklist.atf
+```
+
+Expected output should include a successful rebuild message and no validation errors.
+{/workflow}
+
+{#acceptance}
+@summary: Acceptance criteria for manual testing
+@created: 2025-01-20
+@modified: 2026-01-22
+@hash: 14743a8
+# Acceptance Criteria
+
+- Rebuild completes without errors
+- Validate reports correct INDEX/CONTENT structure
+- Section counts match the INDEX entries
+{/acceptance}

@@ -1,0 +1,78 @@
+:::ATF/1.0
+@title: Incident Playbook Example
+@purpose: Test timelines, inline code, and prose-heavy sections
+
+
+
+
+===INDEX===
+<!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
+<!-- Generated: 2026-01-22T13:18:40Z -->
+<!-- Content-Hash: sha256:914d3c1 -->
+
+# Incident Timeline {#incident | lines:28-41 | words:38}
+> Incident response timeline template
+  Created: 2025-01-20 | Modified: 2026-01-22
+
+# Rollback Steps {#rollback | lines:43-59 | words:37}
+> Rollback steps with commands
+  Created: 2025-01-20 | Modified: 2026-01-22
+
+# Action Items {#postmortem | lines:61-78 | words:45}
+> Post-incident writeup outline
+  Created: 2025-01-20 | Modified: 2026-01-22
+
+
+===CONTENT===
+
+{#incident}
+@summary: Incident response timeline template
+@created: 2025-01-20
+@modified: 2026-01-22
+@hash: f036dfc
+# Incident Timeline
+
+- T+00m: Detect alert and declare incident
+- T+05m: Assign incident commander and scribe
+- T+15m: Share initial customer update
+- T+30m: Identify mitigation steps
+
+Keep all timestamps in UTC and link the primary ticket.
+{/incident}
+
+{#rollback}
+@summary: Rollback steps with commands
+@created: 2025-01-20
+@modified: 2026-01-22
+@hash: b2c29a1
+# Rollback Steps
+
+1. Pause deploys for the affected service
+2. Roll back to the last known good release
+3. Validate service health
+
+```bash
+./deploy freeze
+./deploy rollback --service api --to release-2025-01-18
+./deploy status --service api
+```
+{/rollback}
+
+{#postmortem}
+@summary: Post-incident writeup outline
+@created: 2025-01-20
+@modified: 2026-01-22
+@hash: 4ab0c91
+# Postmortem Outline
+
+## Summary
+Describe impact and duration in two or three sentences.
+
+## Root Cause
+List primary causes and contributing factors.
+
+## Action Items
+- [ ] Patch the root cause
+- [ ] Add monitoring
+- [ ] Document the runbook change
+{/postmortem}

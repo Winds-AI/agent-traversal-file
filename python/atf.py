@@ -39,6 +39,71 @@ VERSION = "1.0.0"
 WATCH_STATE_FILE = Path.home() / ".atf" / "watch.json"
 
 
+def is_process_running(pid: int) -> bool:
+    """Check if a process with the given PID is running."""
+    try:
+        os.kill(pid, 0)
+        return True
+    except OSError:
+        return False
+
+
+def prompt_user_confirmation(message: str, default: bool = False) -> bool:
+    """Prompt user for yes/no confirmation. Reads from piped input if available."""
+    prompt_suffix = "[y/N]" if not default else "[Y/n]"
+
+    try:
+        if not sys.stdin.isatty():
+            return default
+        # Print prompt (works for both interactive and piped input)
+        print(f"{message} {prompt_suffix}: ", end="", flush=True)
+        response = sys.stdin.readline().strip().lower()
+        if response == "":
+            return default
+        return response in ("y", "yes")
+    except (EOFError, KeyboardInterrupt):
+        print()
+        return False
+
+
+def check_watched_file(filepath: Path) -> bool:
+    """
+    Check if a file is being watched by another process.
+    Returns True if rebuild should proceed, False if cancelled.
+    """
+    if not WATCH_STATE_FILE.exists():
+        return True
+
+    try:
+        watch_state = json.loads(WATCH_STATE_FILE.read_text())
+    except Exception:
+        return True
+
+    abs_path = str(filepath.resolve())
+    if abs_path not in watch_state:
+        return True
+
+    info = watch_state[abs_path]
+    pid = info.get("pid")
+
+    # If no PID field (old format) or PID is not running, proceed
+    if pid is None or not is_process_running(pid):
+        return True
+
+    # File is being watched by a running process
+    print(f"\nWarning: This file is being watched by another process (PID {pid})")
+    print("A manual rebuild will trigger an automatic rebuild from the watch process.")
+    print("This will cause the file to be rebuilt twice.")
+    print()
+    print("Options:")
+    print("  - Press 'y' to proceed with manual rebuild anyway")
+    print("  - Press 'N' (default) to cancel")
+    print(f"  - Run 'atf unwatch {filepath}' to stop watching first")
+    print()
+
+    return prompt_user_confirmation("Continue with manual rebuild?", default=False)
+
+
 class ATFSection:
     """Represents a section in an ATF document"""
 
@@ -383,6 +448,11 @@ def rebuild_command(filepath: str) -> int:
         print(f"Error: File not found: {filepath}", file=sys.stderr)
         return 1
 
+    # Check if file is being watched by another process
+    if not check_watched_file(path):
+        print("Rebuild cancelled, no changes made.")
+        return 1
+
     if not path.suffix == ".atf":
         print(f"Warning: File doesn't have .atf extension: {filepath}", file=sys.stderr)
 
@@ -442,13 +512,34 @@ def watch_command(filepath: str) -> int:
     else:
         watch_state = {}
 
-    # Add to watch list
+    # Add to watch list with PID
     watch_state[str(path)] = {
         "started": datetime.now().isoformat(),
         "last_modified": path.stat().st_mtime,
+        "pid": os.getpid(),
     }
 
     WATCH_STATE_FILE.write_text(json.dumps(watch_state, indent=2))
+
+    # Cleanup function to remove PID from watch state
+    def cleanup_pid():
+        try:
+            if WATCH_STATE_FILE.exists():
+                current_state = json.loads(WATCH_STATE_FILE.read_text())
+                if str(path) in current_state:
+                    # Only remove if it's still our PID
+                    if current_state[str(path)].get("pid") == os.getpid():
+                        del current_state[str(path)]
+                        WATCH_STATE_FILE.write_text(json.dumps(current_state, indent=2))
+        except Exception:
+            pass  # Best effort cleanup
+
+    # Register signal handler for SIGTERM
+    def sigterm_handler(signum, frame):
+        cleanup_pid()
+        sys.exit(0)
+
+    signal.signal(signal.SIGTERM, sigterm_handler)
 
     print(f"Started watching: {filepath}")
     print(f"File will auto-rebuild on save")
@@ -464,9 +555,13 @@ def watch_command(filepath: str) -> int:
             try:
                 watch_state = json.loads(WATCH_STATE_FILE.read_text())
             except Exception:
-                watch_state = {}
+                # Watch state corrupt or unreadable - cleanup and exit
+                cleanup_pid()
+                print(f"\nWatch state file corrupt or unreadable, stopping watch")
+                break
 
             if str(path) not in watch_state:
+                # Entry removed by unwatch command - no cleanup needed
                 print(f"\nWatch stopped via unwatch: {filepath}")
                 break
 
@@ -483,10 +578,12 @@ def watch_command(filepath: str) -> int:
                         print(f"  ✗ Rebuild failed")
                     last_mtime = current_mtime
             except FileNotFoundError:
+                cleanup_pid()
                 print(f"\nWarning: File no longer exists: {filepath}")
                 break
 
     except KeyboardInterrupt:
+        cleanup_pid()
         print(f"\n\nWatch stopped")
         print(f"To resume: atf watch {filepath}")
         print(f"To stop permanently: atf unwatch {filepath}")
@@ -770,7 +867,11 @@ def validate_command(filepath: str) -> int:
                         actual_hash = hashlib.sha256(
                             content_text.encode("utf-8")
                         ).hexdigest()
-                        if actual_hash != expected_hash:
+                        if len(expected_hash) == 7:
+                            hash_matches = actual_hash.startswith(expected_hash)
+                        else:
+                            hash_matches = actual_hash == expected_hash
+                        if not hash_matches:
                             warnings.append(
                                 "INDEX Content-Hash does not match CONTENT (index may be stale)"
                             )

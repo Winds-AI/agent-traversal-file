@@ -274,6 +274,16 @@ atf unwatch document.atf
 
 **Watch mode runs in the foreground** - keep the terminal open while watching.
 
+**Rebuild warning:** If you run `atf rebuild` on a file that's being watched, you'll see a warning:
+```
+Warning: This file is being watched by another process (PID 12345)
+A manual rebuild will trigger an automatic rebuild from the watch process.
+This will cause the file to be rebuilt twice.
+
+Continue with manual rebuild? [y/N]:
+```
+This prevents accidental double rebuilds. Press `y` to proceed anyway, or `n` to cancel.
+
 ### `atf unwatch <file>`
 
 Stop watching a specific file.
@@ -373,6 +383,8 @@ atf watch --list
 #   /path/to/document.atf (since 2025-01-20 10:30:00)
 #   /path/to/other.atf (since 2025-01-20 11:15:00)
 ```
+
+**Watch state file:** `~/.atf/watch.json` tracks watched files and their PIDs for the rebuild warning feature.
 
 ---
 

@@ -1,14 +1,17 @@
 package main
 
 import (
+	"bufio"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"regexp"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -33,6 +36,7 @@ type WatchState map[string]WatchInfo
 type WatchInfo struct {
 	Started      string  `json:"started"`
 	LastModified float64 `json:"last_modified"`
+	PID          int     `json:"pid,omitempty"`
 }
 
 func validateNesting(lines []string, contentStart int) error {
@@ -534,6 +538,12 @@ func rebuildCommand(filepath string) int {
 		return 1
 	}
 
+	// Check if file is being watched by another process
+	if !checkWatchedFile(filepath) {
+		fmt.Println("Rebuild cancelled, no changes made.")
+		return 1
+	}
+
 	fmt.Printf("Rebuilding index: %s\n", filepath)
 
 	if err := rebuildIndex(filepath); err != nil {
@@ -625,6 +635,69 @@ func saveWatchState(state WatchState) error {
 	return os.WriteFile(stateFile, data, 0644)
 }
 
+func promptUserConfirmation(message string, defaultValue bool) bool {
+	promptSuffix := "[y/N]"
+	if defaultValue {
+		promptSuffix = "[Y/n]"
+	}
+
+	// Check if stdin is a terminal
+	stat, _ := os.Stdin.Stat()
+	if (stat.Mode() & os.ModeCharDevice) == 0 {
+		// Not a terminal - return default to avoid hanging in CI/scripts
+		return defaultValue
+	}
+
+	// Interactive terminal
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Printf("%s %s: ", message, promptSuffix)
+	response, err := reader.ReadString('\n')
+	if err != nil {
+		fmt.Println()
+		return false
+	}
+	response = strings.TrimSpace(strings.ToLower(response))
+	if response == "" {
+		return defaultValue
+	}
+	return response == "y" || response == "yes"
+}
+
+func checkWatchedFile(filePath string) bool {
+	state, err := loadWatchState()
+	if err != nil {
+		return true
+	}
+
+	absPath, err := filepath.Abs(filePath)
+	if err != nil {
+		return true
+	}
+
+	info, exists := state[absPath]
+	if !exists {
+		return true
+	}
+
+	// If no PID field (old format) or PID is not running, proceed
+	if info.PID == 0 || !isProcessRunning(info.PID) {
+		return true
+	}
+
+	// File is being watched by a running process
+	fmt.Printf("\nWarning: This file is being watched by another process (PID %d)\n", info.PID)
+	fmt.Println("A manual rebuild will trigger an automatic rebuild from the watch process.")
+	fmt.Println("This will cause the file to be rebuilt twice.")
+	fmt.Println()
+	fmt.Println("Options:")
+	fmt.Println("  - Press 'y' to proceed with manual rebuild anyway")
+	fmt.Println("  - Press 'N' (default) to cancel")
+	fmt.Printf("  - Run 'atf unwatch %s' to stop watching first\n", filePath)
+	fmt.Println()
+
+	return promptUserConfirmation("Continue with manual rebuild?", false)
+}
+
 func watchCommand(filePath string) int {
 	absPath, err := filepath.Abs(filePath)
 	if err != nil {
@@ -643,16 +716,37 @@ func watchCommand(filePath string) int {
 		return 1
 	}
 
+	pid := os.Getpid()
 	info, _ := os.Stat(absPath)
 	state[absPath] = WatchInfo{
 		Started:      time.Now().Format(time.RFC3339),
 		LastModified: float64(info.ModTime().Unix()),
+		PID:          pid,
 	}
 
 	if err := saveWatchState(state); err != nil {
 		fmt.Fprintf(os.Stderr, "Error saving watch state: %v\n", err)
 		return 1
 	}
+
+	// Cleanup function to remove PID from watch state
+	cleanupPID := func() {
+		currentState, err := loadWatchState()
+		if err != nil {
+			return
+		}
+		if watchInfo, exists := currentState[absPath]; exists {
+			// Only remove if it's still our PID
+			if watchInfo.PID == pid {
+				delete(currentState, absPath)
+				saveWatchState(currentState)
+			}
+		}
+	}
+
+	// Setup signal handling for cleanup
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
 	fmt.Printf("Started watching: %s\n", filePath)
 	fmt.Println("File will auto-rebuild on save")
@@ -663,33 +757,41 @@ func watchCommand(filePath string) int {
 	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
-	for range ticker.C {
-		state, err := loadWatchState()
-		if err == nil {
-			if _, exists := state[absPath]; !exists {
-				fmt.Printf("\nWatch stopped via unwatch: %s\n", filePath)
-				break
+	for {
+		select {
+		case <-sigChan:
+			cleanupPID()
+			fmt.Println("\n\nWatch stopped")
+			fmt.Printf("To resume: atf watch %s\n", filePath)
+			fmt.Printf("To stop permanently: atf unwatch %s\n", filePath)
+			return 0
+		case <-ticker.C:
+			state, err := loadWatchState()
+			if err == nil {
+				if _, exists := state[absPath]; !exists {
+					fmt.Printf("\nWatch stopped via unwatch: %s\n", filePath)
+					return 0
+				}
 			}
-		}
 
-		currentInfo, err := os.Stat(absPath)
-		if err != nil {
-			fmt.Printf("\nWarning: File no longer exists: %s\n", filePath)
-			break
-		}
-
-		if currentInfo.ModTime().After(lastMod) {
-			fmt.Printf("\n[%s] File changed, rebuilding...\n", time.Now().Format("15:04:05"))
-			if err := rebuildIndex(absPath); err != nil {
-				fmt.Printf("  ✗ Rebuild failed: %v\n", err)
-			} else {
-				fmt.Println("  ✓ Index rebuilt")
+			currentInfo, err := os.Stat(absPath)
+			if err != nil {
+				cleanupPID()
+				fmt.Printf("\nWarning: File no longer exists: %s\n", filePath)
+				return 0
 			}
-			lastMod = currentInfo.ModTime()
+
+			if currentInfo.ModTime().After(lastMod) {
+				fmt.Printf("\n[%s] File changed, rebuilding...\n", time.Now().Format("15:04:05"))
+				if err := rebuildIndex(absPath); err != nil {
+					fmt.Printf("  ✗ Rebuild failed: %v\n", err)
+				} else {
+					fmt.Println("  ✓ Index rebuilt")
+				}
+				lastMod = currentInfo.ModTime()
+			}
 		}
 	}
-
-	return 0
 }
 
 func unwatchCommand(filePath string) int {
@@ -1005,7 +1107,13 @@ func validateCommand(filepath string) int {
 					contentText := strings.Join(lines[contentStart:], "\n")
 					sum := sha256.Sum256([]byte(contentText))
 					actualHash := hex.EncodeToString(sum[:])
-					if actualHash != expectedHash {
+					hashMatches := false
+					if len(expectedHash) == 7 {
+						hashMatches = strings.HasPrefix(actualHash, expectedHash)
+					} else {
+						hashMatches = actualHash == expectedHash
+					}
+					if !hashMatches {
 						warnings = append(warnings, "INDEX Content-Hash does not match CONTENT (index may be stale)")
 					}
 				}

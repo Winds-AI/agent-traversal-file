@@ -11,20 +11,25 @@
 
 
 
+
+
+
+
+
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-01-22T06:10:49Z -->
+<!-- Generated: 2026-01-22T13:12:12Z -->
 <!-- Content-Hash: sha256:388d3bf -->
 
-# How It Works {#intro | lines:34-55 | words:71}
+# How It Works {#intro | lines:39-60 | words:71}
 > Introduction to ATF format
   Created: 2025-01-20 | Modified: 2025-01-20
 
-# Validate {#usage | lines:57-85 | words:39}
+# Validate {#usage | lines:62-90 | words:39}
 > Basic usage examples
   Created: 2025-01-20 | Modified: 2025-01-20
 
-# Next Steps {#next-steps | lines:87-100 | words:29}
+# Next Steps {#next-steps | lines:92-105 | words:29}
 > What to do next
   Created: 2025-01-20 | Modified: 2025-01-20
 
