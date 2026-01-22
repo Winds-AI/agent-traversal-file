@@ -74,6 +74,30 @@ irm https://raw.githubusercontent.com/atf-tools/atf/main/install/install.ps1 | i
 - [macOS Apple Silicon](https://github.com/atf-tools/atf/releases/latest/download/atf-darwin-arm64)
 - [Linux](https://github.com/atf-tools/atf/releases/latest/download/atf-linux-amd64)
 
+**After downloading the binary:**
+
+**Linux/macOS:**
+```bash
+# Navigate to download location (usually ~/Downloads)
+cd ~/Downloads
+
+# Make executable and install
+chmod +x atf-*
+sudo mv atf-* /usr/local/bin/atf
+
+# Verify installation
+atf --help
+```
+
+**Windows:**
+1. Rename `atf-windows-amd64.exe` to `atf.exe`
+2. Move to `C:\Program Files\ATF\` (or any folder you prefer)
+3. Add that folder to your system PATH:
+   - Search "Environment Variables" in Start menu
+   - Edit "Path" under System variables
+   - Add the folder path
+   - Restart terminal
+
 ### Usage
 
 ```bash
@@ -91,6 +115,30 @@ atf unwatch document.atf
 
 # Validate file structure
 atf validate document.atf
+```
+
+### Uninstalling
+
+**If installed via script:**
+
+```bash
+# Linux/macOS
+sudo rm /usr/local/bin/atf
+# Or if installed to ~/.local/bin
+rm ~/.local/bin/atf
+```
+
+```powershell
+# Windows (PowerShell as Administrator)
+Remove-Item "$env:LOCALAPPDATA\Programs\atf\atf.exe"
+```
+
+**If installed manually:**
+```bash
+# Linux/macOS - remove from wherever you placed it
+sudo rm /usr/local/bin/atf
+
+# Windows - delete the folder you created and remove from PATH
 ```
 
 ---
