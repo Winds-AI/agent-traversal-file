@@ -31,7 +31,7 @@ Copy-Item $BinaryPath "atf.exe" -Force
 
 # Create README.txt
 Write-Host "Creating documentation..." -ForegroundColor Cyan
-@"
+$readme = @"
 ATF Tools v$Version
 
 Agent Traversable File - Self-indexing documents for AI agents
@@ -52,14 +52,15 @@ DOCUMENTATION:
   https://github.com/atf-tools/atf
 
 LICENSE: MIT
-"@ | Out-File -FilePath "README.txt" -Encoding utf8
+"@
+$readme | Out-File -FilePath "README.txt" -Encoding utf8
 
 # Create LICENSE.txt
 Copy-Item "..\..\LICENSE" "LICENSE.txt" -ErrorAction SilentlyContinue
 
 # Create License.rtf for installer
 Write-Host "Creating license RTF..." -ForegroundColor Cyan
-@"
+$licenseRtf = @"
 {\rtf1\ansi\deff0
 {\fonttbl{\f0\fswiss Arial;}}
 {\colortbl;\red0\green0\blue0;}
@@ -86,7 +87,8 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,\pa
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE\par
 SOFTWARE.\par
 }
-"@ | Out-File -FilePath "License.rtf" -Encoding ascii
+"@
+$licenseRtf | Out-File -FilePath "License.rtf" -Encoding ascii
 
 # Update version in WXS file
 Write-Host "Updating version in WXS..." -ForegroundColor Cyan

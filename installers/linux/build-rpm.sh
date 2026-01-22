@@ -169,10 +169,15 @@ EOF
     # Build RPM
     rpmbuild -bb ~/rpmbuild/SPECS/atf-tools.spec --target "$ARCH"
     
-    # Copy RPM to current directory
-    cp ~/rpmbuild/RPMS/$ARCH/atf-tools-${VERSION}-1.*.${ARCH}.rpm .
+    # Copy RPM to current directory (dist tag may be empty or include .fcXX)
+    rpm_source=$(ls ~/rpmbuild/RPMS/$ARCH/atf-tools-${VERSION}-1*.${ARCH}.rpm 2>/dev/null | head -n 1)
+    if [ -z "$rpm_source" ]; then
+        echo "Error: RPM not found for $ARCH"
+        return 1
+    fi
+    cp "$rpm_source" .
     
-    echo "✓ Created: atf-tools-${VERSION}-1.*.${ARCH}.rpm"
+    echo "✓ Created: $(basename "$rpm_source")"
 }
 
 # Build for both architectures
