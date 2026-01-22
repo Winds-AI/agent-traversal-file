@@ -10,10 +10,12 @@
 
 ## Build, Test, and Development Commands
 - Ensure Go is in your PATH
-- Build binary: `go build -o atf main.go`
+- Build binary: `go build -o atf ./go` (run from repository root)
 - Run commands: `./atf rebuild examples/simple.atf`
 - Validate: `./atf validate examples/simple.atf`
 - Python alternative: `python python/atf.py rebuild examples/simple.atf`
+- **Note:** All commands above are intended to be run from the repository root directory
+- **Windows users:** Use `atf.exe` instead of `atf` in commands, and the build command produces `atf.exe`: `go build -o atf.exe ./go`
 
 ## Coding Style & Naming Conventions
 - Python: PEP 8, 4-space indentation, type hints where helpful, and docstrings for functions.
