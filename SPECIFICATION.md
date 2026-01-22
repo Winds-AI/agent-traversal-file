@@ -108,13 +108,13 @@ The index section begins with:
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
 <!-- Generated: 2025-01-19T10:30:00Z -->
-<!-- Content-Hash: sha256:abc123... -->
+<!-- Content-Hash: sha256:a7f3b9c -->
 ```
 
 **Generation Metadata** (required for auto-generated files):
-- `<!-- AUTO-GENERATED -->` marker warns users not to edit manually
-- `<!-- Generated: TIMESTAMP -->` ISO 8601 timestamp of generation
-- `<!-- Content-Hash: ALGORITHM:HASH -->` hash of CONTENT section for staleness detection
+- `<!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->` marker warns users not to edit manually
+- `<!-- Generated: TIMESTAMP -->` ISO 8601 timestamp of generation in format `YYYY-MM-DDTHH:MM:SSZ`
+- `<!-- Content-Hash: ALGORITHM:HASH -->` truncated hash (7 chars, Git-style) of CONTENT section for staleness detection
 
 ### 3.2 Index Entry Syntax
 
@@ -143,7 +143,7 @@ Each index entry follows this format:
 3. **Metadata Block** (Required): `{...}`
    - `#id` (Required): Unique identifier, alphanumeric with hyphens
    - `lines:start-end` (Required): Line range in content section
-   - `words:count` (Optional): Word count of section
+   - `words:count` (Required): Word count of section content
 4. **Summary** (Optional): Lines starting with `>` immediately after entry
 
 #### Examples
@@ -216,9 +216,45 @@ Actual content starts here...
 
 **Reserved annotations**:
 - `@summary:` - Description shown in index (can span multiple lines if continued with indentation)
+- `@created:` - Section creation date (YYYY-MM-DD format)
+- `@modified:` - Last modification date (YYYY-MM-DD format, automatically updated when content changes)
 - `@tags:` - Comma-separated keywords for searching
 - `@author:` - Section author
+- `@x-hash:` - Internal content hash (auto-generated, do not edit manually)
 - `@x-*` - Custom metadata (preserved but not processed)
+
+**Automatic Modification Tracking**:
+When `atf rebuild` runs, it automatically updates the `@modified` date if the section's content has changed:
+1. Computes a hash of the actual content (excluding metadata annotations)
+2. Compares with the stored `@x-hash` from the previous rebuild
+3. If different, updates `@modified` to today's date
+4. Updates `@x-hash` with the new hash
+
+This allows you to track when sections were last edited without manual updates.
+
+**Example**:
+```
+{#intro}
+@summary: Introduction guide
+@created: 2025-01-20
+@modified: 2025-01-20
+@x-hash: a7f3b9c
+# Introduction
+Hello world.
+{/intro}
+```
+
+After editing "Hello world" to "Hello world! Welcome!":
+```
+{#intro}
+@summary: Introduction guide
+@created: 2025-01-20
+@modified: 2025-01-21        ← Auto-updated!
+@x-hash: bf5d286              ← New hash
+# Introduction
+Hello world! Welcome!
+{/intro}
+```
 
 ### 4.3 Content Format
 
@@ -309,7 +345,9 @@ For clarity, child sections MAY use parent prefix:
 
 ## 7. Escaping
 
-### 7.1 Special Characters in Content
+**Note**: Escape character functionality is planned for future versions but not currently implemented in v1.0.0.
+
+### 7.1 Special Characters in Content (Future Enhancement)
 
 If content contains ATF markers, escape with backslash:
 
@@ -320,7 +358,7 @@ The index delimiter is \===INDEX===
 {/example}
 ```
 
-### 7.2 Literal Braces
+### 7.2 Literal Braces (Future Enhancement)
 
 Use double braces for literal single braces:
 
@@ -329,6 +367,8 @@ Use double braces for literal single braces:
 JavaScript object: {{ key: "value" }}
 {/code}
 ```
+
+**Workaround**: Until escape characters are implemented, avoid using ATF syntax markers (`{#id}`, `{/id}`, `===INDEX===`, `===CONTENT===`) in your content text, or use alternative representations (e.g., code blocks with language-specific escaping).
 
 ## 8. Whitespace
 

@@ -68,6 +68,10 @@ installers/linux/atf-tools_*/
 *~
 .DS_Store
 
+# AI Code Tools
+opencode.jsonc
+.claude/*
+
 # OS
 Thumbs.db
 .DS_Store
@@ -78,3 +82,7 @@ Thumbs.db
 # Test files
 test.atf
 temp*.atf
+
+
+# Documentation
+HOW_TO_PUBLISH.md

@@ -2,7 +2,7 @@
 
 **A file format designed for AI agents to efficiently navigate large documents.**
 
-> **📍 Project Location:** `S:\Random_stuff\agent-traversal-file`  
+> **📍 Project Location:** `S:\Random_stuff\agent-traversal-file`
 > **📝 Abbreviation:** ATF (Agent Traversable File)
 
 [![Latest Release](https://img.shields.io/github/v/release/atf-tools/atf)](https://github.com/atf-tools/atf/releases)
@@ -16,7 +16,20 @@ AI agents struggle with large documents:
 - ❌ **Token limits** - Can't load entire 10,000-line documents
 - ❌ **Wasted tokens** - Loading everything to find one section
 - ❌ **No navigation** - No standardized way to jump to sections
+- ❌ **No references** - No way to reference sections to other sections reliably.
 - ❌ **Blind loading** - Must read content to know what it contains
+
+At least till someone solves long term memory.
+
+If your question is WHY? THEN
+yes we can use folder and file structure to define multiple nested files so that we don't have to use .atf but i don't like that and it's hard to navigate for me and my ADHD brain said let's build a overengineered solution for this.
+
+We can also use JSON's and MD's with seperate index file but that will not be much useful in long running tasks, the goal here is to function as a kind of harness for a model so that if it updates the content section or any human updates the content section, the index should be updated automatically and the scope of work or any document stays aligned. Sure for now agent can corrupt a file because training data does not have enough info about the standard so i am exploring that space also to make agentic coding more efficient in any way possible.
+
+## About Me
+
+I am not a high level software engineer, i am just a guy who likes AI Assisted coding to build things and explore new ideas.
+Idea is mine but ALL of the code in this is written and tested by either claude or codex so it can have bugs. I am open to critisms and suggestions about this idea.
 
 ## The Solution
 

@@ -51,8 +51,11 @@ class ATFSection:
         self.summary = ""
         self.created = ""
         self.modified = ""
+        self.x_hash = ""
+        self.word_count = 0
         self.in_header = True
         self.summary_continuation = False
+        self.content_lines = []  # Actual content (excluding metadata)
 
 
 def parse_content_section(lines: List[str], content_start: int) -> List[ATFSection]:
@@ -87,6 +90,9 @@ def parse_content_section(lines: List[str], content_start: int) -> List[ATFSecti
                 elif line.startswith("@modified:"):
                     stack[-1].modified = line[10:].strip()
                     stack[-1].summary_continuation = False
+                elif line.startswith("@x-hash:"):
+                    stack[-1].x_hash = line[8:].strip()
+                    stack[-1].summary_continuation = False
                 continue
             if line.startswith((" ", "\t")) and getattr(stack[-1], "summary_continuation", False):
                 stack[-1].summary = f"{stack[-1].summary} {line.strip()}"
@@ -94,16 +100,21 @@ def parse_content_section(lines: List[str], content_start: int) -> List[ATFSecti
             stack[-1].in_header = False
             stack[-1].summary_continuation = False
 
-        # Extract title from first heading
-        if line.startswith("#") and stack and not stack[-1].title.startswith("#"):
-            stack[-1].title = line.lstrip("#").strip()
-
         # Closing tag: {/id}
-        elif match := close_pattern.match(line):
+        if match := close_pattern.match(line):
             section_id = match.group(1)
             if stack and stack[-1].id == section_id:
                 stack[-1].end_line = i + 1  # 1-indexed
                 stack.pop()
+            continue
+
+        # Collect actual content lines (excluding opening/closing tags and metadata)
+        if stack and not stack[-1].in_header:
+            # Extract title from first heading
+            if line.startswith("#") and not stack[-1].title.startswith("#"):
+                stack[-1].title = line.lstrip("#").strip()
+            # Add to content_lines
+            stack[-1].content_lines.append(line)
 
     return sections
 
@@ -130,12 +141,94 @@ def validate_nesting(lines: List[str], content_start: int) -> Optional[str]:
     return None
 
 
+def compute_content_hash(content_lines: List[str]) -> str:
+    """Compute truncated SHA256 hash of content (Git-style 7 chars)"""
+    content_text = "\n".join(content_lines)
+    full_hash = hashlib.sha256(content_text.encode("utf-8")).hexdigest()
+    return full_hash[:7]  # Git-style truncated hash
+
+
+def count_words(content_lines: List[str]) -> int:
+    """Count words in content lines"""
+    text = " ".join(content_lines)
+    # Split on whitespace and filter out empty strings
+    words = [word for word in text.split() if word]
+    return len(words)
+
+
+def update_content_metadata(lines: List[str], content_start: int, sections: List[ATFSection]) -> List[str]:
+    """Update @modified and @x-hash in CONTENT section in-place"""
+    # Create a map of section_id -> section for quick lookup
+    section_map = {section.id: section for section in sections}
+
+    # Track current section being processed
+    current_section_id = None
+    metadata_end_line = None
+
+    open_pattern = re.compile(r"^\{#([a-zA-Z][a-zA-Z0-9_-]*)\}")
+    close_pattern = re.compile(r"^\{/([a-zA-Z][a-zA-Z0-9_-]*)\}")
+
+    i = content_start
+    while i < len(lines):
+        line = lines[i]
+
+        # Opening tag
+        if match := open_pattern.match(line):
+            current_section_id = match.group(1)
+            metadata_end_line = None
+            i += 1
+            continue
+
+        # Closing tag
+        if match := close_pattern.match(line):
+            current_section_id = None
+            i += 1
+            continue
+
+        # Process metadata lines
+        if current_section_id and current_section_id in section_map:
+            section = section_map[current_section_id]
+
+            # Check if we're still in metadata
+            if line.startswith("@"):
+                if line.startswith("@modified:"):
+                    # Update @modified
+                    lines[i] = f"@modified: {section.modified}"
+                elif line.startswith("@x-hash:"):
+                    # Update @x-hash
+                    lines[i] = f"@x-hash: {section.x_hash}"
+                i += 1
+                continue
+            elif metadata_end_line is None:
+                # We've reached the end of metadata, insert missing fields if needed
+                metadata_end_line = i
+
+                # Check if @x-hash needs to be inserted
+                # Look back to see if we already have @x-hash
+                has_x_hash = False
+                for j in range(i - 1, content_start, -1):
+                    if lines[j].startswith(f"{{#{current_section_id}}}"):
+                        break
+                    if lines[j].startswith("@x-hash:"):
+                        has_x_hash = True
+                        break
+
+                # Insert @x-hash if missing
+                if not has_x_hash and section.x_hash:
+                    lines.insert(i, f"@x-hash: {section.x_hash}")
+                    i += 1
+
+        i += 1
+
+    return lines
+
+
 def generate_index(sections: List[ATFSection], content_hash: str) -> List[str]:
     """Generate INDEX section from parsed sections"""
     index_lines = [
         "===INDEX===",
-        "<!-- AUTO-GENERATED - DO NOT EDIT -->",
-        f"<!-- Generated: {datetime.now(timezone.utc).isoformat()} -->",
+        "<!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->",
+        f"<!-- Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')} -->",
         f"<!-- Content-Hash: sha256:{content_hash} -->",
         "",
     ]
@@ -144,8 +237,8 @@ def generate_index(sections: List[ATFSection], content_hash: str) -> List[str]:
         # Level markers
         level_marker = "#" * section.level
 
-        # Index line: # Title {#id | lines:start-end}
-        index_line = f"{level_marker} {section.title} {{#{section.id} | lines:{section.start_line}-{section.end_line}}}"
+        # Index line: # Title {#id | lines:start-end | words:count}
+        index_line = f"{level_marker} {section.title} {{#{section.id} | lines:{section.start_line}-{section.end_line} | words:{section.word_count}}}"
         index_lines.append(index_line)
 
         # Summary
@@ -201,6 +294,29 @@ def rebuild_index(filepath: Path) -> bool:
             print(f"Warning: No sections found in {filepath}", file=sys.stderr)
             return False
 
+        # Auto-update @modified based on content hash changes
+        today = datetime.now().date().isoformat()
+        for section in sections:
+            # Compute current content hash
+            new_hash = compute_content_hash(section.content_lines)
+            old_hash = section.x_hash
+
+            # Compute word count
+            section.word_count = count_words(section.content_lines)
+
+            # Check if content changed
+            if old_hash and old_hash != new_hash:
+                # Content changed! Update @modified
+                section.modified = today
+            elif not old_hash:
+                # New section or first time with hash tracking
+                if not section.modified:
+                    section.modified = today
+            # else: hash matches, preserve existing @modified
+
+            # Update hash for writing back
+            section.x_hash = new_hash
+
         # Find where to insert INDEX
         header_end = None
         index_end = None
@@ -227,9 +343,14 @@ def rebuild_index(filepath: Path) -> bool:
             print(f"Error: Invalid ATF file format in {filepath}", file=sys.stderr)
             return False
 
-        # Generate new INDEX (two-pass to adjust absolute line numbers)
+        # Update @modified and @x-hash in CONTENT section
+        lines = update_content_metadata(lines, content_start, sections)
+
+        # Recalculate content hash after updates (Git-style 7 chars)
         content_text = "\n".join(lines[content_start:])
-        content_hash = hashlib.sha256(content_text.encode("utf-8")).hexdigest()
+        content_hash = hashlib.sha256(content_text.encode("utf-8")).hexdigest()[:7]
+
+        # Generate new INDEX (two-pass to adjust absolute line numbers)
         new_index = generate_index(sections, content_hash)
         original_span = index_end - header_end
         new_span = 1 + len(new_index) + 1  # blank + index + blank

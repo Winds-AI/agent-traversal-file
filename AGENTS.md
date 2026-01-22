@@ -1,0 +1,34 @@
+# Repository Guidelines
+
+## Project Structure & Module Organization
+- `go/` houses the Go CLI implementation (single binary). Entry point: `go/main.go`.
+- `python/` contains the reference Python CLI (`python/atf.py`).
+- `docs/` is long-form documentation and design notes.
+- `examples/` holds sample `.atf` files used for quick manual checks.
+- `install/` and `installers/` include installer scripts and packaging assets.
+- Root docs like `README.md`, `SPECIFICATION.md`, and `CONTRIBUTING.md` define the format and contributor workflow.
+
+## Build, Test, and Development Commands
+- Go build: `cd go; go build -o atf main.go` (builds the CLI binary).
+- Go run: `cd go; go run main.go rebuild ../examples/simple.atf` (run without building).
+- Python run: `python python/atf.py rebuild examples/simple.atf` (uses the reference implementation).
+- Validate files: `python python/atf.py validate examples/simple.atf` or `./atf validate examples/simple.atf`.
+
+## Coding Style & Naming Conventions
+- Python: PEP 8, 4-space indentation, type hints where helpful, and docstrings for functions.
+- Go: `gofmt` formatting, idiomatic names, and comments on exported functions.
+- Branch naming follows `feature/your-feature-name`.
+
+## Testing Guidelines
+- No dedicated test suite is present yet. Validate changes by running the five commands (rebuild, rebuild-all, watch, unwatch, validate) on files in `examples/`.
+- Go tests are noted as TODO; `go test` should remain clean if added.
+
+## Commit & Pull Request Guidelines
+- Auto commits and PR's NOT ALLOWED.
+
+## Security & Configuration Notes
+- Python watch state is stored in `~/.atf/watch.json`; avoid committing user-specific state.
+- If you modify installers, verify behavior on at least one target platform.
+
+## Problem Statement
+ATF exists to make large documents navigable for AI agents without loading entire files or wasting tokens. Instead of requiring RAG-style pipelines, the format works with simple grep-like tools as models get smarter about retrieval. ATF files can define the full scope of work (requirements, flows, test cases, and expected outcomes) in single file for small hobby projects and divided in multiple atf files for larger projects so agents can look up the exact section they need via the INDEX and act on it quickly.

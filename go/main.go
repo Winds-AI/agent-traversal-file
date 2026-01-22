@@ -15,14 +15,17 @@ import (
 const VERSION = "1.0.0"
 
 type Section struct {
-	ID       string
-	Title    string
-	Start    int
-	End      int
-	Level    int
-	Summary  string
-	Created  string
-	Modified string
+	ID           string
+	Title        string
+	Start        int
+	End          int
+	Level        int
+	Summary      string
+	Created      string
+	Modified     string
+	XHash        string
+	WordCount    int
+	ContentLines []string // Actual content (excluding metadata)
 }
 
 type WatchState map[string]WatchInfo
@@ -177,6 +180,9 @@ func parseContentSection(lines []string, contentStart int) []Section {
 				} else if strings.HasPrefix(line, "@modified:") {
 					sections[stack[len(stack)-1]].Modified = strings.TrimSpace(line[10:])
 					summaryContinuation[len(summaryContinuation)-1] = false
+				} else if strings.HasPrefix(line, "@x-hash:") {
+					sections[stack[len(stack)-1]].XHash = strings.TrimSpace(line[8:])
+					summaryContinuation[len(summaryContinuation)-1] = false
 				}
 				continue
 			}
@@ -190,9 +196,10 @@ func parseContentSection(lines []string, contentStart int) []Section {
 			}
 			inHeader[len(inHeader)-1] = false
 			summaryContinuation[len(summaryContinuation)-1] = false
-		} else if strings.HasPrefix(line, "#") && len(stack) > 0 && !strings.HasPrefix(stack[len(stack)-1].Title, "#") {
-			sections[stack[len(stack)-1]].Title = strings.TrimSpace(strings.TrimLeft(line, "#"))
-		} else if match := closePattern.FindStringSubmatch(line); match != nil {
+		}
+
+		// Closing tag: {/id}
+		if match := closePattern.FindStringSubmatch(line); match != nil {
 			if len(stack) > 0 && sections[stack[len(stack)-1]].ID == match[1] {
 				idx := stack[len(stack)-1]
 				sections[idx].End = i + 1 // 1-indexed
@@ -200,16 +207,127 @@ func parseContentSection(lines []string, contentStart int) []Section {
 				inHeader = inHeader[:len(inHeader)-1]
 				summaryContinuation = summaryContinuation[:len(summaryContinuation)-1]
 			}
+			continue
+		}
+
+		// Collect actual content lines (excluding opening/closing tags and metadata)
+		if len(stack) > 0 && !inHeader[len(inHeader)-1] {
+			// Extract title from first heading
+			if strings.HasPrefix(line, "#") && !strings.HasPrefix(sections[stack[len(stack)-1]].Title, "#") {
+				sections[stack[len(stack)-1]].Title = strings.TrimSpace(strings.TrimLeft(line, "#"))
+			}
+			// Add to ContentLines
+			sections[stack[len(stack)-1]].ContentLines = append(sections[stack[len(stack)-1]].ContentLines, line)
 		}
 	}
 
 	return sections
 }
 
+func computeContentHash(contentLines []string) string {
+	// Compute truncated SHA256 hash of content (Git-style 7 chars)
+	contentText := strings.Join(contentLines, "\n")
+	sum := sha256.Sum256([]byte(contentText))
+	fullHash := hex.EncodeToString(sum[:])
+	return fullHash[:7] // Git-style truncated hash
+}
+
+func countWords(contentLines []string) int {
+	// Count words in content lines
+	text := strings.Join(contentLines, " ")
+	// Split on whitespace and count non-empty strings
+	words := strings.Fields(text)
+	return len(words)
+}
+
+func updateContentMetadata(lines []string, contentStart int, sections []Section) []string {
+	// Create a map of section_id -> section for quick lookup
+	sectionMap := make(map[string]*Section)
+	for i := range sections {
+		sectionMap[sections[i].ID] = &sections[i]
+	}
+
+	// Track current section being processed
+	var currentSectionID string
+	var metadataEndLine int
+
+	openPattern := regexp.MustCompile(`^\{#([a-zA-Z][a-zA-Z0-9_-]*)\}`)
+	closePattern := regexp.MustCompile(`^\{/([a-zA-Z][a-zA-Z0-9_-]*)\}`)
+
+	i := contentStart
+	for i < len(lines) {
+		line := lines[i]
+
+		// Opening tag
+		if match := openPattern.FindStringSubmatch(line); match != nil {
+			currentSectionID = match[1]
+			metadataEndLine = 0
+			i++
+			continue
+		}
+
+		// Closing tag
+		if match := closePattern.FindStringSubmatch(line); match != nil {
+			currentSectionID = ""
+			i++
+			continue
+		}
+
+		// Process metadata lines
+		if currentSectionID != "" {
+			if section, ok := sectionMap[currentSectionID]; ok {
+				// Check if we're still in metadata
+				if strings.HasPrefix(line, "@") {
+					if strings.HasPrefix(line, "@modified:") {
+						// Update @modified
+						lines[i] = fmt.Sprintf("@modified: %s", section.Modified)
+					} else if strings.HasPrefix(line, "@x-hash:") {
+						// Update @x-hash
+						lines[i] = fmt.Sprintf("@x-hash: %s", section.XHash)
+					}
+					i++
+					continue
+				} else if metadataEndLine == 0 {
+					// We've reached the end of metadata, insert missing fields if needed
+					metadataEndLine = i
+
+					// Check if @x-hash needs to be inserted
+					// Look back to see if we already have @x-hash
+					hasXHash := false
+					for j := i - 1; j > contentStart; j-- {
+						if strings.HasPrefix(lines[j], fmt.Sprintf("{#%s}", currentSectionID)) {
+							break
+						}
+						if strings.HasPrefix(lines[j], "@x-hash:") {
+							hasXHash = true
+							break
+						}
+					}
+
+					// Insert @x-hash if missing
+					if !hasXHash && section.XHash != "" {
+						// Insert at current position
+						newLines := make([]string, len(lines)+1)
+						copy(newLines[:i], lines[:i])
+						newLines[i] = fmt.Sprintf("@x-hash: %s", section.XHash)
+						copy(newLines[i+1:], lines[i:])
+						lines = newLines
+						i++
+					}
+				}
+			}
+		}
+
+		i++
+	}
+
+	return lines
+}
+
 func generateIndex(sections []Section, contentHash string) []string {
 	indexLines := []string{
 		"===INDEX===",
-		"<!-- AUTO-GENERATED - DO NOT EDIT -->",
+		"<!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->",
 		fmt.Sprintf("<!-- Generated: %s -->", time.Now().UTC().Format(time.RFC3339)),
 		fmt.Sprintf("<!-- Content-Hash: sha256:%s -->", contentHash),
 		"",
@@ -217,8 +335,8 @@ func generateIndex(sections []Section, contentHash string) []string {
 
 	for _, section := range sections {
 		levelMarker := strings.Repeat("#", section.Level)
-		indexLine := fmt.Sprintf("%s %s {#%s | lines:%d-%d}",
-			levelMarker, section.Title, section.ID, section.Start, section.End)
+		indexLine := fmt.Sprintf("%s %s {#%s | lines:%d-%d | words:%d}",
+			levelMarker, section.Title, section.ID, section.Start, section.End, section.WordCount)
 		indexLines = append(indexLines, indexLine)
 
 		if section.Summary != "" {
@@ -263,6 +381,44 @@ func rebuildIndex(filepath string) error {
 		return fmt.Errorf("no ===CONTENT=== section found")
 	}
 
+	// Validate nesting before parsing for index rebuild (fail-fast approach)
+	if err := validateNesting(lines, contentStart); err != nil {
+		return fmt.Errorf("invalid section nesting: %w", err)
+	}
+
+	// Parse sections
+	sections := parseContentSection(lines, contentStart)
+
+	if len(sections) == 0 {
+		return fmt.Errorf("no sections found")
+	}
+
+	// Auto-update @modified based on content hash changes
+	today := time.Now().Format("2006-01-02")
+	for i := range sections {
+		// Compute current content hash
+		newHash := computeContentHash(sections[i].ContentLines)
+		oldHash := sections[i].XHash
+
+		// Compute word count
+		sections[i].WordCount = countWords(sections[i].ContentLines)
+
+		// Check if content changed
+		if oldHash != "" && oldHash != newHash {
+			// Content changed! Update @modified
+			sections[i].Modified = today
+		} else if oldHash == "" {
+			// New section or first time with hash tracking
+			if sections[i].Modified == "" {
+				sections[i].Modified = today
+			}
+		}
+		// else: hash matches, preserve existing @modified
+
+		// Update hash for writing back
+		sections[i].XHash = newHash
+	}
+
 	// Find where to insert INDEX
 	headerEnd := -1
 	indexEnd := -1
@@ -295,22 +451,27 @@ func rebuildIndex(filepath string) error {
 		return fmt.Errorf("invalid ATF file format")
 	}
 
-	// Validate nesting before parsing for index rebuild
-	if err := validateNesting(lines, contentStart); err != nil {
-		return fmt.Errorf("invalid section nesting: %w", err)
+	// Update @modified and @x-hash in CONTENT section
+	lines = updateContentMetadata(lines, contentStart, sections)
+
+	// Recalculate indexEnd after updateContentMetadata (lines may have been inserted)
+	indexEnd = -1
+	for i, line := range lines {
+		if strings.TrimSpace(line) == "===CONTENT===" {
+			indexEnd = i
+			break
+		}
+	}
+	if indexEnd == -1 {
+		return fmt.Errorf("===CONTENT=== section lost after metadata update")
 	}
 
-	// Parse sections
-	sections := parseContentSection(lines, contentStart)
-
-	if len(sections) == 0 {
-		return fmt.Errorf("no sections found")
-	}
-
-	// Generate new INDEX (two-pass to adjust absolute line numbers)
+	// Recalculate content hash after updates (Git-style 7 chars)
 	contentText := strings.Join(lines[contentStart:], "\n")
 	sum := sha256.Sum256([]byte(contentText))
-	contentHash := hex.EncodeToString(sum[:])
+	contentHash := hex.EncodeToString(sum[:])[:7]
+
+	// Generate new INDEX (two-pass to adjust absolute line numbers)
 	newIndex := generateIndex(sections, contentHash)
 	originalSpan := indexEnd - headerEnd
 	newSpan := 1 + len(newIndex) + 1 // blank + index + blank
@@ -324,7 +485,9 @@ func rebuildIndex(filepath string) error {
 	}
 
 	// Rebuild file
-	newLines := append(lines[:headerEnd], "")
+	newLines := []string{}
+	newLines = append(newLines, lines[:headerEnd]...)
+	newLines = append(newLines, "")
 	newLines = append(newLines, newIndex...)
 	newLines = append(newLines, "")
 	newLines = append(newLines, lines[indexEnd:]...)

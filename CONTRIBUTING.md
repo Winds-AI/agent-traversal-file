@@ -6,7 +6,7 @@ Thank you for your interest in contributing to ATF Tools!
 
 ### Reporting Bugs
 
-1. Check if the bug has already been reported in [Issues](https://github.com/atf-tools/atf/issues)
+1. Check if the bug has already been reported in [Issues](https://github.com/Winds-AI/agent-traversal-file/issues)
 2. If not, create a new issue with:
    - Clear description of the bug
    - Steps to reproduce
@@ -16,7 +16,7 @@ Thank you for your interest in contributing to ATF Tools!
 
 ### Suggesting Features
 
-1. Check [Issues](https://github.com/atf-tools/atf/issues) for existing feature requests
+1. Check [Issues](https://github.com/Winds-AI/agent-traversal-file/issues) for existing feature requests
 2. Create a new issue with:
    - Clear description of the feature
    - Use case / why it's needed
@@ -88,9 +88,17 @@ When adding features:
 - Update SPECIFICATION.md if format changes
 - Add to CHANGELOG.md
 
+### Ideas & Future Directions
+
+See [IDEAS.md](IDEAS.md) for a list of proposed features and experiments we're interested in, including:
+- FUSE/Dokany/macFUSE filesystem mounting for transparent ATF access
+- Editor plugins for auto-rebuilding index on save
+- LSP integration for semantic navigation
+- And more...
+
 ### Questions?
 
-- Open a [Discussion](https://github.com/atf-tools/atf/discussions)
+- Open a [Discussion](https://github.com/Winds-AI/agent-traversal-file/discussions)
 - Ask in an issue
 - Check existing documentation
 
