@@ -12,6 +12,7 @@ go/atf
 *.test
 *.out
 go.sum
+!go/go.sum
 
 # Python
 __pycache__/
