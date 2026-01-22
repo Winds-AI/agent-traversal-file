@@ -35,27 +35,28 @@ jobs:
       - name: Build for Windows (amd64)
         run: |
           cd go
-          GOOS=windows GOARCH=amd64 go build -o ../dist/atf-windows-amd64.exe -ldflags="-s -w" main.go
+          mkdir -p ../dist
+          GOOS=windows GOARCH=amd64 go build -o ../dist/atf-windows-amd64.exe -ldflags="-s -w" .
       
       - name: Build for macOS (amd64)
         run: |
           cd go
-          GOOS=darwin GOARCH=amd64 go build -o ../dist/atf-darwin-amd64 -ldflags="-s -w" main.go
+          GOOS=darwin GOARCH=amd64 go build -o ../dist/atf-darwin-amd64 -ldflags="-s -w" .
       
       - name: Build for macOS (arm64)
         run: |
           cd go
-          GOOS=darwin GOARCH=arm64 go build -o ../dist/atf-darwin-arm64 -ldflags="-s -w" main.go
+          GOOS=darwin GOARCH=arm64 go build -o ../dist/atf-darwin-arm64 -ldflags="-s -w" .
       
       - name: Build for Linux (amd64)
         run: |
           cd go
-          GOOS=linux GOARCH=amd64 go build -o ../dist/atf-linux-amd64 -ldflags="-s -w" main.go
+          GOOS=linux GOARCH=amd64 go build -o ../dist/atf-linux-amd64 -ldflags="-s -w" .
       
       - name: Build for Linux (arm64)
         run: |
           cd go
-          GOOS=linux GOARCH=arm64 go build -o ../dist/atf-linux-arm64 -ldflags="-s -w" main.go
+          GOOS=linux GOARCH=arm64 go build -o ../dist/atf-linux-arm64 -ldflags="-s -w" .
       
       - name: Generate checksums
         run: |

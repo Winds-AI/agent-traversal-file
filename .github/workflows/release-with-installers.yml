@@ -38,15 +38,15 @@ jobs:
           mkdir -p ../dist
           
           # Windows
-          GOOS=windows GOARCH=amd64 go build -o ../dist/atf-windows-amd64.exe -ldflags="-s -w" main.go
+          GOOS=windows GOARCH=amd64 go build -o ../dist/atf-windows-amd64.exe -ldflags="-s -w" .
           
           # macOS
-          GOOS=darwin GOARCH=amd64 go build -o ../dist/atf-darwin-amd64 -ldflags="-s -w" main.go
-          GOOS=darwin GOARCH=arm64 go build -o ../dist/atf-darwin-arm64 -ldflags="-s -w" main.go
+          GOOS=darwin GOARCH=amd64 go build -o ../dist/atf-darwin-amd64 -ldflags="-s -w" .
+          GOOS=darwin GOARCH=arm64 go build -o ../dist/atf-darwin-arm64 -ldflags="-s -w" .
           
           # Linux
-          GOOS=linux GOARCH=amd64 go build -o ../dist/atf-linux-amd64 -ldflags="-s -w" main.go
-          GOOS=linux GOARCH=arm64 go build -o ../dist/atf-linux-arm64 -ldflags="-s -w" main.go
+          GOOS=linux GOARCH=amd64 go build -o ../dist/atf-linux-amd64 -ldflags="-s -w" .
+          GOOS=linux GOARCH=arm64 go build -o ../dist/atf-linux-arm64 -ldflags="-s -w" .
       
       - name: Generate checksums
         run: |
