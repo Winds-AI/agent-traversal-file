@@ -179,15 +179,15 @@ if section.Level > 2 {
 
 ---
 
-### ✅ @x-hash Automatic Tracking
+### ✅ @hash Automatic Tracking
 
 **Spec** (Section 4.2, lines 226-257): Fully documented
 
 **Implementation**: Both Python and Go correctly implement:
-- Parse `@x-hash:` annotation
+- Parse `@hash:` annotation
 - Compute Git-style 7-character SHA256 hash
 - Auto-update `@modified` when content changes
-- Write `@x-hash` back to CONTENT section
+- Write `@hash` back to CONTENT section
 
 **Status**: ✅ Fully aligned with spec
 
@@ -218,7 +218,7 @@ if section.Level > 2 {
 | Timestamp format | MEDIUM | ❌ | ✅ | Update Python |
 | Optional `words:` field | LOW | N/A | N/A | Optional enhancement |
 | Max nesting enforcement | - | ✅ | ✅ | None |
-| @x-hash tracking | - | ✅ | ✅ | None |
+| @hash tracking | - | ✅ | ✅ | None |
 | Validation rules | - | ✅ | ✅ | None |
 
 ---

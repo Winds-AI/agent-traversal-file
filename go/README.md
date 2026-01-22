@@ -12,6 +12,9 @@ High-performance Go implementation that compiles to standalone binaries.
 
 ## Building
 
+### Prerequisites
+Ensure Go is in your PATH.
+
 ### Build for your platform
 
 ```bash

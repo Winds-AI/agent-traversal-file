@@ -83,20 +83,10 @@ Following the declaration, optional metadata fields can appear:
 | Field | Description | Example |
 |-------|-------------|---------|
 | `@title` | Document title | `@title: API Documentation` |
-| `@author` | Author name(s) | `@author: Jane Doe` |
 | `@created` | Creation date (ISO 8601) | `@created: 2025-01-19` |
 | `@modified` | Last modified date | `@modified: 2025-01-20` |
-| `@version` | Document version | `@version: 2.3.1` |
-| `@language` | Content language | `@language: en-US` |
 | `@total-words` | Total word count | `@total-words: 15420` |
 | `@total-sections` | Number of sections | `@total-sections: 24` |
-| `@description` | Brief description | `@description: Complete API reference` |
-
-Custom fields are allowed with `@x-` prefix:
-```
-@x-department: Engineering
-@x-classification: Internal
-```
 
 ## 3. Index Section
 
@@ -207,8 +197,6 @@ Annotations provide metadata that will be extracted into the INDEX:
 {#example}
 @summary: This appears as the summary in the generated index
 @tags: api, authentication, security
-@author: Jane Doe
-@x-custom: Custom metadata
 
 Actual content starts here...
 {/example}
@@ -219,16 +207,14 @@ Actual content starts here...
 - `@created:` - Section creation date (YYYY-MM-DD format)
 - `@modified:` - Last modification date (YYYY-MM-DD format, automatically updated when content changes)
 - `@tags:` - Comma-separated keywords for searching
-- `@author:` - Section author
-- `@x-hash:` - Internal content hash (auto-generated, do not edit manually)
-- `@x-*` - Custom metadata (preserved but not processed)
+- `@hash:` - Internal content hash (auto-generated, do not edit manually)
 
 **Automatic Modification Tracking**:
 When `atf rebuild` runs, it automatically updates the `@modified` date if the section's content has changed:
 1. Computes a hash of the actual content (excluding metadata annotations)
-2. Compares with the stored `@x-hash` from the previous rebuild
+2. Compares with the stored `@hash` from the previous rebuild
 3. If different, updates `@modified` to today's date
-4. Updates `@x-hash` with the new hash
+4. Updates `@hash` with the new hash
 
 This allows you to track when sections were last edited without manual updates.
 
@@ -238,7 +224,7 @@ This allows you to track when sections were last edited without manual updates.
 @summary: Introduction guide
 @created: 2025-01-20
 @modified: 2025-01-20
-@x-hash: a7f3b9c
+@hash: a7f3b9c
 # Introduction
 Hello world.
 {/intro}
@@ -250,7 +236,7 @@ After editing "Hello world" to "Hello world! Welcome!":
 @summary: Introduction guide
 @created: 2025-01-20
 @modified: 2025-01-21        ← Auto-updated!
-@x-hash: bf5d286              ← New hash
+@hash: bf5d286              ← New hash
 # Introduction
 Hello world! Welcome!
 {/intro}
@@ -465,7 +451,6 @@ Content here.
 ```
 :::ATF/1.0
 @title: REST API Guide
-@author: Dev Team
 @created: 2025-01-19
 
 ===CONTENT===
@@ -562,7 +547,6 @@ Batch operations available at `/resources/batch`.
 ```
 :::ATF/1.0
 @title: REST API Guide
-@author: Dev Team
 @created: 2025-01-19
 
 ===INDEX===

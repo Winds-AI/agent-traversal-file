@@ -32,7 +32,6 @@ atf --version
 ```
 :::ATF/1.0
 @title: My First ATF Document
-@author: Your Name
 
 ===CONTENT===
 

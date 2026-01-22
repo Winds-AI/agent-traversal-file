@@ -90,8 +90,8 @@ def parse_content_section(lines: List[str], content_start: int) -> List[ATFSecti
                 elif line.startswith("@modified:"):
                     stack[-1].modified = line[10:].strip()
                     stack[-1].summary_continuation = False
-                elif line.startswith("@x-hash:"):
-                    stack[-1].x_hash = line[8:].strip()
+                elif line.startswith("@hash:"):
+                    stack[-1].x_hash = line[6:].strip()
                     stack[-1].summary_continuation = False
                 continue
             if line.startswith((" ", "\t")) and getattr(stack[-1], "summary_continuation", False):
@@ -157,7 +157,7 @@ def count_words(content_lines: List[str]) -> int:
 
 
 def update_content_metadata(lines: List[str], content_start: int, sections: List[ATFSection]) -> List[str]:
-    """Update @modified and @x-hash in CONTENT section in-place"""
+    """Update @modified and @hash in CONTENT section in-place"""
     # Create a map of section_id -> section for quick lookup
     section_map = {section.id: section for section in sections}
 
@@ -194,28 +194,28 @@ def update_content_metadata(lines: List[str], content_start: int, sections: List
                 if line.startswith("@modified:"):
                     # Update @modified
                     lines[i] = f"@modified: {section.modified}"
-                elif line.startswith("@x-hash:"):
-                    # Update @x-hash
-                    lines[i] = f"@x-hash: {section.x_hash}"
+                elif line.startswith("@hash:"):
+                    # Update @hash
+                    lines[i] = f"@hash: {section.x_hash}"
                 i += 1
                 continue
             elif metadata_end_line is None:
                 # We've reached the end of metadata, insert missing fields if needed
                 metadata_end_line = i
 
-                # Check if @x-hash needs to be inserted
-                # Look back to see if we already have @x-hash
-                has_x_hash = False
+                # Check if @hash needs to be inserted
+                # Look back to see if we already have @hash
+                has_hash = False
                 for j in range(i - 1, content_start, -1):
                     if lines[j].startswith(f"{{#{current_section_id}}}"):
                         break
-                    if lines[j].startswith("@x-hash:"):
-                        has_x_hash = True
+                    if lines[j].startswith("@hash:"):
+                        has_hash = True
                         break
 
-                # Insert @x-hash if missing
-                if not has_x_hash and section.x_hash:
-                    lines.insert(i, f"@x-hash: {section.x_hash}")
+                # Insert @hash if missing
+                if not has_hash and section.x_hash:
+                    lines.insert(i, f"@hash: {section.x_hash}")
                     i += 1
 
         i += 1
@@ -343,7 +343,7 @@ def rebuild_index(filepath: Path) -> bool:
             print(f"Error: Invalid ATF file format in {filepath}", file=sys.stderr)
             return False
 
-        # Update @modified and @x-hash in CONTENT section
+        # Update @modified and @hash in CONTENT section
         lines = update_content_metadata(lines, content_start, sections)
 
         # Recalculate content hash after updates (Git-style 7 chars)
@@ -533,6 +533,160 @@ def list_watched() -> int:
         print(f"    Since: {started}")
 
     return 0
+
+
+def index_command(filepath: str) -> int:
+    """Command: output only the INDEX section"""
+    path = Path(filepath)
+
+    if not path.exists():
+        print(f"Error: File not found: {filepath}", file=sys.stderr)
+        return 1
+
+    try:
+        content = path.read_text(encoding="utf-8")
+        lines = content.split("\n")
+
+        # Find INDEX section boundaries
+        index_start = None
+        index_end = None
+
+        for i, line in enumerate(lines):
+            if line.strip() == "===INDEX===":
+                index_start = i
+            elif line.strip() == "===CONTENT===":
+                index_end = i
+                break
+
+        if index_start is None or index_end is None:
+            print("Error: Invalid ATF file format", file=sys.stderr)
+            return 1
+
+        # Output INDEX section (lines between markers, excluding the markers)
+        for line in lines[index_start + 1:index_end]:
+            print(line)
+
+        return 0
+
+    except Exception as e:
+        print(f"Error reading file: {e}", file=sys.stderr)
+        return 1
+
+
+def read_command(filepath: str, section_id: str) -> int:
+    """Command: extract specific section by ID"""
+    path = Path(filepath)
+
+    if not path.exists():
+        print(f"Error: File not found: {filepath}", file=sys.stderr)
+        return 1
+
+    try:
+        content = path.read_text(encoding="utf-8")
+        lines = content.split("\n")
+
+        # Find CONTENT section start
+        content_start = None
+        for i, line in enumerate(lines):
+            if line.strip() == "===CONTENT===":
+                content_start = i + 1
+                break
+
+        if content_start is None:
+            print("Error: No ===CONTENT=== section found", file=sys.stderr)
+            return 1
+
+        # Parse sections
+        sections = parse_content_section(lines, content_start)
+
+        # Find matching section by ID
+        target_section = None
+        for section in sections:
+            if section.id == section_id:
+                target_section = section
+                break
+
+        if target_section is None:
+            print(f"Error: Section not found: {section_id}", file=sys.stderr)
+            return 1
+
+        # Extract and output section lines (convert from 1-indexed to 0-indexed)
+        section_lines = lines[target_section.start_line - 1:target_section.end_line]
+        for line in section_lines:
+            print(line)
+
+        return 0
+
+    except Exception as e:
+        print(f"Error reading section: {e}", file=sys.stderr)
+        return 1
+
+
+def read_by_title_command(filepath: str, title: str) -> int:
+    """Command: extract section by fuzzy title match"""
+    path = Path(filepath)
+
+    if not path.exists():
+        print(f"Error: File not found: {filepath}", file=sys.stderr)
+        return 1
+
+    try:
+        content = path.read_text(encoding="utf-8")
+        lines = content.split("\n")
+
+        # Find INDEX section
+        index_start = None
+        index_end = None
+
+        for i, line in enumerate(lines):
+            if line.strip() == "===INDEX===":
+                index_start = i
+            elif line.strip() == "===CONTENT===":
+                index_end = i
+                break
+
+        if index_start is None or index_end is None:
+            print("Error: Invalid ATF file format", file=sys.stderr)
+            return 1
+
+        # Parse INDEX entries to extract title->ID mappings (preserve order)
+        index_entry_pattern = re.compile(
+            r"^#{1,6}\s+(.+?)\s*\{#([a-zA-Z][a-zA-Z0-9_-]*)\s*\|.*\}$"
+        )
+
+        entries = []
+        for line in lines[index_start + 1:index_end]:
+            match = index_entry_pattern.match(line.strip())
+            if match:
+                entries.append((match.group(1), match.group(2)))
+
+        # Find best title match
+        matched_id = None
+
+        # 1. Exact match (case-insensitive)
+        for entry_title, entry_id in entries:
+            if entry_title.lower() == title.lower():
+                matched_id = entry_id
+                break
+
+        # 2. Contains match (case-insensitive)
+        if matched_id is None:
+            title_lower = title.lower()
+            for entry_title, entry_id in entries:
+                if title_lower in entry_title.lower():
+                    matched_id = entry_id
+                    break
+
+        if matched_id is None:
+            print(f"Error: No section found with title matching: {title}", file=sys.stderr)
+            return 1
+
+        # Delegate to read_command
+        return read_command(str(path), matched_id)
+
+    except Exception as e:
+        print(f"Error reading section: {e}", file=sys.stderr)
+        return 1
 
 
 def validate_command(filepath: str) -> int:
@@ -766,6 +920,9 @@ Usage:
     atf unwatch <file>              Stop watching a file
     atf watch --list                List all watched files
     atf validate <file>             Validate ATF file structure
+    atf index <file>                Output INDEX section only
+    atf read <file> <section-id>    Extract section by ID
+    atf read <file> --title "Title" Extract section by title
     atf --help                      Show this help message
     atf --version                   Show version
 
@@ -774,6 +931,9 @@ Examples:
     atf rebuild-all ./docs
     atf watch api-reference.atf
     atf validate my-doc.atf
+    atf index document.atf
+    atf read document.atf intro
+    atf read document.atf --title "Introduction"
 
 For more information, visit: https://github.com/atf-tools/atf
 """)
@@ -828,6 +988,29 @@ def main():
             print("Usage: atf validate <file>", file=sys.stderr)
             return 1
         return validate_command(sys.argv[2])
+
+    elif command == "index":
+        if len(sys.argv) < 3:
+            print("Error: Missing file argument", file=sys.stderr)
+            print("Usage: atf index <file>", file=sys.stderr)
+            return 1
+        return index_command(sys.argv[2])
+
+    elif command == "read":
+        if len(sys.argv) < 4:
+            print("Error: Missing arguments", file=sys.stderr)
+            print("Usage: atf read <file> <section-id>", file=sys.stderr)
+            print("       atf read <file> --title \"Title\"", file=sys.stderr)
+            return 1
+
+        # Check for --title flag
+        if sys.argv[3] == "--title":
+            if len(sys.argv) < 5:
+                print("Error: Missing title argument", file=sys.stderr)
+                return 1
+            return read_by_title_command(sys.argv[2], sys.argv[4])
+        else:
+            return read_command(sys.argv[2], sys.argv[3])
 
     else:
         print(f"Error: Unknown command: {command}", file=sys.stderr)

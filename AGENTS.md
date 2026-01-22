@@ -9,10 +9,11 @@
 - Root docs like `README.md`, `SPECIFICATION.md`, and `CONTRIBUTING.md` define the format and contributor workflow.
 
 ## Build, Test, and Development Commands
-- Go build: `cd go; go build -o atf main.go` (builds the CLI binary).
-- Go run: `cd go; go run main.go rebuild ../examples/simple.atf` (run without building).
-- Python run: `python python/atf.py rebuild examples/simple.atf` (uses the reference implementation).
-- Validate files: `python python/atf.py validate examples/simple.atf` or `./atf validate examples/simple.atf`.
+- Ensure Go is in your PATH
+- Build binary: `go build -o atf main.go`
+- Run commands: `./atf rebuild examples/simple.atf`
+- Validate: `./atf validate examples/simple.atf`
+- Python alternative: `python python/atf.py rebuild examples/simple.atf`
 
 ## Coding Style & Naming Conventions
 - Python: PEP 8, 4-space indentation, type hints where helpful, and docstrings for functions.

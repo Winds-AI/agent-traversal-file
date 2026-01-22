@@ -112,6 +112,31 @@ func main() {
 			os.Exit(1)
 		}
 		os.Exit(validateCommand(os.Args[2]))
+	case "index":
+		if len(os.Args) < 3 {
+			fmt.Fprintln(os.Stderr, "Error: Missing file argument")
+			fmt.Fprintln(os.Stderr, "Usage: atf index <file>")
+			os.Exit(1)
+		}
+		os.Exit(indexCommand(os.Args[2]))
+	case "read":
+		if len(os.Args) < 4 {
+			fmt.Fprintln(os.Stderr, "Error: Missing arguments")
+			fmt.Fprintln(os.Stderr, "Usage: atf read <file> <section-id>")
+			fmt.Fprintln(os.Stderr, "       atf read <file> --title \"Title\"")
+			os.Exit(1)
+		}
+
+		// Check for --title flag
+		if os.Args[3] == "--title" {
+			if len(os.Args) < 5 {
+				fmt.Fprintln(os.Stderr, "Error: Missing title argument")
+				os.Exit(1)
+			}
+			os.Exit(readByTitleCommand(os.Args[2], os.Args[4]))
+		} else {
+			os.Exit(readCommand(os.Args[2], os.Args[3]))
+		}
 	default:
 		fmt.Fprintf(os.Stderr, "Error: Unknown command: %s\n", command)
 		fmt.Fprintln(os.Stderr, "Run 'atf --help' for usage information")
@@ -129,6 +154,9 @@ Usage:
     atf unwatch <file>              Stop watching a file
     atf watch --list                List all watched files
     atf validate <file>             Validate ATF file structure
+    atf index <file>                Output INDEX section only
+    atf read <file> <section-id>    Extract section by ID
+    atf read <file> --title "Title" Extract section by title
     atf --help                      Show this help message
     atf --version                   Show version
 
@@ -137,6 +165,9 @@ Examples:
     atf rebuild-all ./docs
     atf watch api-reference.atf
     atf validate my-doc.atf
+    atf index document.atf
+    atf read document.atf intro
+    atf read document.atf --title "Introduction"
 
 For more information, visit: https://github.com/atf-tools/atf
 `, VERSION)
@@ -180,8 +211,8 @@ func parseContentSection(lines []string, contentStart int) []Section {
 				} else if strings.HasPrefix(line, "@modified:") {
 					sections[stack[len(stack)-1]].Modified = strings.TrimSpace(line[10:])
 					summaryContinuation[len(summaryContinuation)-1] = false
-				} else if strings.HasPrefix(line, "@x-hash:") {
-					sections[stack[len(stack)-1]].XHash = strings.TrimSpace(line[8:])
+				} else if strings.HasPrefix(line, "@hash:") {
+					sections[stack[len(stack)-1]].XHash = strings.TrimSpace(line[6:])
 					summaryContinuation[len(summaryContinuation)-1] = false
 				}
 				continue
@@ -281,9 +312,9 @@ func updateContentMetadata(lines []string, contentStart int, sections []Section)
 					if strings.HasPrefix(line, "@modified:") {
 						// Update @modified
 						lines[i] = fmt.Sprintf("@modified: %s", section.Modified)
-					} else if strings.HasPrefix(line, "@x-hash:") {
-						// Update @x-hash
-						lines[i] = fmt.Sprintf("@x-hash: %s", section.XHash)
+					} else if strings.HasPrefix(line, "@hash:") {
+						// Update @hash
+						lines[i] = fmt.Sprintf("@hash: %s", section.XHash)
 					}
 					i++
 					continue
@@ -291,25 +322,25 @@ func updateContentMetadata(lines []string, contentStart int, sections []Section)
 					// We've reached the end of metadata, insert missing fields if needed
 					metadataEndLine = i
 
-					// Check if @x-hash needs to be inserted
-					// Look back to see if we already have @x-hash
-					hasXHash := false
+					// Check if @hash needs to be inserted
+					// Look back to see if we already have @hash
+					hasHash := false
 					for j := i - 1; j > contentStart; j-- {
 						if strings.HasPrefix(lines[j], fmt.Sprintf("{#%s}", currentSectionID)) {
 							break
 						}
-						if strings.HasPrefix(lines[j], "@x-hash:") {
-							hasXHash = true
+						if strings.HasPrefix(lines[j], "@hash:") {
+							hasHash = true
 							break
 						}
 					}
 
-					// Insert @x-hash if missing
-					if !hasXHash && section.XHash != "" {
+					// Insert @hash if missing
+					if !hasHash && section.XHash != "" {
 						// Insert at current position
 						newLines := make([]string, len(lines)+1)
 						copy(newLines[:i], lines[:i])
-						newLines[i] = fmt.Sprintf("@x-hash: %s", section.XHash)
+						newLines[i] = fmt.Sprintf("@hash: %s", section.XHash)
 						copy(newLines[i+1:], lines[i:])
 						lines = newLines
 						i++
@@ -451,7 +482,7 @@ func rebuildIndex(filepath string) error {
 		return fmt.Errorf("invalid ATF file format")
 	}
 
-	// Update @modified and @x-hash in CONTENT section
+	// Update @modified and @hash in CONTENT section
 	lines = updateContentMetadata(lines, contentStart, sections)
 
 	// Recalculate indexEnd after updateContentMetadata (lines may have been inserted)
@@ -703,6 +734,179 @@ func listWatched() int {
 	}
 
 	return 0
+}
+
+func indexCommand(filepath string) int {
+	if _, err := os.Stat(filepath); os.IsNotExist(err) {
+		fmt.Fprintf(os.Stderr, "Error: File not found: %s\n", filepath)
+		return 1
+	}
+
+	content, err := os.ReadFile(filepath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error reading file: %v\n", err)
+		return 1
+	}
+
+	lines := strings.Split(string(content), "\n")
+
+	// Find INDEX section boundaries
+	indexStart := -1
+	indexEnd := -1
+
+	for i, line := range lines {
+		if strings.TrimSpace(line) == "===INDEX===" {
+			indexStart = i
+		} else if strings.TrimSpace(line) == "===CONTENT===" {
+			indexEnd = i
+			break
+		}
+	}
+
+	if indexStart == -1 || indexEnd == -1 {
+		fmt.Fprintln(os.Stderr, "Error: Invalid ATF file format")
+		return 1
+	}
+
+	// Output INDEX section (lines between markers, excluding the markers)
+	for _, line := range lines[indexStart+1 : indexEnd] {
+		fmt.Println(line)
+	}
+
+	return 0
+}
+
+func readCommand(filepath string, sectionID string) int {
+	if _, err := os.Stat(filepath); os.IsNotExist(err) {
+		fmt.Fprintf(os.Stderr, "Error: File not found: %s\n", filepath)
+		return 1
+	}
+
+	content, err := os.ReadFile(filepath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error reading file: %v\n", err)
+		return 1
+	}
+
+	lines := strings.Split(string(content), "\n")
+
+	// Find CONTENT section start
+	contentStart := -1
+	for i, line := range lines {
+		if strings.TrimSpace(line) == "===CONTENT===" {
+			contentStart = i + 1
+			break
+		}
+	}
+
+	if contentStart == -1 {
+		fmt.Fprintln(os.Stderr, "Error: No ===CONTENT=== section found")
+		return 1
+	}
+
+	// Parse sections
+	sections := parseContentSection(lines, contentStart)
+
+	// Find matching section by ID
+	var targetSection *Section
+	for i := range sections {
+		if sections[i].ID == sectionID {
+			targetSection = &sections[i]
+			break
+		}
+	}
+
+	if targetSection == nil {
+		fmt.Fprintf(os.Stderr, "Error: Section not found: %s\n", sectionID)
+		return 1
+	}
+
+	// Extract and output section lines (convert from 1-indexed to 0-indexed)
+	sectionLines := lines[targetSection.Start-1 : targetSection.End]
+	for _, line := range sectionLines {
+		fmt.Println(line)
+	}
+
+	return 0
+}
+
+func readByTitleCommand(filepath string, title string) int {
+	if _, err := os.Stat(filepath); os.IsNotExist(err) {
+		fmt.Fprintf(os.Stderr, "Error: File not found: %s\n", filepath)
+		return 1
+	}
+
+	content, err := os.ReadFile(filepath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error reading file: %v\n", err)
+		return 1
+	}
+
+	lines := strings.Split(string(content), "\n")
+
+	// Find INDEX section
+	indexStart := -1
+	indexEnd := -1
+
+	for i, line := range lines {
+		if strings.TrimSpace(line) == "===INDEX===" {
+			indexStart = i
+		} else if strings.TrimSpace(line) == "===CONTENT===" {
+			indexEnd = i
+			break
+		}
+	}
+
+	if indexStart == -1 || indexEnd == -1 {
+		fmt.Fprintln(os.Stderr, "Error: Invalid ATF file format")
+		return 1
+	}
+
+	// Parse INDEX entries to extract title->ID mappings (preserve order)
+	indexEntryPattern := regexp.MustCompile(`^#{1,6}\s+(.+?)\s*\{#([a-zA-Z][a-zA-Z0-9_-]*)\s*\|.*\}$`)
+
+	type indexEntry struct {
+		title string
+		id    string
+	}
+
+	entries := []indexEntry{}
+	for _, line := range lines[indexStart+1 : indexEnd] {
+		match := indexEntryPattern.FindStringSubmatch(strings.TrimSpace(line))
+		if match != nil {
+			entries = append(entries, indexEntry{title: match[1], id: match[2]})
+		}
+	}
+
+	// Find best title match (deterministic order)
+	var matchedID string
+
+	// 1. Exact match (case-insensitive)
+	for _, entry := range entries {
+		if strings.EqualFold(entry.title, title) {
+			matchedID = entry.id
+			break
+		}
+	}
+
+	// 2. Contains match (case-insensitive)
+	if matchedID == "" {
+		titleLower := strings.ToLower(title)
+		for _, entry := range entries {
+			if strings.Contains(strings.ToLower(entry.title), titleLower) {
+				matchedID = entry.id
+				break
+			}
+		}
+	}
+
+	if matchedID == "" {
+		fmt.Fprintf(os.Stderr, "Error: No section found with title matching: %s\n", title)
+		return 1
+	}
+
+	// Delegate to readCommand
+	return readCommand(filepath, matchedID)
 }
 
 func validateCommand(filepath string) int {

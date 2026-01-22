@@ -742,7 +742,6 @@ $ atf new --template api-endpoint --id users-get --title "Get Users"
 {#{{ id }}}
 @summary: {{ description }}
 @tags: {{ tags | default("api") }}
-@author: {{ author }}
 @created: {{ date }}
 @modified: {{ date }}
 

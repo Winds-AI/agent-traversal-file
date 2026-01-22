@@ -102,7 +102,6 @@ atf validate document.atf
 ```
 :::ATF/1.0
 @title: My Documentation
-@author: Your Name
 
 ===CONTENT===
 
@@ -385,9 +384,14 @@ See [go/README.md](go/README.md) for details.
 ### Building from Source
 
 ```bash
+# Ensure Go is in your PATH
+
 # Build for your platform
-cd go
 go build -o atf main.go
+
+# Run commands
+./atf rebuild document.atf
+./atf validate document.atf
 
 # Cross-compile for all platforms
 ./build.sh
