@@ -58,20 +58,19 @@ IATF provides a **self-indexing document format** with two regions:
 
 ### Installation
 
-**Download from GitHub Releases:**
+Visit [GitHub Releases](https://github.com/Winds-AI/agent-traversal-file/releases/latest) to download:
 
 **Installers (Recommended):**
-- [Windows MSI](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-tools-windows.msi)
-- [macOS PKG](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-tools-macos.pkg)
-- [Linux DEB](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-tools-linux-amd64.deb)
-- [Linux RPM](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-tools-linux-amd64.rpm)
+- Windows: `.msi` file
+- macOS: `.pkg` file
+- Linux: `.deb` or `.rpm` file
 
 **Or download binary directly:**
-- [Windows](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-windows-amd64.exe)
-- [macOS Intel](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-darwin-amd64)
-- [macOS Apple Silicon](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-darwin-arm64)
-- [Linux amd64](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-linux-amd64)
-- [Linux ARM64](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-linux-arm64)
+- Windows: `iatf-windows-amd64.exe`
+- macOS Intel: `iatf-darwin-amd64`
+- macOS Apple Silicon: `iatf-darwin-arm64`
+- Linux x86_64: `iatf-linux-amd64`
+- Linux ARM64: `iatf-linux-arm64`
 
 **After downloading the binary:**
 
