@@ -78,7 +78,7 @@ $readmeLines = @(
     "",
     "LICENSE: MIT"
 )
-$readmeLines -join "`r`n" | Out-File -FilePath "README.txt" -Encoding utf8
+$readmeLines -join "`r`n" | Out-File -FilePath "README.txt" -Encoding ascii
 
 # Create LICENSE.txt
 Copy-Item "..\..\LICENSE" "LICENSE.txt" -ErrorAction SilentlyContinue
