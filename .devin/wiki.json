@@ -1,0 +1,304 @@
+{
+  "repo_notes": [
+    {
+      "content": "IATF (Indexed Agent Traversable File) is a file format designed for AI agents to efficiently navigate large documents. It solves the token efficiency problem that AI agents face when working with large files by providing self-indexing capabilities with 80-95% token savings. The system includes CLI tools in Go and Python for building and managing IATF files, with support for section references, watch mode for auto-rebuilding, and comprehensive validation. The repository contains dual implementations in Go and Python, installers for Windows/macOS/Linux, examples, and extensive documentation.",
+      "author": "Winds-AI"
+    }
+  ],
+  "pages": [
+    {
+      "title": "Overview",
+      "purpose": "Introduce the IATF (Indexed Agent Traversable File) system, explaining its core purpose of creating self-indexing documents optimized for AI agent navigation with 85% token savings",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "System Architecture",
+      "purpose": "High-level overview of the complete IATF ecosystem including the file format, dual CLI implementations, packaging system, and how AI agents interact with the system",
+      "parent": "Overview",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Token Efficiency Model",
+      "purpose": "Explain how IATF achieves 85% token savings for AI agents through INDEX-based navigation, contrasting traditional full-document loading with IATF's selective section loading",
+      "parent": "Overview",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Getting Started",
+      "purpose": "Guide users through installing IATF tools and creating their first IATF document",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Installation",
+      "purpose": "Provide installation instructions for all supported platforms (Windows, macOS, Linux) including installer downloads and manual binary installation",
+      "parent": "Getting Started",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Quick Start Tutorial",
+      "purpose": "Walk through creating a first IATF document, running rebuild, and understanding the generated INDEX",
+      "parent": "Getting Started",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Basic Commands",
+      "purpose": "Introduce the five core commands (rebuild, rebuild-all, watch, unwatch, validate) with simple examples",
+      "parent": "Getting Started",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "IATF File Format",
+      "purpose": "Comprehensive specification of the IATF/1.0 file format including structure, syntax, and design principles",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Format Specification",
+      "purpose": "Detailed specification of IATF/1.0 format including header, INDEX, and CONTENT sections with exact syntax rules",
+      "parent": "IATF File Format",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "INDEX Section",
+      "purpose": "Deep dive into the auto-generated INDEX section: structure, metadata fields, line number calculation, and content hashing",
+      "parent": "IATF File Format",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "CONTENT Section",
+      "purpose": "Explain CONTENT section structure including section blocks, metadata annotations (@summary, @created, @modified, @hash), and section references",
+      "parent": "IATF File Format",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Section References",
+      "purpose": "Document the {@section-id} reference syntax, validation rules, and how references enable document cross-linking",
+      "parent": "IATF File Format",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Validation Rules",
+      "purpose": "Comprehensive list of all validation checks performed by iatf validate including structure, consistency, accuracy, and freshness",
+      "parent": "IATF File Format",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "CLI Reference",
+      "purpose": "Complete command-line interface reference for both Go and Python implementations",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Command Overview",
+      "purpose": "Overview of all available commands with their purpose and common usage patterns",
+      "parent": "CLI Reference",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "rebuild Command",
+      "purpose": "Detailed documentation of the rebuild command including INDEX generation algorithm, metadata updates, and two-pass line number adjustment",
+      "parent": "CLI Reference",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "watch and unwatch Commands",
+      "purpose": "Explain file monitoring system including PID tracking, watch state management, and automatic rebuild triggers",
+      "parent": "CLI Reference",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "validate Command",
+      "purpose": "Document the 9-level validation pipeline from basic structure checks to reference validation and hash verification",
+      "parent": "CLI Reference",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "read and index Commands",
+      "purpose": "Document section extraction commands for reading specific sections by ID or title and outputting raw INDEX",
+      "parent": "CLI Reference",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Go vs Python Implementation",
+      "purpose": "Compare the two CLI implementations discussing performance, distribution, and when to use each",
+      "parent": "CLI Reference",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Building and Distribution",
+      "purpose": "Guide for building IATF tools from source and creating platform-specific installers",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Building from Source",
+      "purpose": "Instructions for compiling Go and Python implementations including cross-compilation for multiple platforms",
+      "parent": "Building and Distribution",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Windows Installer (MSI)",
+      "purpose": "Detailed guide for building Windows MSI packages using WiX Toolset including PATH modification and Start Menu integration",
+      "parent": "Building and Distribution",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "macOS Installer (PKG)",
+      "purpose": "Guide for creating universal macOS PKG installers supporting both Intel and Apple Silicon architectures",
+      "parent": "Building and Distribution",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Linux Packages (DEB/RPM)",
+      "purpose": "Instructions for building Debian and RPM packages for multiple architectures (amd64, arm64)",
+      "parent": "Building and Distribution",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Automated Release Pipeline",
+      "purpose": "Document the GitHub Actions workflow that automatically builds binaries and installers for all platforms on tag push",
+      "parent": "Building and Distribution",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Development Guide",
+      "purpose": "Information for developers contributing to or extending the IATF system",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Project Structure",
+      "purpose": "Overview of the repository structure explaining the purpose of each directory and key files",
+      "parent": "Development Guide",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Internal Architecture",
+      "purpose": "Deep dive into the internal architecture including parsing algorithms, validation pipelines, and watch state management",
+      "parent": "Development Guide",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    },
+    {
+      "title": "Watch System and PID Management",
+      "purpose": "Explain the watch state system, PID tracking, and the warning mechanism to prevent double rebuilds",
+      "parent": "Development Guide",
+      "page_notes": [
+        {
+          "content": ""
+        }
+      ]
+    }
+  ]
+}
