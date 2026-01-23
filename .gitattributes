@@ -1,0 +1,14 @@
+# Ensure XML files are always LF with no BOM
+*.wxs text eol=lf encoding=UTF-8
+*.xml text eol=lf encoding=UTF-8
+*.ps1 text eol=crlf encoding=UTF-8
+*.sh text eol=lf encoding=UTF-8
+*.md text eol=lf encoding=UTF-8
+*.go text eol=lf encoding=UTF-8
+
+# Binary files
+*.exe binary
+*.msi binary
+*.pkg binary
+*.deb binary
+*.rpm binary

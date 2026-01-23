@@ -117,16 +117,22 @@ $licenseLines = @(
 
 # Update version in WXS file
 Write-Host "Updating version in WXS..." -ForegroundColor Cyan
-# Read file as string, removing any BOM that Get-Content might have detected
-$wxsContent = Get-Content "iatf.wxs" -Raw -Encoding UTF8
-# Remove BOM character if present (Unicode char U+FEFF)
-$wxsContent = $wxsContent -replace '^\uFEFF', ''
-# Replace version
-$wxsContent = $wxsContent -replace 'Version="[\d\.]+"', "Version=`"$Version`""
-# Write as ASCII with explicit line ending handling
-$streamWriter = New-Object System.IO.StreamWriter("$PWD\iatf-versioned.wxs", $false, [System.Text.Encoding]::ASCII)
-$streamWriter.Write($wxsContent)
-$streamWriter.Close()
+# Read raw file bytes
+$bytes = [System.IO.File]::ReadAllBytes("iatf.wxs")
+# Convert to string - if it starts with UTF-8 BOM (EF BB BF), skip it
+$startIndex = 0
+if ($bytes.Length -gt 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
+    $startIndex = 3
+    Write-Host "  BOM detected and will be removed" -ForegroundColor Yellow
+}
+# Decode without BOM
+$encoding = [System.Text.UTF8Encoding]::new($false)  # false = no BOM
+$content = $encoding.GetString($bytes, $startIndex, $bytes.Length - $startIndex)
+# Do version replacement
+$content = $content -replace 'Version="1\.0\.0"', "Version=`"$Version`""
+# Write clean bytes without any BOM
+$outputBytes = $encoding.GetBytes($content)
+[System.IO.File]::WriteAllBytes("iatf-versioned.wxs", $outputBytes)
 
 # Build installer
 Write-Host "Running candle.exe..." -ForegroundColor Cyan
