@@ -7,6 +7,7 @@
 [![Latest Release](https://img.shields.io/github/v/release/Winds-AI/agent-traversal-file)](https://github.com/Winds-AI/agent-traversal-file/releases)
 [![Downloads](https://img.shields.io/github/downloads/Winds-AI/agent-traversal-file/total)](https://github.com/Winds-AI/agent-traversal-file/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/Winds-AI/agent-traversal-file)
 
 ---
 

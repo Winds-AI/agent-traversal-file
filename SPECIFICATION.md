@@ -26,7 +26,7 @@ Manual line numbering is impractical:
 ```
 [Human edits CONTENT]
        ↓
-[Save file or run: iatf index-rebuild]
+[Save file or run: iatf rebuild]
        ↓
 [Tool parses CONTENT, generates INDEX]
        ↓
@@ -607,7 +607,7 @@ Batch operations available at `/resources/batch`.
 {/endpoints}
 ```
 
-### 14.2 After Running `iatf index-build`
+### 14.2 After Running `iatf rebuild`
 
 ```
 :::IATF/1.0
