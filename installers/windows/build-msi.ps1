@@ -1,4 +1,4 @@
-﻿# Build IATF Tools MSI Installer
+# Build IATF Tools MSI Installer
 # Requirements: WiX Toolset v3.11+ installed
 
 param(
@@ -119,7 +119,7 @@ $licenseLines -join "`r`n" | Out-File -FilePath "License.rtf" -Encoding ascii
 Write-Host "Updating version in WXS..." -ForegroundColor Cyan
 $wxsContent = Get-Content "iatf.wxs" -Raw
 $wxsContent = $wxsContent -replace 'Version="[\d\.]+"', "Version=`"$Version`""
-$wxsContent | Out-File "iatf-versioned.wxs" -Encoding utf8
+$wxsContent | Out-File "iatf-versioned.wxs" -Encoding ascii
 
 # Build installer
 Write-Host "Running candle.exe..." -ForegroundColor Cyan

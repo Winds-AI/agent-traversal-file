@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <!-- 
     IATF Tools Windows Installer (.msi)
@@ -98,9 +98,8 @@
         </Directory>
       </Directory>
     </Directory>
-      </Directory>
     </Directory>
-    
+
     <!-- Features to install -->
     <Feature Id="ProductFeature" Title="IATF Tools" Level="1">
       <ComponentRef Id="AtfExecutable" />
