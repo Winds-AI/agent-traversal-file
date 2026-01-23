@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 IATF - Indexed Agent Traversable File
 
@@ -584,10 +584,10 @@ def rebuild_command(filepath: str) -> int:
     print(f"Rebuilding index: {filepath}")
 
     if rebuild_index(path):
-        print(f"âœ“ Index rebuilt successfully")
+        print(f"✅“ Index rebuilt successfully")
         return 0
     else:
-        print(f"âœ— Failed to rebuild index", file=sys.stderr)
+        print(f"✅— Failed to rebuild index", file=sys.stderr)
         return 1
 
 
@@ -612,10 +612,10 @@ def rebuild_all_command(directory: str = ".") -> int:
     for filepath in iatf_files:
         print(f"\nProcessing: {filepath}")
         if rebuild_index(filepath):
-            print(f"  âœ“ Success")
+            print(f"  ✅“ Success")
             success_count += 1
         else:
-            print(f"  âœ— Failed")
+            print(f"  ✅— Failed")
 
     print(f"\nCompleted: {success_count}/{len(iatf_files)} files rebuilt successfully")
     return 0 if success_count == len(iatf_files) else 1
@@ -698,9 +698,9 @@ def watch_command(filepath: str) -> int:
                         f"\n[{datetime.now().strftime('%H:%M:%S')}] File changed, rebuilding..."
                     )
                     if rebuild_index(path):
-                        print(f"  âœ“ Index rebuilt")
+                        print(f"  ✅“ Index rebuilt")
                     else:
-                        print(f"  âœ— Rebuild failed")
+                        print(f"  ✅— Rebuild failed")
                     last_mtime = current_mtime
             except FileNotFoundError:
                 cleanup_pid()
@@ -932,7 +932,7 @@ def validate_command(filepath: str) -> int:
         if not lines[0].startswith(":::IATF/"):
             errors.append("Missing format declaration (:::IATF/1.0)")
         else:
-            print("âœ“ Format declaration found")
+            print("✅“ Format declaration found")
 
         # Check 2: INDEX/CONTENT sections and order
         index_positions = [i for i, line in enumerate(lines) if line.strip() == "===INDEX==="]
@@ -941,12 +941,12 @@ def validate_command(filepath: str) -> int:
         has_content = bool(content_positions)
 
         if has_index:
-            print("âœ“ INDEX section found")
+            print("✅“ INDEX section found")
         else:
             warnings.append("No INDEX section (Run 'iatf rebuild' to create)")
 
         if has_content:
-            print("âœ“ CONTENT section found")
+            print("✅“ CONTENT section found")
         else:
             errors.append("Missing CONTENT section")
 
@@ -1022,7 +1022,7 @@ def validate_command(filepath: str) -> int:
                 errors.append(f"Unclosed section: {section_id}")
             invalid_nesting = True
         if not invalid_nesting:
-            print("âœ“ All sections properly closed")
+            print("✅“ All sections properly closed")
 
         # Check 6: No content outside section blocks
         if not invalid_nesting and content_start is not None:
@@ -1104,7 +1104,7 @@ def validate_command(filepath: str) -> int:
                 section_ids.append(section_id)
 
         if section_ids:
-            print(f"âœ“ Found {len(section_ids)} section(s) with unique IDs")
+            print(f"✅“ Found {len(section_ids)} section(s) with unique IDs")
         else:
             warnings.append("No sections found in CONTENT")
 
@@ -1113,7 +1113,7 @@ def validate_command(filepath: str) -> int:
             parsed_sections_for_refs = parse_content_section(lines, content_start)
             ref_errors = validate_references(lines, content_start, parsed_sections_for_refs)
             if not ref_errors:
-                print("âœ“ All references valid")
+                print("✅“ All references valid")
             else:
                 for ref_err in ref_errors:
                     errors.append(ref_err)
@@ -1121,7 +1121,7 @@ def validate_command(filepath: str) -> int:
         # Summary
         print()
         if errors:
-            print(f"âœ— {len(errors)} error(s) found:")
+            print(f"✅— {len(errors)} error(s) found:")
             for error in errors:
                 print(f"  - {error}")
 
@@ -1131,13 +1131,13 @@ def validate_command(filepath: str) -> int:
                 print(f"  - {warning}")
 
         if not errors and not warnings:
-            print("âœ“ File is valid!")
+            print("✅“ File is valid!")
             return 0
         elif not errors:
-            print("\nâœ“ File is valid (with warnings)")
+            print("\n✅“ File is valid (with warnings)")
             return 0
         else:
-            print(f"\nâœ— File is invalid")
+            print(f"\n✅— File is invalid")
             return 1
 
     except Exception as e:

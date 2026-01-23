@@ -1,14 +1,14 @@
-﻿# IATF Tools - Go Implementation
+# IATF Tools - Go Implementation
 
 High-performance Go implementation that compiles to standalone binaries.
 
 ## Features
 
-- âœ… Single static binary (no dependencies)
-- âœ… Cross-compiles to all platforms
-- âœ… Fast (~10-50ms rebuild time)
-- âœ… Small binary size (~2-5MB)
-- âœ… All 5 commands implemented
+- ✅ Single static binary (no dependencies)
+- ✅ Cross-compiles to all platforms
+- ✅ Fast (~10-50ms rebuild time)
+- ✅ Small binary size (~2-5MB)
+- ✅ All 5 commands implemented
 
 ## Building
 
@@ -165,7 +165,7 @@ Full list: `go tool dist list`
 This is a Go module:
 
 ```go
-module github.com/iatf-tools/iatf
+module github.com/Winds-AI/agent-traversal-file
 
 go 1.21
 ```

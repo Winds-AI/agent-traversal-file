@@ -1,4 +1,4 @@
-﻿# Contributing to IATF Tools
+# Contributing to IATF Tools
 
 Thank you for your interest in contributing to IATF Tools! 
 
@@ -74,7 +74,7 @@ Before submitting:
 
 - [ ] **Editor Plugins**: VS Code, Vim, Emacs extensions
 - [ ] **Language Server Protocol (LSP)**: Universal editor support
-- [ ] **Conversion Tools**: Markdown â†’ IATF, HTML â†’ IATF
+- [ ] **Conversion Tools**: Markdown → IATF, HTML → IATF
 - [ ] **Documentation**: Examples, tutorials, use cases
 - [ ] **Testing**: More comprehensive test suite
 - [ ] **Localization**: Translations for error messages

@@ -1,4 +1,4 @@
-﻿# IATF Tools - Python Implementation
+# IATF Tools - Python Implementation
 
 Pure Python implementation of IATF Tools with **zero dependencies**.
 
@@ -67,12 +67,12 @@ move iatf.bat C:\Windows\
 
 ## Features
 
-- âœ… All 5 commands implemented
-- âœ… Zero dependencies
-- âœ… Cross-platform (Windows, macOS, Linux)
-- âœ… Watch state persisted in ~/.iatf/watch.json
-- âœ… Comprehensive validation
-- âœ… Clear error messages
+- ✅ All 5 commands implemented
+- ✅ Zero dependencies
+- ✅ Cross-platform (Windows, macOS, Linux)
+- ✅ Watch state persisted in ~/.iatf/watch.json
+- ✅ Comprehensive validation
+- ✅ Clear error messages
 
 ## Development
 

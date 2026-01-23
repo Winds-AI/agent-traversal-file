@@ -1,4 +1,4 @@
-﻿# Ideas & Future Directions
+# Ideas & Future Directions
 
 This file contains experimental ideas and proposed features. These are not implemented yet and may require significant work. Feel free to pick one and start experimenting!
 
@@ -50,15 +50,15 @@ $ wc -l /mnt/IATF/content/*
 
 ```
 /mnt/IATF/
-â”œâ”€â”€ index          # Auto-generated INDEX section (read-only)
-â”œâ”€â”€ content/       # Section content as files
-â”‚   â”œâ”€â”€ intro
-â”‚   â”œâ”€â”€ auth-keys
-â”‚   â”œâ”€â”€ endpoints-users
-â”‚   â””â”€â”€ ...
-â””â”€â”€ metadata/      # Section metadata
-    â”œâ”€â”€ intro.json
-    â””â”€â”€ auth-keys.json
+├── index          # Auto-generated INDEX section (read-only)
+├── content/       # Section content as files
+│   ├── intro
+│   ├── auth-keys
+│   ├── endpoints-users
+│   └── ...
+└── metadata/      # Section metadata
+    ├── intro.json
+    └── auth-keys.json
 ```
 
 ### Benefits

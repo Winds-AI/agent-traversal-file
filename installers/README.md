@@ -1,4 +1,4 @@
-﻿# Building Installers
+# Building Installers
 
 This directory contains scripts to build professional installers for all platforms.
 
@@ -8,10 +8,10 @@ This directory contains scripts to build professional installers for all platfor
 
 | Platform | Installer Type | Auto-adds to PATH | Build Platform |
 |----------|----------------|-------------------|----------------|
-| **Windows** | `.msi` | âœ… Yes (system-wide) | Windows or GitHub Actions |
-| **macOS** | `.pkg` | âœ… Yes (/usr/local/bin) | macOS or GitHub Actions |
-| **Linux (Debian)** | `.deb` | âœ… Yes (/usr/bin) | Linux or GitHub Actions |
-| **Linux (Fedora)** | `.rpm` | âœ… Yes (/usr/bin) | Linux or GitHub Actions |
+| **Windows** | `.msi` | ✅ Yes (system-wide) | Windows or GitHub Actions |
+| **macOS** | `.pkg` | ✅ Yes (/usr/local/bin) | macOS or GitHub Actions |
+| **Linux (Debian)** | `.deb` | ✅ Yes (/usr/bin) | Linux or GitHub Actions |
+| **Linux (Fedora)** | `.rpm` | ✅ Yes (/usr/bin) | Linux or GitHub Actions |
 
 ---
 
@@ -73,11 +73,11 @@ powershell -ExecutionPolicy Bypass -File build-msi.ps1
 ```
 
 ### Features:
-- âœ… Installs to `C:\Program Files\IATF Tools\`
-- âœ… Adds to system PATH automatically
-- âœ… Creates Start Menu shortcuts
-- âœ… Includes uninstaller
-- âœ… Shows in "Add/Remove Programs"
+- ✅ Installs to `C:\Program Files\IATF Tools\`
+- ✅ Adds to system PATH automatically
+- ✅ Creates Start Menu shortcuts
+- ✅ Includes uninstaller
+- ✅ Shows in "Add/Remove Programs"
 
 ### Test Installation:
 ```powershell
@@ -112,11 +112,11 @@ chmod +x build-pkg.sh scripts/postinstall
 ```
 
 ### Features:
-- âœ… Creates universal binary (Intel + Apple Silicon)
-- âœ… Installs to `/usr/local/bin/iatf`
-- âœ… `/usr/local/bin` already in PATH
-- âœ… Includes welcome and conclusion screens
-- âœ… Shows license agreement
+- ✅ Creates universal binary (Intel + Apple Silicon)
+- ✅ Installs to `/usr/local/bin/iatf`
+- ✅ `/usr/local/bin` already in PATH
+- ✅ Includes welcome and conclusion screens
+- ✅ Shows license agreement
 
 ### Test Installation:
 ```bash
@@ -153,11 +153,11 @@ chmod +x build-deb.sh
 ```
 
 ### Features:
-- âœ… Installs to `/usr/bin/iatf`
-- âœ… Automatically in PATH
-- âœ… Includes man page: `man iatf`
-- âœ… Post-install verification
-- âœ… Clean removal support
+- ✅ Installs to `/usr/bin/iatf`
+- ✅ Automatically in PATH
+- ✅ Includes man page: `man iatf`
+- ✅ Post-install verification
+- ✅ Clean removal support
 
 ### Test Installation:
 ```bash
@@ -201,11 +201,11 @@ chmod +x build-rpm.sh
 ```
 
 ### Features:
-- âœ… Installs to `/usr/bin/iatf`
-- âœ… Automatically in PATH
-- âœ… Includes man page
-- âœ… Post-install verification
-- âœ… Clean removal support
+- ✅ Installs to `/usr/bin/iatf`
+- ✅ Automatically in PATH
+- ✅ Includes man page
+- ✅ Post-install verification
+- ✅ Clean removal support
 
 ### Test Installation:
 ```bash
@@ -305,7 +305,7 @@ The `.github/workflows/release-with-installers.yml` workflow automatically:
 ## Support
 
 For issues with installers:
-- Open an issue: https://github.com/iatf-tools/iatf/issues
+- Open an issue: https://github.com/Winds-AI/agent-traversal-file/issues
 - Tag with `installer` label
 
 

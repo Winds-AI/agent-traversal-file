@@ -1,4 +1,4 @@
-﻿# Task List
+# Task List
 
 ## Task 1: Add PID-based warning for rebuild on watched files
 
@@ -42,12 +42,12 @@ Continue with manual rebuild? [y/N]:
 ```
 
 **Exit codes:**
-- User cancels â†’ exit 1 with "Rebuild cancelled, no changes made."
-- User confirms â†’ proceeds with rebuild
-- Non-interactive (CI/scripts) â†’ returns default (cancel)
+- User cancels → exit 1 with "Rebuild cancelled, no changes made."
+- User confirms → proceeds with rebuild
+- Non-interactive (CI/scripts) → returns default (cancel)
 
 ### Edge cases handled
-- Stale PID (process dead) â†’ proceeds without warning
+- Stale PID (process dead) → proceeds without warning
 - Corrupt watch state â†’ cleans up and exits watch
 - File deleted during watch â†’ cleans up PID
 - Windows support â†’ uses `OpenProcess` API instead of Unix signals

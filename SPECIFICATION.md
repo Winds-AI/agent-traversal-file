@@ -1,4 +1,4 @@
-﻿# IATF Format Specification v1.0
+# IATF Format Specification v1.0
 
 ## 0. Overview: Auto-Indexing Workflow
 
@@ -25,20 +25,20 @@ Manual line numbering is impractical:
 
 ```
 [Human edits CONTENT]
-       â†“
+       ↓
 [Save file or run: iatf index-rebuild]
-       â†“
+       ↓
 [Tool parses CONTENT, generates INDEX]
-       â†“
+       ↓
 [File now has updated INDEX with correct line numbers]
-       â†“
+       ↓
 [Agent reads INDEX for navigation]
 ```
 
 This is similar to:
-- `package.json` â†’ `package-lock.json` (npm)
+- `package.json` → `package-lock.json` (npm)
 - Markdown with auto-generated table of contents
-- Protobuf files â†’ generated code
+- Protobuf files → generated code
 
 ## 1. File Structure
 
@@ -381,15 +381,15 @@ Proposed: `text/iatf` or `application/x-iatf`
 
 A valid IATF file MUST:
 
-1. âœ“ Start with `:::IATF/` declaration
-2. âœ“ Have exactly one `===INDEX===` section
-3. âœ“ Have exactly one `===CONTENT===` section
-4. âœ“ Have INDEX before CONTENT
-5. âœ“ Have all IDs in CONTENT be unique
-6. âœ“ Have all index IDs match content blocks
-7. âœ“ Have properly nested content blocks
-8. âœ“ Have INDEX marked as auto-generated
-9. âœ“ Have valid content hash (if present)
+1. ✅“ Start with `:::IATF/` declaration
+2. ✅“ Have exactly one `===INDEX===` section
+3. ✅“ Have exactly one `===CONTENT===` section
+4. ✅“ Have INDEX before CONTENT
+5. ✅“ Have all IDs in CONTENT be unique
+6. ✅“ Have all index IDs match content blocks
+7. ✅“ Have properly nested content blocks
+8. ✅“ Have INDEX marked as auto-generated
+9. ✅“ Have valid content hash (if present)
 
 ### 12.1 Index Staleness Detection
 

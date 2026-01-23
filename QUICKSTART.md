@@ -1,4 +1,4 @@
-﻿# IATF Tools - Quick Start Guide
+# IATF Tools - Quick Start Guide
 
 Get started with IATF in 5 minutes!
 
@@ -10,12 +10,12 @@ Choose your platform:
 
 ### macOS/Linux
 ```bash
-curl -fsSL https://raw.githubusercontent.com/iatf-tools/iatf/main/install/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/install/install.sh | bash
 ```
 
 ### Windows
 ```powershell
-irm https://raw.githubusercontent.com/iatf-tools/iatf/main/install/install.ps1 | iex
+irm https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/install/install.ps1 | iex
 ```
 
 ### Verify Installation

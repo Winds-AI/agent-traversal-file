@@ -1,4 +1,4 @@
-﻿# Problem Statement: Why IATF Exists
+# Problem Statement: Why IATF Exists
 
 ## The Fundamental Challenge
 
@@ -51,12 +51,12 @@ Result: Still loads whole file, no token savings
 
 An ideal solution would:
 
-1. âœ… **Self-contained** - No external databases or services
-2. âœ… **Token-efficient** - Agents load only what they need
-3. âœ… **Human-editable** - Plain text, works with any editor
-4. âœ… **Auto-maintained** - No manual index updates
-5. âœ… **Navigable** - Agents can jump to specific sections
-6. âœ… **Summarized** - Understand content before loading it
+1. ✅… **Self-contained** - No external databases or services
+2. ✅… **Token-efficient** - Agents load only what they need
+3. ✅… **Human-editable** - Plain text, works with any editor
+4. ✅… **Auto-maintained** - No manual index updates
+5. ✅… **Navigable** - Agents can jump to specific sections
+6. ✅… **Summarized** - Understand content before loading it
 
 **None of the existing formats provide all of these.**
 
@@ -176,12 +176,12 @@ Savings: 90%
 
 | Format | Self-Contained | Token-Efficient | Human-Editable | Auto-Maintained | Navigable |
 |--------|----------------|-----------------|----------------|-----------------|-----------|
-| **Markdown** | âœ… | âŒ | âœ… | âœ… | âŒ |
-| **HTML** | âœ… | âŒ | âŒ | âœ… | ~ |
-| **PDF** | âœ… | âŒ | âŒ | ~ | âŒ |
-| **JSON** | âœ… | âŒ | âŒ | âœ… | ~ |
-| **Vector DB** | âŒ | âœ… | ~ | ~ | âœ… |
-| **IATF** | âœ… | âœ… | âœ… | âœ… | âœ… |
+| **Markdown** | ✅… | âŒ | ✅… | ✅… | âŒ |
+| **HTML** | ✅… | âŒ | âŒ | ✅… | ~ |
+| **PDF** | ✅… | âŒ | âŒ | ~ | âŒ |
+| **JSON** | ✅… | âŒ | âŒ | ✅… | ~ |
+| **Vector DB** | âŒ | ✅… | ~ | ~ | ✅… |
+| **IATF** | ✅… | ✅… | ✅… | ✅… | ✅… |
 
 ## The Auto-Indexing Innovation
 
