@@ -444,6 +444,71 @@ Content here.
 
 **Note**: The INDEX section is optional in hand-written files. Parsing tools will generate it when needed.
 
+## 13A. Section References
+
+### 13A.1 Reference Syntax
+
+Sections can reference other sections using the `{@section-id}` syntax:
+
+```
+{#intro}
+# Introduction
+
+See {@auth} for authentication details.
+{/intro}
+
+{#auth}
+# Authentication
+
+See {@intro} for context.
+{/auth}
+```
+
+### 13A.2 Reference Rules
+
+| Rule | Behavior |
+|------|----------|
+| **Syntax** | `{@section-id}` |
+| **Self-reference** | **Error** - A section cannot reference itself |
+| **Missing target** | **Error** - Reference must point to existing section |
+| **Circular refs** | **Allowed** - A→B→A is valid |
+| **Inside code blocks/spans** | **Ignored** - References inside code blocks and inline code spans are not validated |
+| **INDEX impact** | None - References do not affect INDEX generation |
+
+### 13A.3 Validation
+
+References are validated during:
+- `iatf rebuild` - Fails with error if invalid references found
+- `iatf validate` - Reports reference errors in the validation output
+
+**Example validation output:**
+```
+✗ 2 reference error(s) found:
+  - Reference {@missing} at line 45: target section does not exist
+  - Reference {@self} at line 50: self-reference not allowed
+```
+
+### 13A.4 Rendering and Display
+
+References are plain text markers. Tools MUST NOT auto-expand or inline referenced section content during `read`, `rebuild`, or `validate`. UI clients MAY render references as links, but the underlying file content remains unchanged.
+
+### 13A.5 Literal Reference Syntax (No Escapes in v1.0.0)
+
+The reference parser matches the exact pattern `{@section-id}` in regular CONTENT. v1.0.0 does not provide an escape mechanism outside code blocks or inline code spans. To document the syntax literally in prose without triggering validation, break the pattern so it no longer matches:
+
+```
+Use {@ section-id} (note the space) in prose.
+Use { @section-id} (note the space after the brace) in examples.
+Use {@section-id } (note the trailing space) in inline code.
+```
+
+### 13A.6 Use Cases
+
+1. **Cross-references**: "For more details, see {@advanced-topics}"
+2. **Prerequisites**: "This assumes knowledge of {@fundamentals}"
+3. **Related sections**: "Related: {@error-handling} and {@performance}"
+4. **Navigation hints**: "Next: {@next-section}, Previous: {@prev-section}"
+
 ## 14. Complete Example
 
 ### 14.1 Source File (What You Edit)
@@ -664,9 +729,6 @@ Batch operations available at `/resources/batch`.
 {/endpoints-resources}
 {/endpoints}
 ```
-
-
-
 
 
 

@@ -160,8 +160,9 @@ auth_content = read_file("docs.iatf", lines=120, limit=61)  # 600 tokens
 1. **Section IDs**: Use descriptive IDs like `auth-oauth` instead of `section1`
 2. **Summaries**: Always add `@summary:` - agents rely on these!
 3. **Timestamps**: Update `@modified:` when you change a section
-4. **Watch mode**: Keep it running while writing docs
-5. **Validate often**: Run `iatf validate` to catch errors early
+4. **Section references**: Link between sections with `{@section-id}` syntax
+5. **Watch mode**: Keep it running while writing docs
+6. **Validate often**: Run `iatf validate` to catch errors early
 
 ---
 

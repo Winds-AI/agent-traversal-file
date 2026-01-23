@@ -1,0 +1,178 @@
+:::IATF/1.0
+@title: API Tutorial with Cross-References
+
+
+
+
+===INDEX===
+<!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
+<!-- Generated: 2026-01-23T04:47:34Z -->
+<!-- Content-Hash: sha256:b04661c -->
+
+# Introduction {#intro | lines:39-56 | words:57}
+> Getting started with the API
+  Created: 2025-01-23 | Modified: 2025-01-23
+
+# Fundamentals {#fundamentals | lines:58-73 | words:47}
+> Basic concepts and terminology
+  Created: 2025-01-23 | Modified: 2025-01-23
+
+# Quick Start {#quickstart | lines:75-98 | words:72}
+> Your first API request in 5 minutes
+  Created: 2025-01-23 | Modified: 2025-01-23
+
+# Error Handling {#error-handling | lines:100-125 | words:57}
+> Understanding error responses and status codes
+  Created: 2025-01-23 | Modified: 2025-01-23
+
+# Rate Limiting {#rate-limiting | lines:127-149 | words:68}
+> Understanding API rate limits
+  Created: 2025-01-23 | Modified: 2025-01-23
+
+# Troubleshooting Authentication {#troubleshooting-auth | lines:151-178 | words:98}
+> Common authentication issues and solutions
+  Created: 2025-01-23 | Modified: 2025-01-23
+
+
+===CONTENT===
+
+{#intro}
+@summary: Getting started with the API
+@created: 2025-01-23
+@modified: 2025-01-23
+@hash: b4bade1
+# Introduction
+
+Welcome to our API documentation! This tutorial will guide you through the basics.
+
+Before starting, make sure you understand the {@fundamentals} of HTTP requests. If you run into authentication issues, see {@troubleshooting-auth}.
+
+This guide covers:
+1. Basic setup
+2. Making your first request
+3. Handling errors
+
+**Next**: Read {@quickstart} to make your first API call.
+{/intro}
+
+{#fundamentals}
+@summary: Basic concepts and terminology
+@created: 2025-01-23
+@modified: 2025-01-23
+@hash: a1b6ea5
+# Fundamentals
+
+This section covers the basic HTTP concepts you need to know:
+
+- **REST**: Representational State Transfer
+- **Endpoints**: API URLs that accept requests
+- **Methods**: GET, POST, PUT, DELETE operations
+- **Status Codes**: HTTP response codes indicating success or failure
+
+For practical examples, see {@quickstart}.
+{/fundamentals}
+
+{#quickstart}
+@summary: Your first API request in 5 minutes
+@created: 2025-01-23
+@modified: 2025-01-23
+@hash: b572e59
+# Quick Start
+
+Make your first API call in under 5 minutes!
+
+**Prerequisites**: Read {@fundamentals} first if you're new to REST APIs.
+
+Step 1: Get an API key from your dashboard
+Step 2: Use cURL to make a request:
+```bash
+curl -H "Authorization: Bearer YOUR_API_KEY" \
+  https://api.example.com/v1/users
+```
+
+Step 3: Parse the JSON response
+
+**Common issues**: See {@troubleshooting-auth} if you get authentication errors.
+
+**Next steps**: Learn about {@error-handling} to properly handle responses.
+{/quickstart}
+
+{#error-handling}
+@summary: Understanding error responses and status codes
+@created: 2025-01-23
+@modified: 2025-01-23
+@hash: b75bf08
+# Error Handling
+
+APIs return different status codes and error messages.
+
+Common status codes:
+- `200`: Success
+- `401`: Unauthorized (authentication error)
+- `404`: Not found
+- `429`: Rate limited
+
+**Authentication errors?** See {@troubleshooting-auth}.
+
+**Rate limit issues?** Check {@rate-limiting}.
+
+Each error response includes:
+- Error code
+- Human-readable message
+- Timestamp
+
+Always check these fields before retrying.
+{/error-handling}
+
+{#rate-limiting}
+@summary: Understanding API rate limits
+@created: 2025-01-23
+@modified: 2025-01-23
+@hash: 702c83b
+# Rate Limiting
+
+All API requests are rate-limited to ensure fair usage.
+
+Limits:
+- Free tier: 100 requests/hour
+- Pro tier: 10,000 requests/hour
+- Enterprise: Custom limits
+
+**Headers**:
+- `X-RateLimit-Limit`: Maximum requests per hour
+- `X-RateLimit-Remaining`: Requests remaining
+- `X-RateLimit-Reset`: Unix timestamp when limit resets
+
+When you hit the limit, you'll receive a `429` status code (see {@error-handling}).
+
+Recommendation: Implement exponential backoff and monitor the rate limit headers.
+{/rate-limiting}
+
+{#troubleshooting-auth}
+@summary: Common authentication issues and solutions
+@created: 2025-01-23
+@modified: 2025-01-23
+@hash: cd69c93
+# Troubleshooting Authentication
+
+Getting authentication errors? Here are the most common causes:
+
+**Problem: 401 Unauthorized**
+- Missing `Authorization` header
+- Invalid or expired API key
+- Malformed header format
+
+See {@error-handling} for status code details.
+
+**Solution**:
+1. Verify your API key is active
+2. Check the header format: `Authorization: Bearer YOUR_KEY`
+3. Ensure you're using the correct key (not a token from another app)
+
+**Still stuck?** Contact support with:
+- Your API key (last 4 digits only)
+- Timestamp of the failed request
+- Request headers (without your full key)
+
+**Related**: Check {@quickstart} for a working example request.
+{/troubleshooting-auth}

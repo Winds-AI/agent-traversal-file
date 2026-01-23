@@ -30,6 +30,7 @@
 ## Documentation Guidelines
 - Do not repeat information across docs. If something is explained in one place, reference it rather than duplicating.
 - Keep docs DRY (Don't Repeat Yourself) - single source of truth for each concept.
+- When feature specs or logic change, update relevant documentation to remove outdated behavior and describe the new behavior.
 
 ## Commit & Pull Request Guidelines
 - Auto commits and PR's NOT ALLOWED.
@@ -40,7 +41,6 @@
 
 ## Problem Statement
 IATF exists to make large documents navigable for AI agents without loading entire files or wasting tokens. Instead of requiring RAG-style pipelines, the format works with simple grep-like tools as models get smarter about retrieval. IATF files can define the full scope of work (requirements, flows, test cases, and expected outcomes) in single file for small hobby projects and divided in multiple IATF files for larger projects so agents can look up the exact section they need via the INDEX and act on it quickly.
-
 
 
 

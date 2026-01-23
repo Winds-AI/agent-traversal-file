@@ -7,20 +7,22 @@
 
 
 
+
+
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-01-22T13:52:47Z -->
-<!-- Content-Hash: sha256:34e666c -->
+<!-- Generated: 2026-01-23T04:47:34Z -->
+<!-- Content-Hash: sha256:1fb32f3 -->
 
-# Setup Checklist {#setup | lines:30-45 | words:48}
+# Setup Checklist {#setup | lines:32-47 | words:48}
 > Setup checklist for local testing
-  Created: 2025-01-20 | Modified: 2026-01-22
+  Created: 2025-01-20 | Modified: 2026-01-23
 
-# Workflow {#workflow | lines:47-65 | words:38}
+# Workflow {#workflow | lines:49-67 | words:38}
 > Typical workflow with commands
-  Created: 2025-01-20 | Modified: 2026-01-22
+  Created: 2025-01-20 | Modified: 2026-01-23
 
-# Acceptance Criteria {#acceptance | lines:67-77 | words:21}
+# Acceptance Criteria {#acceptance | lines:69-79 | words:21}
 > Acceptance criteria for manual testing
   Created: 2025-01-20 | Modified: 2026-01-22
 
@@ -30,8 +32,8 @@
 {#setup}
 @summary: Setup checklist for local testing
 @created: 2025-01-20
-@modified: 2026-01-22
-@hash: 31d7a93
+@modified: 2026-01-23
+@hash: 6064408
 # Setup Checklist
 
 - [ ] Confirm Go is installed
@@ -47,8 +49,8 @@ Notes:
 {#workflow}
 @summary: Typical workflow with commands
 @created: 2025-01-20
-@modified: 2026-01-22
-@hash: 4eee73b
+@modified: 2026-01-23
+@hash: 7d5c3eb
 # Workflow
 
 1. Build the CLI

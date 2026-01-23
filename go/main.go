@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 	"syscall"
 	"time"
@@ -62,6 +63,164 @@ func validateNesting(lines []string, contentStart int) error {
 	}
 
 	return nil
+}
+
+func isCodeFenceLine(line string) bool {
+	trimmed := strings.TrimSpace(line)
+	return strings.HasPrefix(trimmed, "```")
+}
+
+func isIndentedCodeBlockLine(line string) bool {
+	return strings.HasPrefix(line, "    ") || strings.HasPrefix(line, "\t")
+}
+
+func stripInlineCode(line string) string {
+	var builder strings.Builder
+	inCodeSpan := false
+	for i := 0; i < len(line); i++ {
+		if line[i] == '`' {
+			inCodeSpan = !inCodeSpan
+			continue
+		}
+		if !inCodeSpan {
+			builder.WriteByte(line[i])
+		}
+	}
+	return builder.String()
+}
+
+// ReferenceLocation stores information about where a reference was found
+type ReferenceLocation struct {
+	LineNum           int
+	ContainingSection string
+}
+
+// extractReferences extracts all {@section-id} references from content, ignoring code fences,
+// indented code blocks, and inline code spans.
+// Returns a map of section_id -> list of ReferenceLocation where it's referenced.
+func extractReferences(lines []string, contentStart int) map[string][]ReferenceLocation {
+	references := make(map[string][]ReferenceLocation)
+
+	openPattern := regexp.MustCompile(`^\{#([a-zA-Z][a-zA-Z0-9_-]*)\}`)
+	closePattern := regexp.MustCompile(`^\{/([a-zA-Z][a-zA-Z0-9_-]*)\}`)
+	refPattern := regexp.MustCompile(`\{@([a-zA-Z][a-zA-Z0-9_-]*)\}`)
+
+	openSections := []string{}
+	inCodeFence := false
+	for i := contentStart; i < len(lines); i++ {
+		line := lines[i]
+		lineNum := i + 1 // 1-indexed
+
+		if inCodeFence {
+			if isCodeFenceLine(line) {
+				inCodeFence = false
+			}
+			continue
+		}
+		if isCodeFenceLine(line) {
+			inCodeFence = true
+			continue
+		}
+		if isIndentedCodeBlockLine(line) {
+			continue
+		}
+
+		// Track current section
+		if match := openPattern.FindStringSubmatch(line); match != nil {
+			openSections = append(openSections, match[1])
+			continue
+		}
+		if match := closePattern.FindStringSubmatch(line); match != nil {
+			if len(openSections) > 0 && openSections[len(openSections)-1] == match[1] {
+				openSections = openSections[:len(openSections)-1]
+			} else {
+				openSections = []string{}
+			}
+			continue
+		}
+
+		// Find all references in this line
+		trimmedLine := stripInlineCode(line)
+		matches := refPattern.FindAllStringSubmatch(trimmedLine, -1)
+		for _, match := range matches {
+			target := match[1]
+			containingSection := ""
+			if len(openSections) > 0 {
+				containingSection = openSections[len(openSections)-1]
+			}
+			references[target] = append(references[target], ReferenceLocation{
+				LineNum:           lineNum,
+				ContainingSection: containingSection,
+			})
+		}
+	}
+
+	return references
+}
+
+// validateReferences validates that all references point to existing sections and no self-references exist.
+// Returns a list of error messages (empty if valid).
+func validateReferences(lines []string, contentStart int, sections []Section) []string {
+	errors := []string{}
+
+	// Build set of valid section IDs
+	validIDs := make(map[string]bool)
+	for _, section := range sections {
+		validIDs[section.ID] = true
+	}
+
+	// Extract references
+	references := extractReferences(lines, contentStart)
+
+	type referenceInstance struct {
+		Target            string
+		LineNum           int
+		ContainingSection string
+	}
+
+	orderedRefs := []referenceInstance{}
+	for target, locations := range references {
+		for _, loc := range locations {
+			orderedRefs = append(orderedRefs, referenceInstance{
+				Target:            target,
+				LineNum:           loc.LineNum,
+				ContainingSection: loc.ContainingSection,
+			})
+		}
+	}
+
+	sort.Slice(orderedRefs, func(i, j int) bool {
+		if orderedRefs[i].LineNum != orderedRefs[j].LineNum {
+			return orderedRefs[i].LineNum < orderedRefs[j].LineNum
+		}
+		if orderedRefs[i].Target != orderedRefs[j].Target {
+			return orderedRefs[i].Target < orderedRefs[j].Target
+		}
+		return orderedRefs[i].ContainingSection < orderedRefs[j].ContainingSection
+	})
+
+	// Validate each reference in deterministic order
+	for _, ref := range orderedRefs {
+		if !validIDs[ref.Target] {
+			errors = append(errors, fmt.Sprintf("Reference {@%s} at line %d: target section does not exist", ref.Target, ref.LineNum))
+		} else if ref.Target == ref.ContainingSection {
+			errors = append(errors, fmt.Sprintf("Reference {@%s} at line %d: self-reference not allowed", ref.Target, ref.LineNum))
+		}
+	}
+
+	return errors
+}
+
+func findDuplicateSectionIDs(sections []Section) []string {
+	seen := make(map[string]int)
+	duplicates := []string{}
+	for _, section := range sections {
+		seen[section.ID]++
+		if seen[section.ID] == 2 {
+			duplicates = append(duplicates, section.ID)
+		}
+	}
+	return duplicates
 }
 
 func main() {
@@ -426,6 +585,23 @@ func rebuildIndex(filepath string) error {
 
 	if len(sections) == 0 {
 		return fmt.Errorf("no sections found")
+	}
+
+	duplicateIDs := findDuplicateSectionIDs(sections)
+	if len(duplicateIDs) > 0 {
+		for _, id := range duplicateIDs {
+			fmt.Fprintf(os.Stderr, "  - Duplicate section ID: %s\n", id)
+		}
+		return fmt.Errorf("%d duplicate section ID(s) found", len(duplicateIDs))
+	}
+
+	// Validate references before proceeding
+	refErrors := validateReferences(lines, contentStart, sections)
+	if len(refErrors) > 0 {
+		for _, err := range refErrors {
+			fmt.Fprintf(os.Stderr, "  - %s\n", err)
+		}
+		return fmt.Errorf("%d reference error(s) found", len(refErrors))
 	}
 
 	// Auto-update @modified based on content hash changes
@@ -1245,6 +1421,19 @@ func validateCommand(filepath string) int {
 		warnings = append(warnings, "No sections found in CONTENT")
 	}
 
+	// Check 9: References valid
+	if !invalidNesting && contentStart != -1 {
+		parsedSectionsForRefs := parseContentSection(lines, contentStart)
+		refErrors := validateReferences(lines, contentStart, parsedSectionsForRefs)
+		if len(refErrors) == 0 {
+			fmt.Println("âœ“ All references valid")
+		} else {
+			for _, refErr := range refErrors {
+				errors = append(errors, refErr)
+			}
+		}
+	}
+
 	// Summary
 	fmt.Println()
 	if len(errors) > 0 {
@@ -1272,9 +1461,3 @@ func validateCommand(filepath string) int {
 	fmt.Println("\nâœ— File is invalid")
 	return 1
 }
-
-
-
-
-
-

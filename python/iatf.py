@@ -206,6 +206,113 @@ def validate_nesting(lines: List[str], content_start: int) -> Optional[str]:
     return None
 
 
+def extract_references(lines: List[str], content_start: int) -> Dict[str, List[tuple]]:
+    """
+    Extract all {@section-id} references from content, ignoring code fences,
+    indented code blocks, and inline code spans.
+    Returns dict of section_id -> list of (line_num, containing_section) tuples.
+    """
+    references: Dict[str, List[tuple]] = {}
+
+    open_pattern = re.compile(r"^\{#([a-zA-Z][a-zA-Z0-9_-]*)\}")
+    close_pattern = re.compile(r"^\{/([a-zA-Z][a-zA-Z0-9_-]*)\}")
+    ref_pattern = re.compile(r"\{@([a-zA-Z][a-zA-Z0-9_-]*)\}")
+
+    def is_code_fence_line(value: str) -> bool:
+        return value.strip().startswith("```")
+
+    def is_indented_code_block_line(value: str) -> bool:
+        return value.startswith("    ") or value.startswith("\t")
+
+    def strip_inline_code(value: str) -> str:
+        builder: List[str] = []
+        in_code_span = False
+        for ch in value:
+            if ch == "`":
+                in_code_span = not in_code_span
+                continue
+            if not in_code_span:
+                builder.append(ch)
+        return "".join(builder)
+
+    open_sections = []
+    in_code_fence = False
+    for i in range(content_start, len(lines)):
+        line = lines[i]
+        line_num = i + 1  # 1-indexed
+
+        if in_code_fence:
+            if is_code_fence_line(line):
+                in_code_fence = False
+            continue
+        if is_code_fence_line(line):
+            in_code_fence = True
+            continue
+        if is_indented_code_block_line(line):
+            continue
+
+        # Track current section
+        if match := open_pattern.match(line):
+            open_sections.append(match.group(1))
+            continue
+        if match := close_pattern.match(line):
+            if open_sections and open_sections[-1] == match.group(1):
+                open_sections.pop()
+            else:
+                open_sections.clear()
+            continue
+
+        # Find all references in this line
+        for match in ref_pattern.finditer(strip_inline_code(line)):
+            target = match.group(1)
+            containing_section = open_sections[-1] if open_sections else None
+            if target not in references:
+                references[target] = []
+            references[target].append((line_num, containing_section))
+
+    return references
+
+
+def validate_references(lines: List[str], content_start: int, sections: List[IATFSection]) -> List[str]:
+    """
+    Validate that all references point to existing sections and no self-references exist.
+    Returns list of error messages (empty if valid).
+    """
+    errors = []
+
+    # Build set of valid section IDs
+    valid_ids = {section.id for section in sections}
+
+    # Extract references
+    references = extract_references(lines, content_start)
+
+    ordered_refs = []
+    for target, locations in references.items():
+        for line_num, containing_section in locations:
+            ordered_refs.append((line_num, target, containing_section or ""))
+
+    ordered_refs.sort()
+
+    # Validate each reference in deterministic order
+    for line_num, target, containing_section in ordered_refs:
+        if target not in valid_ids:
+            errors.append(f"Reference {{@{target}}} at line {line_num}: target section does not exist")
+        elif target == containing_section:
+            errors.append(f"Reference {{@{target}}} at line {line_num}: self-reference not allowed")
+
+    return errors
+
+
+def find_duplicate_section_ids(sections: List["IATFSection"]) -> List[str]:
+    seen: Dict[str, int] = {}
+    duplicates: List[str] = []
+    for section in sections:
+        seen[section.id] = seen.get(section.id, 0) + 1
+        if seen[section.id] == 2:
+            duplicates.append(section.id)
+    return duplicates
+
+
 def compute_content_hash(content_lines: List[str]) -> str:
     """Compute truncated SHA256 hash of content (Git-style 7 chars)"""
     content_text = "\n".join(content_lines)
@@ -357,6 +464,24 @@ def rebuild_index(filepath: Path) -> bool:
 
         if not sections:
             print(f"Warning: No sections found in {filepath}", file=sys.stderr)
+            return False
+
+        duplicate_ids = find_duplicate_section_ids(sections)
+        if duplicate_ids:
+            for section_id in duplicate_ids:
+                print(f"  - Duplicate section ID: {section_id}", file=sys.stderr)
+            print(
+                f"Error: {len(duplicate_ids)} duplicate section ID(s) found in {filepath}",
+                file=sys.stderr,
+            )
+            return False
+
+        # Validate references before proceeding
+        ref_errors = validate_references(lines, content_start, sections)
+        if ref_errors:
+            for err in ref_errors:
+                print(f"  - {err}", file=sys.stderr)
+            print(f"Error: {len(ref_errors)} reference error(s) found in {filepath}", file=sys.stderr)
             return False
 
         # Auto-update @modified based on content hash changes
@@ -983,6 +1108,16 @@ def validate_command(filepath: str) -> int:
         else:
             warnings.append("No sections found in CONTENT")
 
+        # Check 9: References valid
+        if not invalid_nesting and content_start is not None:
+            parsed_sections_for_refs = parse_content_section(lines, content_start)
+            ref_errors = validate_references(lines, content_start, parsed_sections_for_refs)
+            if not ref_errors:
+                print("âœ“ All references valid")
+            else:
+                for ref_err in ref_errors:
+                    errors.append(ref_err)
+
         # Summary
         print()
         if errors:
@@ -1121,10 +1256,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-
-
-
-
-
-
-

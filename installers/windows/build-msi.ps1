@@ -118,7 +118,7 @@ $licenseLines -join "`r`n" | Out-File -FilePath "License.rtf" -Encoding ascii
 # Update version in WXS file
 Write-Host "Updating version in WXS..." -ForegroundColor Cyan
 $wxsContent = Get-Content "iatf.wxs" -Raw
-$wxsContent = $wxsContent -replace 'Version="[\d\.]+"', "Version=`"$Version`""
+$wxsContent = $wxsContent -replace '(?s)(<Product.*?\bVersion=)"[\d\.]+"', "`$1`"$Version`""
 $wxsContent | Out-File "iatf-versioned.wxs" -Encoding utf8
 
 # Build installer

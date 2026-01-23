@@ -168,7 +168,7 @@ This is my documentation content...
 @modified: 2025-01-20
 # Setup
 
-Follow these steps to install...
+Follow these steps to install. See {@intro} for context.
 {/setup}
 ```
 
@@ -209,6 +209,7 @@ iatf rebuild my-doc.iatf
 | **Section summaries** | Agents understand content without loading it |
 | **Line-based addressing** | Direct access to sections via line numbers |
 | **Timestamps per section** | Track when content was created/modified |
+| **Section references** | In-content cross-references using `{@section-id}` validated at build time |
 | **Plain text format** | Human-readable, works with any editor |
 | **Watch mode** | Auto-rebuild on save during development |
 
@@ -315,6 +316,7 @@ iatf validate document.iatf
 - CONTENT has no lines outside section blocks
 - All section IDs are unique
 - All sections are properly closed
+- All section references are valid (Check 9)
 
 **Exit codes:**
 - `0` - File is valid
@@ -361,6 +363,10 @@ Each section can have:
 All are optional but recommended.
 
 **Nesting limit:** This implementation enforces a maximum depth of 2 (section + subsection).
+
+### Section References
+
+Use `{@section-id}` inside section content to cross-reference other sections (for example, "See `{@setup}` for installation details."). References are validated during `iatf rebuild` and `iatf validate`: a reference must point to an existing section, and a section cannot reference itself. The validator ignores references inside fenced/indented code blocks and inline code spans. For full rules and examples, see [SPECIFICATION.md](SPECIFICATION.md#13a-section-references).
 
 ---
 
@@ -500,8 +506,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 ---
 
 **Made with â¤ï¸ for AI agents and the humans who work with them.**
-
-
 
 
 

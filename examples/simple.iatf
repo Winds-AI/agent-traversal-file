@@ -1,5 +1,9 @@
-﻿:::IATF/1.0
+:::IATF/1.0
 @title: Simple Example
+
+
+
+
 
 
 
@@ -22,20 +26,20 @@
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-01-22T13:52:47Z -->
-<!-- Content-Hash: sha256:388d3bf -->
+<!-- Generated: 2026-01-23T04:47:34Z -->
+<!-- Content-Hash: sha256:f9a251d -->
 
-# How It Works {#intro | lines:43-64 | words:71}
+# How It Works {#intro | lines:47-68 | words:72}
 > Introduction to iatf format
-  Created: 2025-01-20 | Modified: 2025-01-20
+  Created: 2025-01-20 | Modified: 2026-01-23
 
-# Validate {#usage | lines:66-94 | words:39}
+# Validate {#usage | lines:70-98 | words:39}
 > Basic usage examples
-  Created: 2025-01-20 | Modified: 2025-01-20
+  Created: 2025-01-20 | Modified: 2026-01-23
 
-# Next Steps {#next-steps | lines:96-109 | words:29}
+# Next Steps {#next-steps | lines:100-113 | words:29}
 > What to do next
-  Created: 2025-01-20 | Modified: 2025-01-20
+  Created: 2025-01-20 | Modified: 2026-01-23
 
 
 ===CONTENT===
@@ -43,8 +47,8 @@
 {#intro}
 @summary: Introduction to iatf format
 @created: 2025-01-20
-@modified: 2025-01-20
-@hash: cb740ba
+@modified: 2026-01-23
+@hash: fafefda
 # Introduction
 
 IATF (Indexed Agent Traversable File) is a document format designed for AI agents.
@@ -66,8 +70,8 @@ IATF (Indexed Agent Traversable File) is a document format designed for AI agent
 {#usage}
 @summary: Basic usage examples
 @created: 2025-01-20
-@modified: 2025-01-20
-@hash: 92d94aa
+@modified: 2026-01-23
+@hash: 04134cf
 # Usage
 
 ## Rebuild Index
@@ -96,8 +100,8 @@ Checks if the file structure is valid.
 {#next-steps}
 @summary: What to do next
 @created: 2025-01-20
-@modified: 2025-01-20
-@hash: d6ed117
+@modified: 2026-01-23
+@hash: 7b293ef
 # Next Steps
 
 1. Create your own iatf file
