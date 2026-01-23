@@ -2,8 +2,8 @@
 
 **A file format designed for AI agents to efficiently navigate large documents.**
 
-> **ðŸ“ Project Location:** `S:\Random_stuff\agent-traversal-file`
-> **ðŸ“ Abbreviation:** IATF (Indexed Agent Traversable File)
+> **Project Location:** `S:\Random_stuff\agent-traversal-file`
+> **Abbreviation:** IATF (Indexed Agent Traversable File)
 
 [![Latest Release](https://img.shields.io/github/v/release/iatf-tools/iatf)](https://github.com/iatf-tools/iatf/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -13,11 +13,11 @@
 ## The Problem
 
 AI agents struggle with large documents:
-- âŒ **Token limits** - Can't load entire 10,000-line documents
-- âŒ **Wasted tokens** - Loading everything to find one section
-- âŒ **No navigation** - No standardized way to jump to sections
-- âŒ **No references** - No way to reference sections to other sections reliably.
-- âŒ **Blind loading** - Must read content to know what it contains
+-**Token limits** - Can't load entire 10,000-line documents
+-**Wasted tokens** - Loading everything to find one section
+-**No navigation** - No standardized way to jump to sections
+-**No references** - No way to reference sections to other sections reliably.
+-**Blind loading** - Must read content to know what it contains
 
 At least till someone solves long term memory.
 
@@ -36,18 +36,18 @@ Idea is mine but ALL of the code in this is written and tested by either claude 
 IATF provides a **self-indexing document format** with two regions:
 
 ```
-â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
-â”‚ INDEX (Auto-generated)                  â”‚
-â”‚  â€¢ Section titles & summaries           â”‚
-â”‚  â€¢ Line numbers for each section        â”‚
-â”‚  â€¢ Created & modified dates             â”‚
-â”‚  â€¢ ~5% of document size                 â”‚
-â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
-â”‚ CONTENT (Source of truth)               â”‚
-â”‚  â€¢ Full document text                   â”‚
-â”‚  â€¢ Organized into sections              â”‚
-â”‚  â€¢ Edit freely - index auto-rebuilds    â”‚
-â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
++----------------------------------------+
+| INDEX (Auto-generated)                 |
+|  * Section titles & summaries           |
+|  * Line numbers for each section        |
+|  * Created & modified dates             |
+|  * ~5% of document size                 |
+|----------------------------------------|
+| CONTENT (Source of truth)              |
+|  * Full document text                   |
+|  * Organized into sections              |
+|  * Edit freely - index auto-rebuilds    |
++----------------------------------------+
 ```
 
 **Agents save 80-95% tokens** by loading only the INDEX, then fetching specific sections as needed.
@@ -400,29 +400,29 @@ iatf watch --list
 
 ```
 Single 5,000-line API reference
-â†’ Agent loads 250-line INDEX
-â†’ Finds "Authentication" section at lines 120-340
-â†’ Loads just that section
-â†’ 95% token savings
+-> Agent loads 250-line INDEX
+-> Finds "Authentication" section at lines 120-340
+-> Loads just that section
+-> 95% token savings
 ```
 
 ### Knowledge Base
 
 ```
 Team wiki with 100 sections
-â†’ Agent scans INDEX to find relevant topics
-â†’ Loads only 2-3 relevant sections
-â†’ Answers question with fraction of tokens
+-> Agent scans INDEX to find relevant topics
+-> Loads only 2-3 relevant sections
+-> Answers question with fraction of tokens
 ```
 
 ### Product Specifications
 
 ```
 50-page product spec
-â†’ Agent loads INDEX, sees all sections
-â†’ User asks about "Performance Requirements"
-â†’ Agent loads just that section
-â†’ Fast, efficient, precise
+-> Agent loads INDEX, sees all sections
+-> User asks about "Performance Requirements"
+-> Agent loads just that section
+-> Fast, efficient, precise
 ```
 
 ---
@@ -473,7 +473,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md).
 - [ ] VS Code extension
 - [ ] Vim/Neovim plugin
 - [ ] Language Server Protocol (LSP) implementation
-- [ ] Conversion tools (Markdown â†’ IATF, HTML â†’ IATF)
+- [ ] Conversion tools (Markdown -> IATF, HTML -> IATF)
 - [ ] Documentation and examples
 
 ---
@@ -482,10 +482,10 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 | Format | Human Readable | Agent Navigation | Self-Indexing | Token Efficient |
 |--------|----------------|------------------|---------------|-----------------|
-| **Markdown** | âœ… | âŒ | âŒ | âŒ |
-| **HTML** | ~ | ~ | âŒ | âŒ |
-| **PDF** | ~ | âŒ | âŒ | âŒ |
-| **IATF** | âœ… | âœ… | âœ… | âœ… |
+| **Markdown** | Yes | No | No | No |
+| **HTML** | ~ | ~ | No | No |
+| **PDF** | ~ | No | No | No |
+| **IATF** | Yes | Yes | Yes | Yes |
 
 ---
 
@@ -505,8 +505,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-**Made with â¤ï¸ for AI agents and the humans who work with them.**
-
+**Made with love for AI agents and the humans who work with them.**
 
 
 
