@@ -117,9 +117,16 @@ $licenseLines = @(
 
 # Update version in WXS file
 Write-Host "Updating version in WXS..." -ForegroundColor Cyan
-$wxsContent = Get-Content "iatf.wxs" -Raw
+# Read file as bytes to avoid any encoding issues, then convert to string
+$wxsBytes = [System.IO.File]::ReadAllBytes("$PWD\iatf.wxs")
+# Skip UTF-8 BOM (EF BB BF) if present
+if ($wxsBytes.Length -ge 3 -and $wxsBytes[0] -eq 0xEF -and $wxsBytes[1] -eq 0xBB -and $wxsBytes[2] -eq 0xBF) {
+    $wxsBytes = $wxsBytes[3..($wxsBytes.Length - 1)]
+    Write-Host "  Stripped UTF-8 BOM from source file" -ForegroundColor Yellow
+}
+$wxsContent = [System.Text.Encoding]::UTF8.GetString($wxsBytes)
 $wxsContent = $wxsContent -replace 'Version="[\d\.]+"', "Version=`"$Version`""
-# Use .NET method to write file without BOM (PowerShell's Out-File can add BOM even with -Encoding ascii)
+# Write without BOM
 $utf8NoBom = New-Object System.Text.UTF8Encoding $false
 [System.IO.File]::WriteAllText("$PWD\iatf-versioned.wxs", $wxsContent, $utf8NoBom)
 
