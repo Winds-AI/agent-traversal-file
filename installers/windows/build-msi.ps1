@@ -78,7 +78,7 @@ $readmeLines = @(
     "",
     "LICENSE: MIT"
 )
-$readmeLines -join "`r`n" | Out-File -FilePath "README.txt" -Encoding ascii
+[System.IO.File]::WriteAllText("$PWD\README.txt", ($readmeLines -join "`r`n"), [System.Text.Encoding]::ASCII)
 
 # Create LICENSE.txt
 Copy-Item "..\..\LICENSE" "LICENSE.txt" -ErrorAction SilentlyContinue
@@ -113,13 +113,15 @@ $licenseLines = @(
     'SOFTWARE.\\par',
     '}'
 )
-$licenseLines -join "`r`n" | Out-File -FilePath "License.rtf" -Encoding ascii
+[System.IO.File]::WriteAllText("$PWD\License.rtf", ($licenseLines -join "`r`n"), [System.Text.Encoding]::ASCII)
 
 # Update version in WXS file
 Write-Host "Updating version in WXS..." -ForegroundColor Cyan
 $wxsContent = Get-Content "iatf.wxs" -Raw
 $wxsContent = $wxsContent -replace 'Version="[\d\.]+"', "Version=`"$Version`""
-$wxsContent | Out-File "iatf-versioned.wxs" -Encoding ascii
+# Use .NET method to write file without BOM (PowerShell's Out-File can add BOM even with -Encoding ascii)
+$utf8NoBom = New-Object System.Text.UTF8Encoding $false
+[System.IO.File]::WriteAllText("$PWD\iatf-versioned.wxs", $wxsContent, $utf8NoBom)
 
 # Build installer
 Write-Host "Running candle.exe..." -ForegroundColor Cyan
