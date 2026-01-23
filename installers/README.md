@@ -1,4 +1,4 @@
-# Building Installers
+﻿# Building Installers
 
 This directory contains scripts to build professional installers for all platforms.
 
@@ -8,10 +8,10 @@ This directory contains scripts to build professional installers for all platfor
 
 | Platform | Installer Type | Auto-adds to PATH | Build Platform |
 |----------|----------------|-------------------|----------------|
-| **Windows** | `.msi` | ✅ Yes (system-wide) | Windows or GitHub Actions |
-| **macOS** | `.pkg` | ✅ Yes (/usr/local/bin) | macOS or GitHub Actions |
-| **Linux (Debian)** | `.deb` | ✅ Yes (/usr/bin) | Linux or GitHub Actions |
-| **Linux (Fedora)** | `.rpm` | ✅ Yes (/usr/bin) | Linux or GitHub Actions |
+| **Windows** | `.msi` | âœ… Yes (system-wide) | Windows or GitHub Actions |
+| **macOS** | `.pkg` | âœ… Yes (/usr/local/bin) | macOS or GitHub Actions |
+| **Linux (Debian)** | `.deb` | âœ… Yes (/usr/bin) | Linux or GitHub Actions |
+| **Linux (Fedora)** | `.rpm` | âœ… Yes (/usr/bin) | Linux or GitHub Actions |
 
 ---
 
@@ -63,32 +63,32 @@ Check the **Actions** tab on GitHub to watch the build progress.
 
 # 2. Build Go binaries first
 cd go
-go build -o ../dist/atf-windows-amd64.exe main.go
+go build -o ../dist/iatf-windows-amd64.exe main.go
 
 # 3. Build installer
 cd ../installers/windows
 powershell -ExecutionPolicy Bypass -File build-msi.ps1
 
-# Output: ATF-Tools-1.0.0.msi
+# Output: iatf-tools-1.0.0.msi
 ```
 
 ### Features:
-- ✅ Installs to `C:\Program Files\ATF Tools\`
-- ✅ Adds to system PATH automatically
-- ✅ Creates Start Menu shortcuts
-- ✅ Includes uninstaller
-- ✅ Shows in "Add/Remove Programs"
+- âœ… Installs to `C:\Program Files\IATF Tools\`
+- âœ… Adds to system PATH automatically
+- âœ… Creates Start Menu shortcuts
+- âœ… Includes uninstaller
+- âœ… Shows in "Add/Remove Programs"
 
 ### Test Installation:
 ```powershell
 # Install
-msiexec /i ATF-Tools-1.0.0.msi
+msiexec /i iatf-tools-1.0.0.msi
 
 # Verify
-atf --version
+iatf --version
 
 # Uninstall
-msiexec /x ATF-Tools-1.0.0.msi
+msiexec /x iatf-tools-1.0.0.msi
 ```
 
 ---
@@ -100,34 +100,34 @@ msiexec /x ATF-Tools-1.0.0.msi
 ```bash
 # 1. Build Go binaries first
 cd go
-GOOS=darwin GOARCH=amd64 go build -o ../dist/atf-darwin-amd64 main.go
-GOOS=darwin GOARCH=arm64 go build -o ../dist/atf-darwin-arm64 main.go
+GOOS=darwin GOARCH=amd64 go build -o ../dist/iatf-darwin-amd64 main.go
+GOOS=darwin GOARCH=arm64 go build -o ../dist/iatf-darwin-arm64 main.go
 
 # 2. Build installer
 cd ../installers/macos
 chmod +x build-pkg.sh scripts/postinstall
 ./build-pkg.sh
 
-# Output: ATF-Tools-1.0.0-Installer.pkg
+# Output: iatf-tools-1.0.0-Installer.pkg
 ```
 
 ### Features:
-- ✅ Creates universal binary (Intel + Apple Silicon)
-- ✅ Installs to `/usr/local/bin/atf`
-- ✅ `/usr/local/bin` already in PATH
-- ✅ Includes welcome and conclusion screens
-- ✅ Shows license agreement
+- âœ… Creates universal binary (Intel + Apple Silicon)
+- âœ… Installs to `/usr/local/bin/iatf`
+- âœ… `/usr/local/bin` already in PATH
+- âœ… Includes welcome and conclusion screens
+- âœ… Shows license agreement
 
 ### Test Installation:
 ```bash
 # Install (GUI)
-open ATF-Tools-1.0.0-Installer.pkg
+open iatf-tools-1.0.0-Installer.pkg
 
 # Or install (command line)
-sudo installer -pkg ATF-Tools-1.0.0-Installer.pkg -target /
+sudo installer -pkg iatf-tools-1.0.0-Installer.pkg -target /
 
 # Verify
-atf --version
+iatf --version
 ```
 
 ---
@@ -139,8 +139,8 @@ atf --version
 ```bash
 # 1. Build Go binaries first
 cd go
-GOOS=linux GOARCH=amd64 go build -o ../dist/atf-linux-amd64 main.go
-GOOS=linux GOARCH=arm64 go build -o ../dist/atf-linux-arm64 main.go
+GOOS=linux GOARCH=amd64 go build -o ../dist/iatf-linux-amd64 main.go
+GOOS=linux GOARCH=arm64 go build -o ../dist/iatf-linux-arm64 main.go
 
 # 2. Build packages
 cd ../installers/linux
@@ -148,31 +148,31 @@ chmod +x build-deb.sh
 ./build-deb.sh
 
 # Output:
-#   atf-tools_1.0.0_amd64.deb
-#   atf-tools_1.0.0_arm64.deb
+#   iatf-tools_1.0.0_amd64.deb
+#   iatf-tools_1.0.0_arm64.deb
 ```
 
 ### Features:
-- ✅ Installs to `/usr/bin/atf`
-- ✅ Automatically in PATH
-- ✅ Includes man page: `man atf`
-- ✅ Post-install verification
-- ✅ Clean removal support
+- âœ… Installs to `/usr/bin/iatf`
+- âœ… Automatically in PATH
+- âœ… Includes man page: `man iatf`
+- âœ… Post-install verification
+- âœ… Clean removal support
 
 ### Test Installation:
 ```bash
 # Install
-sudo dpkg -i atf-tools_1.0.0_amd64.deb
+sudo dpkg -i iatf-tools_1.0.0_amd64.deb
 
 # Or
-sudo apt install ./atf-tools_1.0.0_amd64.deb
+sudo apt install ./iatf-tools_1.0.0_amd64.deb
 
 # Verify
-atf --version
-man atf
+iatf --version
+man iatf
 
 # Uninstall
-sudo apt remove atf-tools
+sudo apt remove iatf-tools
 ```
 
 ---
@@ -187,8 +187,8 @@ sudo dnf install rpm-build
 
 # 2. Build Go binaries first
 cd go
-GOOS=linux GOARCH=amd64 go build -o ../dist/atf-linux-amd64 main.go
-GOOS=linux GOARCH=arm64 go build -o ../dist/atf-linux-arm64 main.go
+GOOS=linux GOARCH=amd64 go build -o ../dist/iatf-linux-amd64 main.go
+GOOS=linux GOARCH=arm64 go build -o ../dist/iatf-linux-arm64 main.go
 
 # 3. Build packages
 cd ../installers/linux
@@ -196,31 +196,31 @@ chmod +x build-rpm.sh
 ./build-rpm.sh
 
 # Output:
-#   atf-tools-1.0.0-1.*.x86_64.rpm
-#   atf-tools-1.0.0-1.*.aarch64.rpm
+#   iatf-tools-1.0.0-1.*.x86_64.rpm
+#   iatf-tools-1.0.0-1.*.aarch64.rpm
 ```
 
 ### Features:
-- ✅ Installs to `/usr/bin/atf`
-- ✅ Automatically in PATH
-- ✅ Includes man page
-- ✅ Post-install verification
-- ✅ Clean removal support
+- âœ… Installs to `/usr/bin/iatf`
+- âœ… Automatically in PATH
+- âœ… Includes man page
+- âœ… Post-install verification
+- âœ… Clean removal support
 
 ### Test Installation:
 ```bash
 # Install
-sudo rpm -i atf-tools-1.0.0-1.*.x86_64.rpm
+sudo rpm -i iatf-tools-1.0.0-1.*.x86_64.rpm
 
 # Or
-sudo dnf install ./atf-tools-1.0.0-1.*.x86_64.rpm
+sudo dnf install ./iatf-tools-1.0.0-1.*.x86_64.rpm
 
 # Verify
-atf --version
-man atf
+iatf --version
+man iatf
 
 # Uninstall
-sudo dnf remove atf-tools
+sudo dnf remove iatf-tools
 ```
 
 ---
@@ -257,12 +257,12 @@ Before distributing installers, verify:
 
 ### Windows Code Signing:
 ```powershell
-signtool sign /f certificate.pfx /p password /t http://timestamp.digicert.com ATF-Tools-1.0.0.msi
+signtool sign /f certificate.pfx /p password /t http://timestamp.digicert.com iatf-tools-1.0.0.msi
 ```
 
 ### macOS Code Signing:
 ```bash
-codesign --sign "Developer ID Application: Your Name" ATF-Tools-1.0.0-Installer.pkg
+codesign --sign "Developer ID Application: Your Name" iatf-tools-1.0.0-Installer.pkg
 ```
 
 ### Linux:
@@ -305,5 +305,13 @@ The `.github/workflows/release-with-installers.yml` workflow automatically:
 ## Support
 
 For issues with installers:
-- Open an issue: https://github.com/atf-tools/atf/issues
+- Open an issue: https://github.com/iatf-tools/iatf/issues
 - Tag with `installer` label
+
+
+
+
+
+
+
+

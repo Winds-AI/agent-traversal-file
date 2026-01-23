@@ -1,4 +1,4 @@
-:::ATF/1.0
+﻿:::IATF/1.0
 @title: Simple Example
 
 
@@ -26,7 +26,7 @@
 <!-- Content-Hash: sha256:388d3bf -->
 
 # How It Works {#intro | lines:43-64 | words:71}
-> Introduction to ATF format
+> Introduction to iatf format
   Created: 2025-01-20 | Modified: 2025-01-20
 
 # Validate {#usage | lines:66-94 | words:39}
@@ -41,15 +41,15 @@
 ===CONTENT===
 
 {#intro}
-@summary: Introduction to ATF format
+@summary: Introduction to iatf format
 @created: 2025-01-20
 @modified: 2025-01-20
 @hash: cb740ba
 # Introduction
 
-ATF (Agent Traversable File) is a document format designed for AI agents.
+IATF (Indexed Agent Traversable File) is a document format designed for AI agents.
 
-## Why ATF?
+## Why IATF?
 
 - **Token efficient**: Agents load only what they need
 - **Self-indexing**: INDEX auto-generated from CONTENT
@@ -59,7 +59,7 @@ ATF (Agent Traversable File) is a document format designed for AI agents.
 ## How It Works
 
 1. Write content in CONTENT section
-2. Run `atf rebuild` to generate INDEX
+2. Run `iatf rebuild` to generate INDEX
 3. Agents read INDEX to navigate efficiently
 {/intro}
 
@@ -73,13 +73,13 @@ ATF (Agent Traversable File) is a document format designed for AI agents.
 ## Rebuild Index
 
 ```bash
-atf rebuild document.atf
+iatf rebuild document.iatf
 ```
 
 ## Watch Mode
 
 ```bash
-atf watch document.atf
+iatf watch document.iatf
 ```
 
 File will auto-rebuild when you save changes.
@@ -87,7 +87,7 @@ File will auto-rebuild when you save changes.
 ## Validate
 
 ```bash
-atf validate document.atf
+iatf validate document.iatf
 ```
 
 Checks if the file structure is valid.
@@ -100,10 +100,16 @@ Checks if the file structure is valid.
 @hash: d6ed117
 # Next Steps
 
-1. Create your own ATF file
+1. Create your own iatf file
 2. Try the rebuild command
 3. Use watch mode while editing
 4. Read the full specification at [SPECIFICATION.md](../SPECIFICATION.md)
 
 Happy documenting!
 {/next-steps}
+
+
+
+
+
+

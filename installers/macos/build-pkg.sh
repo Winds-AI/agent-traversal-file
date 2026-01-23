@@ -1,13 +1,13 @@
-#!/bin/bash
-# Build ATF Tools macOS Package (.pkg)
+﻿#!/bin/bash
+# Build IATF Tools macOS Package (.pkg)
 
 set -e
 
 VERSION=${1:-1.0.0}
-BINARY_AMD64="../../dist/atf-darwin-amd64"
-BINARY_ARM64="../../dist/atf-darwin-arm64"
+BINARY_AMD64="../../dist/iatf-darwin-amd64"
+BINARY_ARM64="../../dist/iatf-darwin-arm64"
 
-echo "Building ATF Tools macOS Package v$VERSION"
+echo "Building IATF Tools macOS Package v$VERSION"
 
 # Check binaries exist
 if [ ! -f "$BINARY_AMD64" ]; then
@@ -22,58 +22,58 @@ fi
 
 # Create universal binary using lipo
 echo "Creating universal binary..."
-lipo -create "$BINARY_AMD64" "$BINARY_ARM64" -output atf
+lipo -create "$BINARY_AMD64" "$BINARY_ARM64" -output iatf
 
 # Verify
-lipo -info atf
+lipo -info iatf
 
 # Create package structure
 echo "Creating package structure..."
 rm -rf package-root
 mkdir -p package-root/usr/local/bin
-mkdir -p package-root/usr/local/share/doc/atf
+mkdir -p package-root/usr/local/share/doc/iatf
 
 # Copy binary
-cp atf package-root/usr/local/bin/
-chmod +x package-root/usr/local/bin/atf
+cp iatf package-root/usr/local/bin/
+chmod +x package-root/usr/local/bin/iatf
 
 # Create documentation
-cat > package-root/usr/local/share/doc/atf/README.txt <<EOF
-ATF Tools v$VERSION
+cat > package-root/usr/local/share/doc/iatf/README.txt <<EOF
+IATF Tools v$VERSION
 
-Agent Traversable File - Self-indexing documents for AI agents
+Indexed Agent Traversable File - Self-indexing documents for AI agents
 
 USAGE:
-  atf rebuild <file>              Rebuild index for a file
-  atf rebuild-all [directory]     Rebuild all .atf files
-  atf watch <file>                Watch and auto-rebuild
-  atf unwatch <file>              Stop watching
-  atf validate <file>             Validate file
+  iatf rebuild <file>              Rebuild index for a file
+  iatf rebuild-all [directory]     Rebuild all .iatf files
+  iatf watch <file>                Watch and auto-rebuild
+  iatf unwatch <file>              Stop watching
+  iatf validate <file>             Validate file
 
 EXAMPLES:
-  atf rebuild document.atf
-  atf rebuild-all ./docs
-  atf watch api-reference.atf
+  iatf rebuild document.iatf
+  iatf rebuild-all ./docs
+  iatf watch api-reference.iatf
 
 DOCUMENTATION:
-  https://github.com/atf-tools/atf
+  https://github.com/iatf-tools/iatf
 
 LICENSE: MIT
 EOF
 
 # Copy license if exists
 if [ -f "../../LICENSE" ]; then
-    cp ../../LICENSE package-root/usr/local/share/doc/atf/LICENSE.txt
+    cp ../../LICENSE package-root/usr/local/share/doc/iatf/LICENSE.txt
 fi
 
 # Build package
 echo "Building package..."
 pkgbuild --root package-root \
-         --identifier com.atf.tools \
+         --identifier com.iatf.tools \
          --version "$VERSION" \
          --install-location / \
          --scripts scripts \
-         "ATF-Tools-$VERSION.pkg"
+         "iatf-tools-$VERSION.pkg"
 
 # Create distribution package (for better UI)
 echo "Creating distribution package..."
@@ -81,8 +81,8 @@ echo "Creating distribution package..."
 cat > distribution.xml <<EOF
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="1">
-    <title>ATF Tools</title>
-    <organization>com.atf</organization>
+    <title>IATF Tools</title>
+    <organization>com.iatf</organization>
     <domains enable_localSystem="true"/>
     <options customize="never" require-scripts="false" hostArchitectures="x86_64,arm64"/>
     
@@ -90,23 +90,23 @@ cat > distribution.xml <<EOF
     <license file="license.html"/>
     <conclusion file="conclusion.html"/>
     
-    <pkg-ref id="com.atf.tools"/>
+    <pkg-ref id="com.iatf.tools"/>
     
     <options customize="never" require-scripts="false"/>
     
     <choices-outline>
         <line choice="default">
-            <line choice="com.atf.tools"/>
+            <line choice="com.iatf.tools"/>
         </line>
     </choices-outline>
     
     <choice id="default"/>
     
-    <choice id="com.atf.tools" visible="false">
-        <pkg-ref id="com.atf.tools"/>
+    <choice id="com.iatf.tools" visible="false">
+        <pkg-ref id="com.iatf.tools"/>
     </choice>
     
-    <pkg-ref id="com.atf.tools" version="$VERSION" onConclusion="none">ATF-Tools-$VERSION.pkg</pkg-ref>
+    <pkg-ref id="com.iatf.tools" version="$VERSION" onConclusion="none">iatf-tools-$VERSION.pkg</pkg-ref>
 </installer-gui-script>
 EOF
 
@@ -122,11 +122,11 @@ cat > welcome.html <<EOF
     </style>
 </head>
 <body>
-    <h1>Welcome to ATF Tools</h1>
-    <p>This installer will install ATF Tools v$VERSION on your computer.</p>
-    <p>ATF (Agent Traversable File) is a self-indexing document format designed for AI agents.</p>
-    <p><strong>Installation location:</strong> /usr/local/bin/atf</p>
-    <p><strong>Note:</strong> /usr/local/bin is already in your PATH, so you can use the <code>atf</code> command immediately after installation.</p>
+    <h1>Welcome to IATF Tools</h1>
+    <p>This installer will install IATF Tools v$VERSION on your computer.</p>
+    <p>IATF (Indexed Agent Traversable File) is a self-indexing document format designed for AI agents.</p>
+    <p><strong>Installation location:</strong> /usr/local/bin/iatf</p>
+    <p><strong>Note:</strong> /usr/local/bin is already in your PATH, so you can use the <code>iatf</code> command immediately after installation.</p>
 </body>
 </html>
 EOF
@@ -145,7 +145,7 @@ cat > license.html <<EOF
 <pre>
 MIT License
 
-Copyright (c) 2025 ATF Project
+Copyright (c) 2025 IATF Project
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -183,19 +183,19 @@ cat > conclusion.html <<EOF
 </head>
 <body>
     <h1>Installation Complete!</h1>
-    <p>ATF Tools has been successfully installed.</p>
+    <p>IATF Tools has been successfully installed.</p>
     <p><strong>Try it out:</strong></p>
     <p>Open Terminal and type:</p>
-    <p><code>atf --version</code></p>
-    <p><code>atf --help</code></p>
+    <p><code>iatf --version</code></p>
+    <p><code>iatf --help</code></p>
     <br>
     <p><strong>Quick Start:</strong></p>
     <ol>
-        <li>Create a .atf file</li>
-        <li>Run: <code>atf rebuild yourfile.atf</code></li>
+        <li>Create a .iatf file</li>
+        <li>Run: <code>iatf rebuild yourfile.iatf</code></li>
         <li>See the auto-generated index!</li>
     </ol>
-    <p>Documentation: <a href="https://github.com/atf-tools/atf">https://github.com/atf-tools/atf</a></p>
+    <p>Documentation: <a href="https://github.com/iatf-tools/iatf">https://github.com/iatf-tools/iatf</a></p>
 </body>
 </html>
 EOF
@@ -203,16 +203,25 @@ EOF
 # Create distribution package
 productbuild --distribution distribution.xml \
              --resources . \
-             "ATF-Tools-$VERSION-Installer.pkg"
+             "iatf-tools-$VERSION-Installer.pkg"
 
 # Cleanup
 echo "Cleaning up..."
-rm -rf package-root distribution.xml welcome.html license.html conclusion.html atf
+rm -rf package-root distribution.xml welcome.html license.html conclusion.html iatf
 
 echo ""
-echo "✓ Package created: ATF-Tools-$VERSION-Installer.pkg"
+echo "âœ“ Package created: iatf-tools-$VERSION-Installer.pkg"
 echo ""
 echo "Test it:"
-echo "  sudo installer -pkg ATF-Tools-$VERSION-Installer.pkg -target /"
+echo "  sudo installer -pkg iatf-tools-$VERSION-Installer.pkg -target /"
 echo ""
 echo "Or double-click the .pkg file to install with GUI"
+
+
+
+
+
+
+
+
+

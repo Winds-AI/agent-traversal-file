@@ -1,14 +1,14 @@
-# ATF Tools - Go Implementation
+﻿# IATF Tools - Go Implementation
 
 High-performance Go implementation that compiles to standalone binaries.
 
 ## Features
 
-- ✅ Single static binary (no dependencies)
-- ✅ Cross-compiles to all platforms
-- ✅ Fast (~10-50ms rebuild time)
-- ✅ Small binary size (~2-5MB)
-- ✅ All 5 commands implemented
+- âœ… Single static binary (no dependencies)
+- âœ… Cross-compiles to all platforms
+- âœ… Fast (~10-50ms rebuild time)
+- âœ… Small binary size (~2-5MB)
+- âœ… All 5 commands implemented
 
 ## Building
 
@@ -18,30 +18,30 @@ Ensure Go is in your PATH.
 ### Build for your platform
 
 ```bash
-go build -o atf main.go
+go build -o iatf main.go
 ```
 
 ### Cross-compile for all platforms
 
 ```bash
 # Windows
-GOOS=windows GOARCH=amd64 go build -o atf-windows-amd64.exe main.go
+GOOS=windows GOARCH=amd64 go build -o iatf-windows-amd64.exe main.go
 
 # macOS Intel
-GOOS=darwin GOARCH=amd64 go build -o atf-darwin-amd64 main.go
+GOOS=darwin GOARCH=amd64 go build -o iatf-darwin-amd64 main.go
 
 # macOS Apple Silicon
-GOOS=darwin GOARCH=arm64 go build -o atf-darwin-arm64 main.go
+GOOS=darwin GOARCH=arm64 go build -o iatf-darwin-arm64 main.go
 
 # Linux
-GOOS=linux GOARCH=amd64 go build -o atf-linux-amd64 main.go
-GOOS=linux GOARCH=arm64 go build -o atf-linux-arm64 main.go
+GOOS=linux GOARCH=amd64 go build -o iatf-linux-amd64 main.go
+GOOS=linux GOARCH=arm64 go build -o iatf-linux-arm64 main.go
 ```
 
 ### Optimized build (smaller binary)
 
 ```bash
-go build -ldflags="-s -w" -o atf main.go
+go build -ldflags="-s -w" -o iatf main.go
 ```
 
 Flags:
@@ -54,11 +54,11 @@ Flags:
 Same as Python version:
 
 ```bash
-./atf rebuild document.atf
-./atf rebuild-all ./docs
-./atf watch document.atf
-./atf unwatch document.atf
-./atf validate document.atf
+./iatf rebuild document.iatf
+./iatf rebuild-all ./docs
+./iatf watch document.iatf
+./iatf unwatch document.iatf
+./iatf validate document.iatf
 ```
 
 ## Code Structure
@@ -109,7 +109,7 @@ Benchmarks on M1 Mac:
 ### Run without building
 
 ```bash
-go run main.go rebuild test.atf
+go run main.go rebuild test.iatf
 ```
 
 ### Format code
@@ -165,7 +165,7 @@ Full list: `go tool dist list`
 This is a Go module:
 
 ```go
-module github.com/atf-tools/atf
+module github.com/iatf-tools/iatf
 
 go 1.21
 ```
@@ -175,3 +175,9 @@ No external dependencies required!
 ## License
 
 MIT License - see ../LICENSE
+
+
+
+
+
+

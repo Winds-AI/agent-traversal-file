@@ -1,17 +1,17 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
-ATF - Agent Traversable File
+IATF - Indexed Agent Traversable File
 
 A tool for managing self-indexing documents optimized for AI agent navigation.
 
 Usage:
-    atf rebuild <file>              Rebuild index for a file
-    atf rebuild-all [directory]     Rebuild all .atf files
-    atf watch <file>                Watch and auto-rebuild on changes
-    atf unwatch <file>              Stop watching a file
-    atf validate <file>             Validate ATF file
+    iatf rebuild <file>              Rebuild index for a file
+    iatf rebuild-all [directory]     Rebuild all .iatf files
+    iatf watch <file>                Watch and auto-rebuild on changes
+    iatf unwatch <file>              Stop watching a file
+    iatf validate <file>             Validate iatf file
 
-Author: ATF Tools Project
+Author: IATF Tools Project
 License: MIT
 """
 
@@ -36,7 +36,7 @@ if os.name == "nt":
 VERSION = "1.0.0"
 
 # Watch state file
-WATCH_STATE_FILE = Path.home() / ".atf" / "watch.json"
+WATCH_STATE_FILE = Path.home() / ".iatf" / "watch.json"
 
 
 def is_process_running(pid: int) -> bool:
@@ -98,14 +98,14 @@ def check_watched_file(filepath: Path) -> bool:
     print("Options:")
     print("  - Press 'y' to proceed with manual rebuild anyway")
     print("  - Press 'N' (default) to cancel")
-    print(f"  - Run 'atf unwatch {filepath}' to stop watching first")
+    print(f"  - Run 'iatf unwatch {filepath}' to stop watching first")
     print()
 
     return prompt_user_confirmation("Continue with manual rebuild?", default=False)
 
 
-class ATFSection:
-    """Represents a section in an ATF document"""
+class IATFSection:
+    """Represents a section in an iatf document"""
 
     def __init__(self, section_id: str, title: str, start_line: int):
         self.id = section_id
@@ -123,7 +123,7 @@ class ATFSection:
         self.content_lines = []  # Actual content (excluding metadata)
 
 
-def parse_content_section(lines: List[str], content_start: int) -> List[ATFSection]:
+def parse_content_section(lines: List[str], content_start: int) -> List[IATFSection]:
     """Parse CONTENT section and extract all sections"""
     sections = []
     stack = []
@@ -137,7 +137,7 @@ def parse_content_section(lines: List[str], content_start: int) -> List[ATFSecti
         # Opening tag: {#id}
         if match := open_pattern.match(line):
             section_id = match.group(1)
-            section = ATFSection(section_id, section_id, i + 1)  # 1-indexed
+            section = IATFSection(section_id, section_id, i + 1)  # 1-indexed
             section.level = len(stack) + 1
             stack.append(section)
             sections.append(section)
@@ -221,7 +221,7 @@ def count_words(content_lines: List[str]) -> int:
     return len(words)
 
 
-def update_content_metadata(lines: List[str], content_start: int, sections: List[ATFSection]) -> List[str]:
+def update_content_metadata(lines: List[str], content_start: int, sections: List[IATFSection]) -> List[str]:
     """Update @modified and @hash in CONTENT section in-place"""
     # Create a map of section_id -> section for quick lookup
     section_map = {section.id: section for section in sections}
@@ -288,7 +288,7 @@ def update_content_metadata(lines: List[str], content_start: int, sections: List
     return lines
 
 
-def generate_index(sections: List[ATFSection], content_hash: str) -> List[str]:
+def generate_index(sections: List[IATFSection], content_hash: str) -> List[str]:
     """Generate INDEX section from parsed sections"""
     index_lines = [
         "===INDEX===",
@@ -325,7 +325,7 @@ def generate_index(sections: List[ATFSection], content_hash: str) -> List[str]:
 
 
 def rebuild_index(filepath: Path) -> bool:
-    """Rebuild the INDEX section of an ATF file"""
+    """Rebuild the INDEX section of an iatf file"""
     try:
         content = filepath.read_text(encoding="utf-8")
         lines = content.split("\n")
@@ -396,7 +396,7 @@ def rebuild_index(filepath: Path) -> bool:
         if header_end is None:
             # No existing INDEX, insert after header
             for i, line in enumerate(lines):
-                if line.strip().startswith(":::ATF/"):
+                if line.strip().startswith(":::IATF/"):
                     header_end = i + 1
                     # Skip metadata lines
                     while i + 1 < len(lines) and lines[i + 1].startswith("@"):
@@ -405,7 +405,7 @@ def rebuild_index(filepath: Path) -> bool:
                     break
 
         if header_end is None or index_end is None:
-            print(f"Error: Invalid ATF file format in {filepath}", file=sys.stderr)
+            print(f"Error: Invalid iatf file format in {filepath}", file=sys.stderr)
             return False
 
         # Update @modified and @hash in CONTENT section
@@ -453,47 +453,47 @@ def rebuild_command(filepath: str) -> int:
         print("Rebuild cancelled, no changes made.")
         return 1
 
-    if not path.suffix == ".atf":
-        print(f"Warning: File doesn't have .atf extension: {filepath}", file=sys.stderr)
+    if not path.suffix == ".iatf":
+        print(f"Warning: File doesn't have .iatf extension: {filepath}", file=sys.stderr)
 
     print(f"Rebuilding index: {filepath}")
 
     if rebuild_index(path):
-        print(f"✓ Index rebuilt successfully")
+        print(f"âœ“ Index rebuilt successfully")
         return 0
     else:
-        print(f"✗ Failed to rebuild index", file=sys.stderr)
+        print(f"âœ— Failed to rebuild index", file=sys.stderr)
         return 1
 
 
 def rebuild_all_command(directory: str = ".") -> int:
-    """Command: rebuild all .atf files in directory"""
+    """Command: rebuild all .iatf files in directory"""
     dir_path = Path(directory)
 
     if not dir_path.exists():
         print(f"Error: Directory not found: {directory}", file=sys.stderr)
         return 1
 
-    # Find all .atf files recursively
-    atf_files = list(dir_path.rglob("*.atf"))
+    # Find all .iatf files recursively
+    iatf_files = list(dir_path.rglob("*.iatf"))
 
-    if not atf_files:
-        print(f"No .atf files found in {directory}")
+    if not iatf_files:
+        print(f"No .iatf files found in {directory}")
         return 0
 
-    print(f"Found {len(atf_files)} .atf file(s)")
+    print(f"Found {len(iatf_files)} .iatf file(s)")
 
     success_count = 0
-    for filepath in atf_files:
+    for filepath in iatf_files:
         print(f"\nProcessing: {filepath}")
         if rebuild_index(filepath):
-            print(f"  ✓ Success")
+            print(f"  âœ“ Success")
             success_count += 1
         else:
-            print(f"  ✗ Failed")
+            print(f"  âœ— Failed")
 
-    print(f"\nCompleted: {success_count}/{len(atf_files)} files rebuilt successfully")
-    return 0 if success_count == len(atf_files) else 1
+    print(f"\nCompleted: {success_count}/{len(iatf_files)} files rebuilt successfully")
+    return 0 if success_count == len(iatf_files) else 1
 
 
 def watch_command(filepath: str) -> int:
@@ -543,7 +543,7 @@ def watch_command(filepath: str) -> int:
 
     print(f"Started watching: {filepath}")
     print(f"File will auto-rebuild on save")
-    print(f"To stop: atf unwatch {filepath}")
+    print(f"To stop: iatf unwatch {filepath}")
     print(f"\nPress Ctrl+C to stop watching (or close terminal to stop)")
 
     # Watch loop
@@ -573,9 +573,9 @@ def watch_command(filepath: str) -> int:
                         f"\n[{datetime.now().strftime('%H:%M:%S')}] File changed, rebuilding..."
                     )
                     if rebuild_index(path):
-                        print(f"  ✓ Index rebuilt")
+                        print(f"  âœ“ Index rebuilt")
                     else:
-                        print(f"  ✗ Rebuild failed")
+                        print(f"  âœ— Rebuild failed")
                     last_mtime = current_mtime
             except FileNotFoundError:
                 cleanup_pid()
@@ -585,8 +585,8 @@ def watch_command(filepath: str) -> int:
     except KeyboardInterrupt:
         cleanup_pid()
         print(f"\n\nWatch stopped")
-        print(f"To resume: atf watch {filepath}")
-        print(f"To stop permanently: atf unwatch {filepath}")
+        print(f"To resume: iatf watch {filepath}")
+        print(f"To stop permanently: iatf unwatch {filepath}")
 
     return 0
 
@@ -656,7 +656,7 @@ def index_command(filepath: str) -> int:
                 break
 
         if index_start is None or index_end is None:
-            print("Error: Invalid ATF file format", file=sys.stderr)
+            print("Error: Invalid iatf file format", file=sys.stderr)
             return 1
 
         # Output INDEX section (lines between markers, excluding the markers)
@@ -743,7 +743,7 @@ def read_by_title_command(filepath: str, title: str) -> int:
                 break
 
         if index_start is None or index_end is None:
-            print("Error: Invalid ATF file format", file=sys.stderr)
+            print("Error: Invalid iatf file format", file=sys.stderr)
             return 1
 
         # Parse INDEX entries to extract title->ID mappings (preserve order)
@@ -787,7 +787,7 @@ def read_by_title_command(filepath: str, title: str) -> int:
 
 
 def validate_command(filepath: str) -> int:
-    """Command: validate an ATF file"""
+    """Command: validate an iatf file"""
     path = Path(filepath)
 
     if not path.exists():
@@ -804,10 +804,10 @@ def validate_command(filepath: str) -> int:
         warnings = []
 
         # Check 1: Format declaration
-        if not lines[0].startswith(":::ATF/"):
-            errors.append("Missing format declaration (:::ATF/1.0)")
+        if not lines[0].startswith(":::IATF/"):
+            errors.append("Missing format declaration (:::IATF/1.0)")
         else:
-            print("✓ Format declaration found")
+            print("âœ“ Format declaration found")
 
         # Check 2: INDEX/CONTENT sections and order
         index_positions = [i for i, line in enumerate(lines) if line.strip() == "===INDEX==="]
@@ -816,12 +816,12 @@ def validate_command(filepath: str) -> int:
         has_content = bool(content_positions)
 
         if has_index:
-            print("✓ INDEX section found")
+            print("âœ“ INDEX section found")
         else:
-            warnings.append("No INDEX section (run 'atf rebuild' to create)")
+            warnings.append("No INDEX section (Run 'iatf rebuild' to create)")
 
         if has_content:
-            print("✓ CONTENT section found")
+            print("âœ“ CONTENT section found")
         else:
             errors.append("Missing CONTENT section")
 
@@ -876,7 +876,7 @@ def validate_command(filepath: str) -> int:
                                 "INDEX Content-Hash does not match CONTENT (index may be stale)"
                             )
             else:
-                warnings.append("INDEX missing Content-Hash (run 'atf rebuild' to add)")
+                warnings.append("INDEX missing Content-Hash (Run 'iatf rebuild' to add)")
 
         # Check 5: All sections are properly closed and nested
         open_sections = []
@@ -897,7 +897,7 @@ def validate_command(filepath: str) -> int:
                 errors.append(f"Unclosed section: {section_id}")
             invalid_nesting = True
         if not invalid_nesting:
-            print("✓ All sections properly closed")
+            print("âœ“ All sections properly closed")
 
         # Check 6: No content outside section blocks
         if not invalid_nesting and content_start is not None:
@@ -979,30 +979,30 @@ def validate_command(filepath: str) -> int:
                 section_ids.append(section_id)
 
         if section_ids:
-            print(f"✓ Found {len(section_ids)} section(s) with unique IDs")
+            print(f"âœ“ Found {len(section_ids)} section(s) with unique IDs")
         else:
             warnings.append("No sections found in CONTENT")
 
         # Summary
         print()
         if errors:
-            print(f"✗ {len(errors)} error(s) found:")
+            print(f"âœ— {len(errors)} error(s) found:")
             for error in errors:
                 print(f"  - {error}")
 
         if warnings:
-            print(f"⚠ {len(warnings)} warning(s):")
+            print(f"âš  {len(warnings)} warning(s):")
             for warning in warnings:
                 print(f"  - {warning}")
 
         if not errors and not warnings:
-            print("✓ File is valid!")
+            print("âœ“ File is valid!")
             return 0
         elif not errors:
-            print("\n✓ File is valid (with warnings)")
+            print("\nâœ“ File is valid (with warnings)")
             return 0
         else:
-            print(f"\n✗ File is invalid")
+            print(f"\nâœ— File is invalid")
             return 1
 
     except Exception as e:
@@ -1012,31 +1012,31 @@ def validate_command(filepath: str) -> int:
 
 def print_usage():
     """Print usage information"""
-    print(f"""ATF Tools v{VERSION}
+    print(f"""IATF Tools v{VERSION}
 
 Usage:
-    atf rebuild <file>              Rebuild index for a single file
-    atf rebuild-all [directory]     Rebuild all .atf files in directory
-    atf watch <file>                Watch file and auto-rebuild on changes
-    atf unwatch <file>              Stop watching a file
-    atf watch --list                List all watched files
-    atf validate <file>             Validate ATF file structure
-    atf index <file>                Output INDEX section only
-    atf read <file> <section-id>    Extract section by ID
-    atf read <file> --title "Title" Extract section by title
-    atf --help                      Show this help message
-    atf --version                   Show version
+    iatf rebuild <file>              Rebuild index for a single file
+    iatf rebuild-all [directory]     Rebuild all .iatf files in directory
+    iatf watch <file>                Watch file and auto-rebuild on changes
+    iatf unwatch <file>              Stop watching a file
+    iatf watch --list                List all watched files
+    iatf validate <file>             Validate iatf file structure
+    iatf index <file>                Output INDEX section only
+    iatf read <file> <section-id>    Extract section by ID
+    iatf read <file> --title "Title" Extract section by title
+    iatf --help                      Show this help message
+    iatf --version                   Show version
 
 Examples:
-    atf rebuild document.atf
-    atf rebuild-all ./docs
-    atf watch api-reference.atf
-    atf validate my-doc.atf
-    atf index document.atf
-    atf read document.atf intro
-    atf read document.atf --title "Introduction"
+    iatf rebuild document.iatf
+    iatf rebuild-all ./docs
+    iatf watch api-reference.iatf
+    iatf validate my-doc.iatf
+    iatf index document.iatf
+    iatf read document.iatf intro
+    iatf read document.iatf --title "Introduction"
 
-For more information, visit: https://github.com/atf-tools/atf
+For more information, visit: https://github.com/iatf-tools/iatf
 """)
 
 
@@ -1053,13 +1053,13 @@ def main():
         return 0
 
     elif command in ["--version", "-v", "version"]:
-        print(f"ATF Tools v{VERSION}")
+        print(f"IATF Tools v{VERSION}")
         return 0
 
     elif command == "rebuild":
         if len(sys.argv) < 3:
             print("Error: Missing file argument", file=sys.stderr)
-            print("Usage: atf rebuild <file>", file=sys.stderr)
+            print("Usage: iatf rebuild <file>", file=sys.stderr)
             return 1
         return rebuild_command(sys.argv[2])
 
@@ -1072,36 +1072,36 @@ def main():
             return list_watched()
         if len(sys.argv) < 3:
             print("Error: Missing file argument", file=sys.stderr)
-            print("Usage: atf watch <file>", file=sys.stderr)
+            print("Usage: iatf watch <file>", file=sys.stderr)
             return 1
         return watch_command(sys.argv[2])
 
     elif command == "unwatch":
         if len(sys.argv) < 3:
             print("Error: Missing file argument", file=sys.stderr)
-            print("Usage: atf unwatch <file>", file=sys.stderr)
+            print("Usage: iatf unwatch <file>", file=sys.stderr)
             return 1
         return unwatch_command(sys.argv[2])
 
     elif command == "validate":
         if len(sys.argv) < 3:
             print("Error: Missing file argument", file=sys.stderr)
-            print("Usage: atf validate <file>", file=sys.stderr)
+            print("Usage: iatf validate <file>", file=sys.stderr)
             return 1
         return validate_command(sys.argv[2])
 
     elif command == "index":
         if len(sys.argv) < 3:
             print("Error: Missing file argument", file=sys.stderr)
-            print("Usage: atf index <file>", file=sys.stderr)
+            print("Usage: iatf index <file>", file=sys.stderr)
             return 1
         return index_command(sys.argv[2])
 
     elif command == "read":
         if len(sys.argv) < 4:
             print("Error: Missing arguments", file=sys.stderr)
-            print("Usage: atf read <file> <section-id>", file=sys.stderr)
-            print("       atf read <file> --title \"Title\"", file=sys.stderr)
+            print("Usage: iatf read <file> <section-id>", file=sys.stderr)
+            print("       iatf read <file> --title \"Title\"", file=sys.stderr)
             return 1
 
         # Check for --title flag
@@ -1115,9 +1115,16 @@ def main():
 
     else:
         print(f"Error: Unknown command: {command}", file=sys.stderr)
-        print("Run 'atf --help' for usage information", file=sys.stderr)
+        print("Run 'iatf --help' for usage information", file=sys.stderr)
         return 1
 
 
 if __name__ == "__main__":
     sys.exit(main())
+
+
+
+
+
+
+

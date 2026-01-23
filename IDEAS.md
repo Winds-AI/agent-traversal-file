@@ -1,4 +1,4 @@
-# Ideas & Future Directions
+﻿# Ideas & Future Directions
 
 This file contains experimental ideas and proposed features. These are not implemented yet and may require significant work. Feel free to pick one and start experimenting!
 
@@ -12,7 +12,7 @@ This file contains experimental ideas and proposed features. These are not imple
 
 ### Description
 
-Mount ATF files as virtual filesystems so standard tools (cat, grep, wc, ls) can work directly with sections without needing the `atf` CLI tool.
+Mount IATF files as virtual filesystems so standard tools (cat, grep, wc, ls) can work directly with sections without needing the `IATF` CLI tool.
 
 ### Platforms
 
@@ -25,40 +25,40 @@ Mount ATF files as virtual filesystems so standard tools (cat, grep, wc, ls) can
 ### How It Would Work
 
 ```bash
-# Mount ATF file as filesystem
-$ atf-fuse doc.atf /mnt/atf
+# Mount IATF file as filesystem
+$ iatf-fuse doc.iatf /mnt/IATF
 
 # Access sections as files/directories
-$ ls /mnt/atf/
+$ ls /mnt/IATF/
 index  content/
 
-$ cat /mnt/atf/index
+$ cat /mnt/IATF/index
 # Auto-generated index (always current)
 
-$ cat /mnt/atf/content/intro
+$ cat /mnt/IATF/content/intro
 # {#intro} section content
 
-$ cat /mnt/atf/content/auth-keys
+$ cat /mnt/IATF/content/auth-keys
 # {#auth-keys} section content
 
 # Standard tools work natively
-$ grep "TODO" /mnt/atf/content/*
-$ wc -l /mnt/atf/content/*
+$ grep "TODO" /mnt/IATF/content/*
+$ wc -l /mnt/IATF/content/*
 ```
 
 ### Virtual Structure
 
 ```
-/mnt/atf/
-├── index          # Auto-generated INDEX section (read-only)
-├── content/       # Section content as files
-│   ├── intro
-│   ├── auth-keys
-│   ├── endpoints-users
-│   └── ...
-└── metadata/      # Section metadata
-    ├── intro.json
-    └── auth-keys.json
+/mnt/IATF/
+â”œâ”€â”€ index          # Auto-generated INDEX section (read-only)
+â”œâ”€â”€ content/       # Section content as files
+â”‚   â”œâ”€â”€ intro
+â”‚   â”œâ”€â”€ auth-keys
+â”‚   â”œâ”€â”€ endpoints-users
+â”‚   â””â”€â”€ ...
+â””â”€â”€ metadata/      # Section metadata
+    â”œâ”€â”€ intro.json
+    â””â”€â”€ auth-keys.json
 ```
 
 ### Benefits
@@ -66,14 +66,14 @@ $ wc -l /mnt/atf/content/*
 1. **No rebuild needed** - Filesystem driver always returns current data
 2. **Standard tool compatibility** - `grep`, `find`, `wc`, etc. work out of the box
 3. **Agent-friendly** - Agents can use normal file operations
-4. **Transparent** - User sees filesystem, not ATF format
+4. **Transparent** - User sees filesystem, not IATF format
 
 ### Concerns
 
 | Issue | Details |
 |-------|---------|
 | **Performance** | 20-100x slower than native filesystem (4 context switches per operation) |
-| **Security** | Malicious ATF could cause resource exhaustion, path traversal |
+| **Security** | Malicious iatf could cause resource exhaustion, path traversal |
 | **Complexity** | Requires platform-specific code (FUSE, Dokany, macFUSE) |
 | **Cross-platform** | Tests need Linux, Windows, and macOS runners |
 
@@ -89,14 +89,14 @@ $ wc -l /mnt/atf/content/*
    - Restrict to mount point
 
 3. **Input Validation**
-   - Validate ATF structure before mounting
+   - Validate IATF structure before mounting
    - Reject malformed files
 
 ### Implementation Steps
 
 1. Choose FUSE library (Go has `bazil.org/fuse`, Python has `fuse-python`)
 2. Implement filesystem driver that:
-   - Parses ATF file on mount
+   - Parses IATF file on mount
    - Exposes sections as virtual files
    - Handles read operations
 3. Add resource limits and timeouts
@@ -120,7 +120,7 @@ $ wc -l /mnt/atf/content/*
 
 ### Description
 
-Editor plugins that automatically run `atf rebuild` when user saves an ATF file.
+Editor plugins that automatically run `iatf rebuild` when user saves an IATF file.
 
 ### Platforms to Support
 
@@ -134,14 +134,14 @@ Editor plugins that automatically run `atf rebuild` when user saves an ATF file.
 ```json
 // VS Code extension example (settings.json)
 {
-  "atf.autoRebuild": true,
-  "atf.saveTrigger": true
+  "IATF.autoRebuild": true,
+  "IATF.saveTrigger": true
 }
 ```
 
-When user edits and saves `doc.atf`:
+When user edits and saves `doc.iatf`:
 1. Plugin detects save
-2. Runs `atf rebuild doc.atf` in background
+2. Runs `iatf rebuild doc.iatf` in background
 3. Index updated automatically
 4. User never needs to manually rebuild
 
@@ -150,7 +150,7 @@ When user edits and saves `doc.atf`:
 1. **Zero friction** - Index always current
 2. **Familiar UX** - Like code formatters (Prettier, Black)
 3. **Cross-editor** - Same behavior everywhere
-4. **Low complexity** - Just shell out to `atf` CLI
+4. **Low complexity** - Just shell out to `IATF` CLI
 
 ---
 
@@ -162,7 +162,7 @@ When user edits and saves `doc.atf`:
 
 ### Description
 
-Implement ATF Language Server for semantic navigation in any LSP-compatible editor.
+Implement iatf Language Server for semantic navigation in any LSP-compatible editor.
 
 ### Features
 
@@ -178,7 +178,7 @@ Implement ATF Language Server for semantic navigation in any LSP-compatible edit
 
 ```bash
 # Start LSP server
-$ atf-lsp --stdio < doc.atf
+$ iatf-lsp --stdio < doc.iatf
 
 # Editor sends LSP requests
 -> { "jsonrpc": "2.0", "id": 1, "method": "textDocument/documentSymbol", ... }
@@ -204,26 +204,26 @@ $ atf-lsp --stdio < doc.atf
 
 ### Description
 
-Tools to convert between ATF and other formats.
+Tools to convert between iatf and other formats.
 
 | Tool | Purpose |
 |------|---------|
-| `atf2md` | ATF → Markdown |
-| `md2atf` | Markdown → ATF |
-| `atf2html` | ATF → HTML (with syntax highlighting) |
-| `atf2json` | ATF → JSON structure |
+| `IATF2md` | IATF â†’ Markdown |
+| `md2iatf` | Markdown â†’ IATF |
+| `iatf2html` | IATF â†’ HTML (with syntax highlighting) |
+| `iatf2json` | IATF â†’ JSON structure |
 
 ### Example
 
 ```bash
-# Convert Markdown to ATF
-$ md2atf README.md > README.atf
+# Convert Markdown to IATF
+$ md2iatf README.md > README.iatf
 
-# Convert ATF to HTML
-$ atf2html doc.atf > doc.html
+# Convert iatf to HTML
+$ iatf2html doc.iatf > doc.html
 
-# Extract ATF structure as JSON
-$ atf2json doc.atf
+# Extract IATF structure as JSON
+$ iatf2json doc.iatf
 {
   "title": "API Guide",
   "sections": [
@@ -243,11 +243,11 @@ $ atf2json doc.atf
 
 ### Description
 
-Web-based ATF viewer/editor that runs in browser.
+Web-based iatf viewer/editor that runs in browser.
 
 ### Features
 
-- Upload/view ATF files
+- Upload/view IATF files
 - Rendered index with clickable navigation
 - Live preview of sections
 - Basic editing with auto-rebuild
@@ -255,7 +255,7 @@ Web-based ATF viewer/editor that runs in browser.
 ### Tech Stack
 
 - Frontend: React/Vue
-- Backend: Go (for parsing ATF)
+- Backend: Go (for parsing IATF)
 - WebAssembly: Compile Go to WASM for client-side parsing
 
 ---
@@ -269,7 +269,7 @@ Web-based ATF viewer/editor that runs in browser.
 
 1. **Lazy parsing** - Only parse sections when accessed
 2. **Binary index** - Store index in binary format for faster reads
-3. **Memory-mapped files** - Use mmap for large ATF files
+3. **Memory-mapped files** - Use mmap for large IATF files
 4. **Incremental rebuild** - Only update changed sections
 
 ---
@@ -282,22 +282,22 @@ Web-based ATF viewer/editor that runs in browser.
 
 ### Description
 
-Query language to filter, search, and select sections within ATF files without reading entire content.
+Query language to filter, search, and select sections within IATF files without reading entire content.
 
 ### Use Cases
 
 ```bash
 # Find sections by tag
-$ atf query --tag api doc.atf
+$ iatf query --tag api doc.iatf
 
 # Sections modified after date
-$ atf query --modified-after 2024-01-01 doc.atf
+$ iatf query --modified-after 2024-01-01 doc.iatf
 
 # Sections with TODO in content
-$ atf query --content-contains "TODO" doc.atf
+$ iatf query --content-contains "TODO" doc.iatf
 
 # JSONPath-style queries
-$ atf query '.sections[?(@.level == 1)]' doc.atf
+$ iatf query '.sections[?(@.level == 1)]' doc.iatf
 ```
 
 ### Query Operators
@@ -316,7 +316,7 @@ $ atf query '.sections[?(@.level == 1)]' doc.atf
 
 ```bash
 # Query sections matching criteria
-$ atf query --json '.[] | select(.level <= 2) | .title' doc.atf
+$ iatf query --json '.[] | select(.level <= 2) | .title' doc.iatf
 
 # Output
 ["Introduction", "Authentication", "Installation", "Usage"]
@@ -346,13 +346,13 @@ $ atf query --json '.[] | select(.level <= 2) | .title' doc.atf
 
 ### Description
 
-Allow sections to reference sections in other ATF files, creating linked documentation networks.
+Allow sections to reference sections in other IATF files, creating linked documentation networks.
 
 ### Syntax
 
 ```
-{#include: other.atf#section-id}
-{#reference: ../api/auth.atf#authentication}
+{#include: other.iatf#section-id}
+{#reference: ../api/auth.iatf#authentication}
 {#url: https://example.com/docs#intro}
 ```
 
@@ -367,17 +367,17 @@ Allow sections to reference sections in other ATF files, creating linked documen
 
 ```bash
 # Parse references in sections
-$ atf resolve-references doc.atf
+$ iatf resolve-references doc.iatf
 
 # Output dependency graph
-doc.atf:
-  {#include: types.atf#api-types}
-  {#reference: auth.atf#auth-flow}
+doc.iatf:
+  {#include: types.iatf#api-types}
+  {#reference: auth.iatf#auth-flow}
 
-types.atf:
+types.iatf:
   {#api-types}
 
-auth.atf:
+auth.iatf:
   {#auth-flow}
 ```
 
@@ -407,14 +407,14 @@ auth.atf:
 
 ### Description
 
-Git-aware ATF tools for better version control and collaboration.
+Git-aware IATF tools for better version control and collaboration.
 
 ### Features
 
-1. **ATF Merge Driver**
+1. **iatf Merge Driver**
    ```
    .gitattributes
-   *.atf merge=atf-merge-driver
+   *.iatf merge=iatf-merge-driver
    ```
 
 2. **Three-way merge for sections**
@@ -423,18 +423,18 @@ Git-aware ATF tools for better version control and collaboration.
    $ git merge feature-branch
    
    # Manual resolution for index conflicts
-   $ atf merge --interactive base.atf main.atf feature.atf
+   $ iatf merge --interactive base.iatf main.iatf feature.iatf
    ```
 
 3. **Index-only diffs**
    ```bash
-   $ git diff --atf-index HEAD
+   $ git diff --iatf-index HEAD
    # Show only index changes (content unchanged)
    ```
 
 4. **Smart rebase**
    ```bash
-   $ atf rebase --preserve-index main branch
+   $ iatf rebase --preserve-index main branch
    # Rebase without breaking index
    ```
 
@@ -469,7 +469,7 @@ Algorithm:
 
 ### Description
 
-Project format to group multiple ATF files with cross-file operations.
+Project format to group multiple IATF files with cross-file operations.
 
 ### Project File (atfproj.yaml)
 
@@ -477,35 +477,35 @@ Project format to group multiple ATF files with cross-file operations.
 name: API Documentation
 version: 1.0.0
 files:
-  - "docs/*.atf"
+  - "docs/*.iatf"
 settings:
-  index-file: docs/index.atf
+  index-file: docs/index.iatf
   default-section: overview
 ignore:
   - "**/drafts/**"
-  - "**/*.private.atf"
+  - "**/*.private.iatf"
 ```
 
 ### Project Commands
 
 ```bash
 # Create new project
-$ atf project init
+$ iatf project init
 
 # Add file to project
-$ atf project add new-doc.atf
+$ iatf project add new-doc.iatf
 
 # Rebuild all files
-$ atf project rebuild
+$ iatf project rebuild
 
 # Cross-file search
-$ atf project search "authentication"
+$ iatf project search "authentication"
 
 # Generate project index
-$ atf project generate-index
+$ iatf project generate-index
 
 # Validate all files
-$ atf project validate
+$ iatf project validate
 ```
 
 ### Cross-File Index
@@ -516,7 +516,7 @@ Project Index (atfproj-index.json):
   "version": "1.0.0",
   "files": [
     {
-      "path": "docs/intro.atf",
+      "path": "docs/intro.iatf",
       "title": "Introduction",
       "sections": [
         {"id": "getting-started", "title": "Getting Started"},
@@ -524,7 +524,7 @@ Project Index (atfproj-index.json):
       ]
     },
     {
-      "path": "docs/auth.atf",
+      "path": "docs/auth.iatf",
       "title": "Authentication",
       "sections": [
         {"id": "api-keys", "title": "API Keys"},
@@ -533,7 +533,7 @@ Project Index (atfproj-index.json):
     }
   ],
   "cross-references": [
-    {"from": "intro.atf#getting-started", "to": "auth.atf#api-keys"}
+    {"from": "intro.iatf#getting-started", "to": "auth.iatf#api-keys"}
   ]
 }
 ```
@@ -555,35 +555,35 @@ Project Index (atfproj-index.json):
 
 ### Description
 
-Generate static websites from ATF files, similar to Docusaurus/VuePress.
+Generate static websites from IATF files, similar to Docusaurus/VuePress.
 
 ### Usage
 
 ```bash
 # Generate static site
-$ atf site build --input docs/ --output site/
+$ iatf site build --input docs/ --output site/
 
 # Local development server
-$ atf site serve --port 8080
+$ iatf site serve --port 8080
 
 # Preview changes
-$ atf site watch
+$ iatf site watch
 ```
 
 ### Output Structure
 
 ```
 site/
-├── index.html          # Landing page
-├── intro/
-│   └── index.html      # /intro/ section
-├── auth/
-│   └── index.html      # /auth/ section
-├── search.json         # Full-text search index
-├── sitemap.xml         # SEO sitemap
-└── assets/
-    └── css/
-    └── js/
+â”œâ”€â”€ index.html          # Landing page
+â”œâ”€â”€ intro/
+â”‚   â””â”€â”€ index.html      # /intro/ section
+â”œâ”€â”€ auth/
+â”‚   â””â”€â”€ index.html      # /auth/ section
+â”œâ”€â”€ search.json         # Full-text search index
+â”œâ”€â”€ sitemap.xml         # SEO sitemap
+â””â”€â”€ assets/
+    â””â”€â”€ css/
+    â””â”€â”€ js/
 ```
 
 ### Features
@@ -600,7 +600,7 @@ site/
 ### Theming
 
 ```yaml
-# atf-site.yaml
+# iatf-site.yaml
 theme:
   name: default
   colors:
@@ -629,25 +629,25 @@ theme:
 
 ### Description
 
-Libraries for parsing and manipulating ATF files in various programming languages.
+Libraries for parsing and manipulating IATF files in various programming languages.
 
 ### Languages
 
 | Language | Library | Status |
 |----------|---------|--------|
-| Python | `atf-lib` | Planned |
-| Go | `github.com/atf-tools/atf` | Planned |
-| JavaScript/TypeScript | `@atf/parser` | Planned |
-| Rust | `atf-rs` | Community |
+| Python | `iatf-lib` | Planned |
+| Go | `github.com/iatf-tools/iatf` | Planned |
+| JavaScript/TypeScript | `@IATF/parser` | Planned |
+| Rust | `iatf-rs` | Community |
 | Java | `atf4j` | Community |
 
 ### Python Example
 
 ```python
-import atf
+import IATF
 
-# Parse ATF file
-doc = atf.parse("doc.atf")
+# Parse IATF file
+doc = IATF.parse("doc.iatf")
 
 # Access sections
 for section in doc.sections:
@@ -665,10 +665,10 @@ doc.save()
 ### Go Example
 
 ```go
-import "github.com/atf-tools/atf"
+import "github.com/iatf-tools/iatf"
 
-// Parse ATF file
-doc, err := atf.Parse("doc.atf")
+// Parse IATF file
+doc, err := IATF.Parse("doc.iatf")
 if err != nil {
     log.Fatal(err)
 }
@@ -687,19 +687,19 @@ fmt.Println(intro.Content)
 
 | Method | Description |
 |--------|-------------|
-| `parse(file)` | Parse ATF file |
+| `parse(file)` | Parse IATF file |
 | `parse_string(content)` | Parse from string |
 | `sections` | List all sections |
 | `get_section(id)` | Get section by ID |
-| `validate()` | Validate ATF structure |
+| `validate()` | Validate IATF structure |
 | `rebuild()` | Rebuild index |
 | `save(path)` | Save to file |
 | `to_json()` | Export as JSON |
 
 ### Benefits
 
-1. **Tool integration** - Build ATF-aware tools
-2. **Custom workflows** - Script ATF operations
+1. **Tool integration** - Build IATF-aware tools
+2. **Custom workflows** - Script iatf operations
 3. **Analysis** - Extract insights from documentation
 4. **Migration** - Convert between formats
 
@@ -719,7 +719,7 @@ Template system for consistent section creation.
 
 ```bash
 # List available templates
-$ atf template list
+$ iatf template list
 
 # Output
 api-endpoint     API endpoint documentation
@@ -732,13 +732,13 @@ faq              FAQ entry
 ### Create Section from Template
 
 ```bash
-$ atf new --template api-endpoint --id users-get --title "Get Users"
+$ iatf new --template api-endpoint --id users-get --title "Get Users"
 ```
 
 ### Template File
 
 ```yaml
-# templates/api-endpoint.atf.j2
+# templates/api-endpoint.iatf.j2
 {#{{ id }}}
 @summary: {{ description }}
 @tags: {{ tags | default("api") }}
@@ -768,10 +768,10 @@ $ atf new --template api-endpoint --id users-get --title "Get Users"
 
 ```bash
 # Create custom template
-$ atf template init --path .atf-templates/
+$ iatf template init --path .iatf-templates/
 
 # Add custom template
-$ atf template add custom-template.j2
+$ iatf template add custom-template.j2
 ```
 
 ### Benefits
@@ -791,7 +791,7 @@ $ atf template add custom-template.j2
 
 ### Description
 
-Rich validation rules and linting for ATF files.
+Rich validation rules and linting for IATF files.
 
 ### Linting Rules
 
@@ -810,16 +810,16 @@ Rich validation rules and linting for ATF files.
 
 ```bash
 # Lint single file
-$ atf lint doc.atf
+$ iatf lint doc.iatf
 
 # Lint with specific rules
-$ atf lint --rules section-id-format,duplicate-id doc.atf
+$ iatf lint --rules section-id-format,duplicate-id doc.iatf
 
 # Strict mode (warnings as errors)
-$ atf lint --strict doc.atf
+$ iatf lint --strict doc.iatf
 
 # JSON output for CI
-$ atf lint --json doc.atf
+$ iatf lint --json doc.iatf
 ```
 
 ### Pre-commit Hook
@@ -829,10 +829,10 @@ $ atf lint --json doc.atf
 repos:
   - repo: local
     hooks:
-      - id: atf-lint
-        name: ATF Linter
-        entry: atf lint --strict
-        files: '\.atf$'
+      - id: iatf-lint
+        name: iatf Linter
+        entry: iatf lint --strict
+        files: '\.iatf$'
         language: system
         pass_filenames: true
 ```
@@ -840,7 +840,7 @@ repos:
 ### Custom Rules
 
 ```python
-# atf-lint-rules.py
+# iatf-lint-rules.py
 from atf_lint import Rule
 
 class NoTODO(Rule):
@@ -875,32 +875,32 @@ Only rebuild index for sections that changed, with caching for fast access.
 
 ```
 Full Rebuild:              Incremental Rebuild:
-├─ Parse all sections      ├─ Detect changed sections (via x-hash)
-├─ Generate index          ├─ Update only changed entries
-├─ Update all metadata     └─ Keep cached metadata for unchanged
-└─ Write file              └─ Write updated sections only
+â”œâ”€ Parse all sections      â”œâ”€ Detect changed sections (via x-hash)
+â”œâ”€ Generate index          â”œâ”€ Update only changed entries
+â”œâ”€ Update all metadata     â””â”€ Keep cached metadata for unchanged
+â””â”€ Write file              â””â”€ Write updated sections only
 ```
 
 ### Cached Metadata
 
 ```
-.atf-cache/
-├── doc.atf.json       # Parsed section metadata
-├── doc.atf.index      # Generated index
-└── doc.atf.hash       # Content hash for change detection
+.iatf-cache/
+â”œâ”€â”€ doc.iatf.json       # Parsed section metadata
+â”œâ”€â”€ doc.iatf.index      # Generated index
+â””â”€â”€ doc.iatf.hash       # Content hash for change detection
 ```
 
 ### Commands
 
 ```bash
 # Force full rebuild
-$ atf rebuild --full doc.atf
+$ iatf rebuild --full doc.iatf
 
 # Clear cache
-$ atf rebuild --no-cache doc.atf
+$ iatf rebuild --no-cache doc.iatf
 
 # Show cache stats
-$ atf cache stats
+$ iatf cache stats
 ```
 
 ### Performance Comparison
@@ -929,13 +929,13 @@ $ atf cache stats
 
 ### Description
 
-Automated benchmarking system to measure ATF's effectiveness for AI agent navigation compared to traditional tools. Results stored in ATF format for easy comparison and tracking.
+Automated benchmarking system to measure IATF's effectiveness for AI agent navigation compared to traditional tools. Results stored in IATF format for easy comparison and tracking.
 
 ### Purpose
 
-1. **Quantify ATF benefits** - Prove ATF is better than alternatives
+1. **Quantify iatf benefits** - Prove iatf is better than alternatives
 2. **Model comparison** - Compare different AI models (Claude, GPT-4, etc.)
-3. **Tool comparison** - ATF vs grep, traditional grep-like tools, RAG
+3. **Tool comparison** - iatf vs grep, traditional grep-like tools, RAG
 4. **Track improvements** - Measure progress over time
 5. **Guide development** - Identify areas needing optimization
 
@@ -943,29 +943,29 @@ Automated benchmarking system to measure ATF's effectiveness for AI agent naviga
 
 ```
 benchmarks/
-├── atf-bench.atf              # Benchmark configuration and results
-├── instructions.atf           # How to use ATF format
-├── test-cases/
-│   ├── single-pass/
-│   │   ├── find-info.atf
-│   │   ├── extract-code.atf
-│   │   └── count-sections.atf
-│   └── agentic/
-│       ├── multi-step.atf
-│       ├── cross-reference.atf
-│       └── complex-query.atf
-└── providers/
-    ├── openai.yaml
-    ├── anthropic.yaml
-    ├── google.yaml
-    └── deepseek.yaml
+â”œâ”€â”€ iatf-bench.iatf              # Benchmark configuration and results
+â”œâ”€â”€ instructions.iatf           # How to use IATF format
+â”œâ”€â”€ test-cases/
+â”‚   â”œâ”€â”€ single-pass/
+â”‚   â”‚   â”œâ”€â”€ find-info.iatf
+â”‚   â”‚   â”œâ”€â”€ extract-code.iatf
+â”‚   â”‚   â””â”€â”€ count-sections.iatf
+â”‚   â””â”€â”€ agentic/
+â”‚       â”œâ”€â”€ multi-step.iatf
+â”‚       â”œâ”€â”€ cross-reference.iatf
+â”‚       â””â”€â”€ complex-query.iatf
+â””â”€â”€ providers/
+    â”œâ”€â”€ openai.yaml
+    â”œâ”€â”€ anthropic.yaml
+    â”œâ”€â”€ google.yaml
+    â””â”€â”€ deepseek.yaml
 ```
 
-### Benchmark ATF File Format
+### Benchmark IATF file Format
 
-```atf
-:::ATF/1.0
-@title: ATF Benchmark Results
+```IATF
+:::IATF/1.0
+@title: iatf Benchmark Results
 @date: 2026-01-22
 @benchmark-version: 1.0.0
 
@@ -987,7 +987,7 @@ benchmarks/
 | gemini-1.5-pro | Google | 5100 | 1500 | 100% |
 
 ### Analysis {#analysis-find-api | lines:68-75}
-ATF reduced context by 60% compared to full file read.
+iatf reduced context by 60% compared to full file read.
 Time savings: 40% faster with index-based navigation.
 
 # Agentic Tests {#agentic-tests | lines:202-500}
@@ -1006,21 +1006,21 @@ Time savings: 40% faster with index-based navigation.
 ===CONTENT===
 
 {#benchmark-overview}
-@summary: Automated benchmark comparing ATF navigation to traditional approaches
+@summary: Automated benchmark comparing IATF navigation to traditional approaches
 @created: 2026-01-22
 @modified: 2026-01-22
 
 # Benchmark Overview
 
 This benchmark measures how effectively AI models can navigate and extract
-information from ATF-formatted documents compared to traditional methods.
+information from iatf-formatted documents compared to traditional methods.
 
 ## Methodology
 
-1. **Test Setup**: Prepare ATF files with varying complexity
+1. **Test Setup**: Prepare IATF files with varying complexity
 2. **Instruction**: Models given specific queries about document content
 3. **Baseline**: Measure performance with full file read (traditional approach)
-4. **ATF Mode**: Measure performance using ATF index and section extraction
+4. **IATF Mode**: Measure performance using iatf index and section extraction
 5. **Compare**: Calculate improvements in context, time, and accuracy
 
 ## Metrics
@@ -1046,7 +1046,7 @@ Find the authentication endpoint in the API documentation and extract
 its full path, method, and request format.
 
 ## Test File
-docs/api.atf
+docs/api.iatf
 
 ## Query
 "What is the authentication endpoint and how do I use it?"
@@ -1054,16 +1054,16 @@ docs/api.atf
 {/test-find-api}
 ```
 
-### Instructions ATF File
+### Instructions IATF file
 
-```atf
-:::ATF/1.0
-@title: ATF Format Instructions for AI Models
-@purpose: Guide for AI models on how to navigate ATF files
+```IATF
+:::IATF/1.0
+@title: IATF format Instructions for AI Models
+@purpose: Guide for AI models on how to navigate IATF files
 @created: 2026-01-22
 
 ===INDEX===
-# How to Use ATF Files {#how-to-use | lines:12-80}
+# How to Use IATF files {#how-to-use | lines:12-80}
 > Guide for AI models
 
 # Step 1: Read the Index {#step-1 | lines:14-30}
@@ -1081,13 +1081,13 @@ docs/api.atf
 ===CONTENT===
 
 {#how-to-use}
-@summary: Guide for AI models on efficiently navigating ATF documents
+@summary: Guide for AI models on efficiently navigating iatf documents
 @tags: guide, tutorial
 @created: 2026-01-22
 
-# How to Use ATF Files
+# How to Use IATF files
 
-ATF (Agent Traversal File) is designed for efficient AI agent navigation.
+IATF (Indexed Agent Traversable File) is designed for efficient AI agent navigation.
 Instead of reading entire documents, agents can:
 
 1. Read the INDEX section to understand structure
@@ -1131,8 +1131,8 @@ The INDEX section (between ===INDEX=== and ===CONTENT===) contains:
 ## How to Read Index
 
 ```bash
-# Using atf CLI
-$ atf index doc.atf
+# Using iatf CLI
+$ iatf index doc.iatf
 
 # Or manually read lines between delimiters
 # Find "===" delimiters first
@@ -1200,8 +1200,8 @@ Use the line range from the index to read only the relevant section.
 ## Reading Section Content
 
 ```bash
-# Using atf CLI (if available)
-$ atf read doc.atf oauth2
+# Using iatf CLI (if available)
+$ iatf read doc.iatf oauth2
 
 # Manual extraction
 # Read lines 80-120 from file
@@ -1231,7 +1231,7 @@ $ atf read doc.atf oauth2
 
 # Test Tasks
 
-Complete these tasks to verify ATF navigation skills:
+Complete these tasks to verify IATF navigation skills:
 
 ## Task 1: Simple Lookup
 Query: "What is the rate limit for API requests?"
@@ -1294,24 +1294,24 @@ models:
 
 ```bash
 # Run all benchmarks
-$ atf benchmark run --config benchmarks/atf-bench.atf
+$ iatf benchmark run --config benchmarks/iatf-bench.iatf
 
 # Run specific test category
-$ atf benchmark run --category single-pass
+$ iatf benchmark run --category single-pass
 
 # Run specific model
-$ atf benchmark run --model gpt-4o
+$ iatf benchmark run --model gpt-4o
 
 # Compare results
-$ atf benchmark compare --results1 run-2024-01.json --results2 run-2024-02.json
+$ iatf benchmark compare --results1 run-2024-01.json --results2 run-2024-02.json
 
 # Generate report
-$ atf benchmark report --format markdown --output benchmark-report.md
+$ iatf benchmark report --format markdown --output benchmark-report.md
 ```
 
-### Comparison: ATF vs Traditional Approaches
+### Comparison: iatf vs Traditional Approaches
 
-| Aspect | Full File Read | Grep/Search | ATF Navigation |
+| Aspect | Full File Read | Grep/Search | IATF navigation |
 |--------|---------------|-------------|----------------|
 | Context Tokens | 100% | 80-90% | 5-20% |
 | Time to Answer | Baseline | 1.2x faster | 2-5x faster |
@@ -1331,20 +1331,20 @@ $ atf benchmark report --format markdown --output benchmark-report.md
 
 ### Expected Outcomes
 
-1. **Quantify ATF Benefits**
+1. **Quantify iatf Benefits**
    - 80-95% reduction in context tokens
    - 2-5x faster response times
    - 99%+ accuracy (improved structure reduces errors)
 
 2. **Model Insights**
-   - Which models handle ATF navigation best
+   - Which models handle IATF navigation best
    - Optimal prompting strategies per model
    - Context window requirements
 
 3. **Tool Comparison**
-   - ATF vs RAG pipelines
-   - ATF vs vector search
-   - ATF vs traditional grep
+   - iatf vs RAG pipelines
+   - iatf vs vector search
+   - iatf vs traditional grep
 
 ### Implementation Roadmap
 
@@ -1356,11 +1356,11 @@ $ atf benchmark report --format markdown --output benchmark-report.md
 
 ### Benefits
 
-1. **Proves ATF value** - Data-driven evidence for adoption
+1. **Proves IATF value** - Data-driven evidence for adoption
 2. **Optimizes AI usage** - Find best practices per model
 3. **Tracks progress** - Measure improvements over time
 4. **Guides development** - Identify bottlenecks
-5. **Enables comparison** - ATF vs alternatives
+5. **Enables comparison** - iatf vs alternatives
 
 ---
 
@@ -1384,26 +1384,26 @@ For discussion, open an [Issue](https://github.com/Winds-AI/agent-traversal-file
 
 ### Description
 
-Improve documentation with examples, tutorials, and real-world use cases to help users understand ATF.
+Improve documentation with examples, tutorials, and real-world use cases to help users understand IATF.
 
 ### Areas to Cover
 
 | Area | Description |
 |------|-------------|
 | **Getting Started** | 5-minute quick start guide |
-| **Tutorial: First ATF File** | Step-by-step tutorial creating your first document |
+| **Tutorial: First IATF file** | Step-by-step tutorial creating your first document |
 | **Use Cases** | Real-world examples (API docs, codebooks, design docs) |
-| **Best Practices** | Naming conventions, section organization, when to use ATF |
-| **Agent Workflows** | How AI agents can use ATF for navigation |
-| **Migration Guide** | Converting existing docs to ATF format |
-| **Comparison** | ATF vs Markdown, ATF vs Notion, ATF vs Confluence |
+| **Best Practices** | Naming conventions, section organization, when to use IATF |
+| **Agent Workflows** | How AI agents can use iatf for navigation |
+| **Migration Guide** | Converting existing docs to IATF format |
+| **Comparison** | iatf vs Markdown, iatf vs Notion, iatf vs Confluence |
 | **Troubleshooting** | Common errors and how to fix them |
 
 ### Ideas for Content Types
 
 1. **Interactive Tutorial**
    - Web-based step-by-step guide
-   - Live ATF editor in browser
+   - Live iatf editor in browser
    - Immediate feedback
 
 2. **Video Walkthroughs**
@@ -1419,8 +1419,8 @@ Improve documentation with examples, tutorials, and real-world use cases to help
    - Knowledge base template
 
 4. **Comparison Guides**
-   - Why ATF over plain Markdown?
-   - When to use ATF vs traditional documentation
+   - Why iatf over plain Markdown?
+   - When to use iatf vs traditional documentation
    - Agent-friendly documentation patterns
 
 ### References
@@ -1438,7 +1438,7 @@ Improve documentation with examples, tutorials, and real-world use cases to help
 
 ### Current State
 
-- Manual testing via `atf rebuild` and `atf validate`
+- Manual testing via `iatf rebuild` and `iatf validate`
 - No automated unit tests for core parsing
 - No integration tests for CLI commands
 
@@ -1474,12 +1474,12 @@ Improve documentation with examples, tutorials, and real-world use cases to help
    - Test content changes trigger @modified updates
 
 3. **Validation Tests**
-   - Valid ATF files pass
-   - Invalid ATF files rejected with clear errors
+   - Valid IATF files pass
+   - Invalid IATF files rejected with clear errors
    - Edge cases (empty sections, missing delimiters)
 
 4. **Fuzzing Tests**
-   - Random ATF content
+   - Random iatf content
    - Malformed inputs
    - Large files (1000+ sections)
 
@@ -1532,7 +1532,7 @@ Add translations for error messages and CLI output to support non-English users.
 | CLI error messages | Yes | "Error: File not found" |
 | CLI help text | Yes | Command descriptions |
 | Validation errors | Yes | "Missing CONTENT section" |
-| ATF spec | No | English only (spec is technical) |
+| IATF spec | No | English only (spec is technical) |
 | Documentation | Separate repo | Can be localized independently |
 
 ### Supported Languages (Goal)
@@ -1561,12 +1561,12 @@ Add translations for error messages and CLI output to support non-English users.
 2. **Translation Files**
    ```
    locales/
-   ├── en_US/
-   │   └── LC_MESSAGES/atf.po
-   ├── es_ES/
-   │   └── LC_MESSAGES/atf.po
-   └── zh_CN/
-       └── LC_MESSAGES/atf.po
+   â”œâ”€â”€ en_US/
+   â”‚   â””â”€â”€ LC_MESSAGES/IATF.po
+   â”œâ”€â”€ es_ES/
+   â”‚   â””â”€â”€ LC_MESSAGES/IATF.po
+   â””â”€â”€ zh_CN/
+       â””â”€â”€ LC_MESSAGES/IATF.po
    ```
 
 3. **Tools**
@@ -1583,7 +1583,7 @@ Add translations for error messages and CLI output to support non-English users.
 
 ### Benefits
 
-1. **Accessibility** - Non-English speakers can use ATF
+1. **Accessibility** - Non-English speakers can use IATF
 2. **Adoption** - Lower barrier to entry in non-English communities
 3. **Community** - Localization is a great entry point for new contributors
 
@@ -1599,3 +1599,12 @@ Add translations for error messages and CLI output to support non-English users.
 
 - GNU gettext: https://www.gnu.org/software/gettext/
 - Go i18n: https://github.com/nicksnyder/go-i18n
+
+
+
+
+
+
+
+
+

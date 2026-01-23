@@ -1,11 +1,11 @@
-# ATF - Agent Traversable File
+﻿# IATF - Indexed Agent Traversable File
 
 **A file format designed for AI agents to efficiently navigate large documents.**
 
-> **📍 Project Location:** `S:\Random_stuff\agent-traversal-file`
-> **📝 Abbreviation:** ATF (Agent Traversable File)
+> **ðŸ“ Project Location:** `S:\Random_stuff\agent-traversal-file`
+> **ðŸ“ Abbreviation:** IATF (Indexed Agent Traversable File)
 
-[![Latest Release](https://img.shields.io/github/v/release/atf-tools/atf)](https://github.com/atf-tools/atf/releases)
+[![Latest Release](https://img.shields.io/github/v/release/iatf-tools/iatf)](https://github.com/iatf-tools/iatf/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
@@ -13,16 +13,16 @@
 ## The Problem
 
 AI agents struggle with large documents:
-- ❌ **Token limits** - Can't load entire 10,000-line documents
-- ❌ **Wasted tokens** - Loading everything to find one section
-- ❌ **No navigation** - No standardized way to jump to sections
-- ❌ **No references** - No way to reference sections to other sections reliably.
-- ❌ **Blind loading** - Must read content to know what it contains
+- âŒ **Token limits** - Can't load entire 10,000-line documents
+- âŒ **Wasted tokens** - Loading everything to find one section
+- âŒ **No navigation** - No standardized way to jump to sections
+- âŒ **No references** - No way to reference sections to other sections reliably.
+- âŒ **Blind loading** - Must read content to know what it contains
 
 At least till someone solves long term memory.
 
 If your question is WHY? THEN
-yes we can use folder and file structure to define multiple nested files so that we don't have to use .atf but i don't like that and it's hard to navigate for me and my ADHD brain said let's build a overengineered solution for this.
+yes we can use folder and file structure to define multiple nested files so that we don't have to use .iatf but i don't like that and it's hard to navigate for me and my ADHD brain said let's build a overengineered solution for this.
 
 We can also use JSON's and MD's with seperate index file but that will not be much useful in long running tasks, the goal here is to function as a kind of harness for a model so that if it updates the content section or any human updates the content section, the index should be updated automatically and the scope of work or any document stays aligned. Sure for now agent can corrupt a file because training data does not have enough info about the standard so i am exploring that space also to make agentic coding more efficient in any way possible.
 
@@ -33,21 +33,21 @@ Idea is mine but ALL of the code in this is written and tested by either claude 
 
 ## The Solution
 
-ATF provides a **self-indexing document format** with two regions:
+IATF provides a **self-indexing document format** with two regions:
 
 ```
-┌─────────────────────────────────────────┐
-│ INDEX (Auto-generated)                  │
-│  • Section titles & summaries           │
-│  • Line numbers for each section        │
-│  • Created & modified dates             │
-│  • ~5% of document size                 │
-├─────────────────────────────────────────┤
-│ CONTENT (Source of truth)               │
-│  • Full document text                   │
-│  • Organized into sections              │
-│  • Edit freely - index auto-rebuilds    │
-└─────────────────────────────────────────┘
+â”Œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”
+â”‚ INDEX (Auto-generated)                  â”‚
+â”‚  â€¢ Section titles & summaries           â”‚
+â”‚  â€¢ Line numbers for each section        â”‚
+â”‚  â€¢ Created & modified dates             â”‚
+â”‚  â€¢ ~5% of document size                 â”‚
+â”œâ”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”¤
+â”‚ CONTENT (Source of truth)               â”‚
+â”‚  â€¢ Full document text                   â”‚
+â”‚  â€¢ Organized into sections              â”‚
+â”‚  â€¢ Edit freely - index auto-rebuilds    â”‚
+â””â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”˜
 ```
 
 **Agents save 80-95% tokens** by loading only the INDEX, then fetching specific sections as needed.
@@ -60,19 +60,19 @@ ATF provides a **self-indexing document format** with two regions:
 
 **macOS/Linux:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/atf-tools/atf/main/install/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/iatf-tools/iatf/main/install/install.sh | bash
 ```
 
 **Windows:**
 ```powershell
-irm https://raw.githubusercontent.com/atf-tools/atf/main/install/install.ps1 | iex
+irm https://raw.githubusercontent.com/iatf-tools/iatf/main/install/install.ps1 | iex
 ```
 
 **Or download binary directly:**
-- [Windows](https://github.com/atf-tools/atf/releases/latest/download/atf-windows-amd64.exe)
-- [macOS Intel](https://github.com/atf-tools/atf/releases/latest/download/atf-darwin-amd64)
-- [macOS Apple Silicon](https://github.com/atf-tools/atf/releases/latest/download/atf-darwin-arm64)
-- [Linux](https://github.com/atf-tools/atf/releases/latest/download/atf-linux-amd64)
+- [Windows](https://github.com/iatf-tools/iatf/releases/latest/download/iatf-windows-amd64.exe)
+- [macOS Intel](https://github.com/iatf-tools/iatf/releases/latest/download/iatf-darwin-amd64)
+- [macOS Apple Silicon](https://github.com/iatf-tools/iatf/releases/latest/download/iatf-darwin-arm64)
+- [Linux](https://github.com/iatf-tools/iatf/releases/latest/download/iatf-linux-amd64)
 
 **After downloading the binary:**
 
@@ -82,16 +82,16 @@ irm https://raw.githubusercontent.com/atf-tools/atf/main/install/install.ps1 | i
 cd ~/Downloads
 
 # Make executable and install
-chmod +x atf-*
-sudo mv atf-* /usr/local/bin/atf
+chmod +x iatf-*
+sudo mv iatf-* /usr/local/bin/iatf
 
 # Verify installation
-atf --help
+iatf --help
 ```
 
 **Windows:**
-1. Rename `atf-windows-amd64.exe` to `atf.exe`
-2. Move to `C:\Program Files\ATF\` (or any folder you prefer)
+1. Rename `iatf-windows-amd64.exe` to `iatf.exe`
+2. Move to `C:\\Program Files\\IATF Tools\\` (or any folder you prefer)
 3. Add that folder to your system PATH:
    - Search "Environment Variables" in Start menu
    - Edit "Path" under System variables
@@ -102,19 +102,19 @@ atf --help
 
 ```bash
 # Rebuild index for a single file
-atf rebuild document.atf
+iatf rebuild document.iatf
 
-# Rebuild all .atf files in directory
-atf rebuild-all
+# Rebuild all .iatf files in directory
+iatf rebuild-all
 
 # Watch file and auto-rebuild on save
-atf watch document.atf
+iatf watch document.iatf
 
 # Stop watching a file
-atf unwatch document.atf
+iatf unwatch document.iatf
 
 # Validate file structure
-atf validate document.atf
+iatf validate document.iatf
 ```
 
 ### Uninstalling
@@ -123,20 +123,20 @@ atf validate document.atf
 
 ```bash
 # Linux/macOS
-sudo rm /usr/local/bin/atf
+sudo rm /usr/local/bin/iatf
 # Or if installed to ~/.local/bin
-rm ~/.local/bin/atf
+rm ~/.local/bin/iatf
 ```
 
 ```powershell
 # Windows (PowerShell as Administrator)
-Remove-Item "$env:LOCALAPPDATA\Programs\atf\atf.exe"
+Remove-Item "$env:LOCALAPPDATA\iatf\iatf.exe"
 ```
 
 **If installed manually:**
 ```bash
 # Linux/macOS - remove from wherever you placed it
-sudo rm /usr/local/bin/atf
+sudo rm /usr/local/bin/iatf
 
 # Windows - delete the folder you created and remove from PATH
 ```
@@ -145,10 +145,10 @@ sudo rm /usr/local/bin/atf
 
 ## Example
 
-**Create an ATF file:**
+**Create an IATF file:**
 
 ```
-:::ATF/1.0
+:::IATF/1.0
 @title: My Documentation
 
 ===CONTENT===
@@ -175,7 +175,7 @@ Follow these steps to install...
 **Run the rebuild:**
 
 ```bash
-atf rebuild my-doc.atf
+iatf rebuild my-doc.iatf
 ```
 
 **Result - Auto-generated INDEX:**
@@ -214,19 +214,19 @@ atf rebuild my-doc.atf
 
 ---
 
-## How Agents Use ATF
+## How Agents Use IATF
 
 ```python
 # Agent workflow
 # 1. Load INDEX (small, ~5% of file)
-index = read_file("docs.atf", lines=1, limit=50)
+index = read_file("docs.iatf", lines=1, limit=50)
 
 # 2. Parse INDEX to find relevant sections
 # "User asked about authentication"
 # INDEX shows: "# Auth {#auth | lines:120-180}"
 
 # 3. Load only that section
-section = read_file("docs.atf", lines=120, limit=61)
+section = read_file("docs.iatf", lines=120, limit=61)
 
 # 4. Answer question
 # Used ~100 lines instead of 1000+ lines = 90% token savings
@@ -236,45 +236,45 @@ section = read_file("docs.atf", lines=120, limit=61)
 
 ## Commands Reference
 
-### `atf rebuild <file>`
+### `iatf rebuild <file>`
 
 Rebuild index for a single file.
 
 ```bash
-atf rebuild document.atf
+iatf rebuild document.iatf
 ```
 
-### `atf rebuild-all [directory]`
+### `iatf rebuild-all [directory]`
 
-Rebuild all `.atf` files in a directory (recursive).
+Rebuild all `.iatf` files in a directory (recursive).
 
 ```bash
-atf rebuild-all              # Current directory
-atf rebuild-all ./docs       # Specific directory
-atf rebuild-all --exclude node_modules
+iatf rebuild-all              # Current directory
+iatf rebuild-all ./docs       # Specific directory
+iatf rebuild-all --exclude node_modules
 ```
 
-### `atf watch <file>`
+### `iatf watch <file>`
 
 Watch a file and auto-rebuild when it changes. **Watch continues until:**
-- You run `atf unwatch <file>`
+- You run `iatf unwatch <file>`
 - You close the terminal (process ends)
 - System restarts (process ends)
 
 ```bash
 # Start watching
-atf watch document.atf
+iatf watch document.iatf
 
-# In another terminal, edit document.atf and save
+# In another terminal, edit document.iatf and save
 # Index rebuilds automatically!
 
 # Stop watching
-atf unwatch document.atf
+iatf unwatch document.iatf
 ```
 
 **Watch mode runs in the foreground** - keep the terminal open while watching.
 
-**Rebuild warning:** If you run `atf rebuild` on a file that's being watched, you'll see a warning:
+**Rebuild warning:** If you run `iatf rebuild` on a file that's being watched, you'll see a warning:
 ```
 Warning: This file is being watched by another process (PID 12345)
 A manual rebuild will trigger an automatic rebuild from the watch process.
@@ -284,29 +284,29 @@ Continue with manual rebuild? [y/N]:
 ```
 This prevents accidental double rebuilds. Press `y` to proceed anyway, or `n` to cancel.
 
-### `atf unwatch <file>`
+### `iatf unwatch <file>`
 
 Stop watching a specific file.
 
 ```bash
-atf unwatch document.atf
+iatf unwatch document.iatf
 ```
 
 **List all watched files:**
 ```bash
-atf watch --list
+iatf watch --list
 ```
 
-### `atf validate <file>`
+### `iatf validate <file>`
 
-Check if an ATF file is valid.
+Check if an IATF file is valid.
 
 ```bash
-atf validate document.atf
+iatf validate document.iatf
 ```
 
 **Checks:**
-- Has format declaration (`:::ATF/1.0`)
+- Has format declaration (`:::IATF/1.0`)
 - Has INDEX section (warns if missing)
 - Has CONTENT section
 - INDEX/CONTENT sections are unique and ordered correctly
@@ -329,7 +329,7 @@ See [SPECIFICATION.md](SPECIFICATION.md) for complete details.
 ### Minimal Example
 
 ```
-:::ATF/1.0
+:::IATF/1.0
 @title: Document Title
 
 ===INDEX===
@@ -370,21 +370,21 @@ All are optional but recommended.
 
 **Answer:** Watch runs in the foreground and stops when:
 
-1. **You explicitly stop it:** `atf unwatch <file>`
+1. **You explicitly stop it:** `iatf unwatch <file>`
 2. **You press Ctrl+C**
 3. **Terminal closes**
 
 **Check what's being watched:**
 ```bash
-atf watch --list
+iatf watch --list
 
 # Output:
 # Watching 2 files:
-#   /path/to/document.atf (since 2025-01-20 10:30:00)
-#   /path/to/other.atf (since 2025-01-20 11:15:00)
+#   /path/to/document.iatf (since 2025-01-20 10:30:00)
+#   /path/to/other.iatf (since 2025-01-20 11:15:00)
 ```
 
-**Watch state file:** `~/.atf/watch.json` tracks watched files and their PIDs for the rebuild warning feature.
+**Watch state file:** `~/.iatf/watch.json` tracks watched files and their PIDs for the rebuild warning feature.
 
 ---
 
@@ -394,29 +394,29 @@ atf watch --list
 
 ```
 Single 5,000-line API reference
-→ Agent loads 250-line INDEX
-→ Finds "Authentication" section at lines 120-340
-→ Loads just that section
-→ 95% token savings
+â†’ Agent loads 250-line INDEX
+â†’ Finds "Authentication" section at lines 120-340
+â†’ Loads just that section
+â†’ 95% token savings
 ```
 
 ### Knowledge Base
 
 ```
 Team wiki with 100 sections
-→ Agent scans INDEX to find relevant topics
-→ Loads only 2-3 relevant sections
-→ Answers question with fraction of tokens
+â†’ Agent scans INDEX to find relevant topics
+â†’ Loads only 2-3 relevant sections
+â†’ Answers question with fraction of tokens
 ```
 
 ### Product Specifications
 
 ```
 50-page product spec
-→ Agent loads INDEX, sees all sections
-→ User asks about "Performance Requirements"
-→ Agent loads just that section
-→ Fast, efficient, precise
+â†’ Agent loads INDEX, sees all sections
+â†’ User asks about "Performance Requirements"
+â†’ Agent loads just that section
+â†’ Fast, efficient, precise
 ```
 
 ---
@@ -427,7 +427,7 @@ Team wiki with 100 sections
 
 ```bash
 cd python
-python atf.py rebuild document.atf
+python iatf.py rebuild document.iatf
 ```
 
 See [python/README.md](python/README.md) for details.
@@ -436,7 +436,7 @@ See [python/README.md](python/README.md) for details.
 
 ```bash
 cd go
-go run main.go rebuild document.atf
+go run main.go rebuild document.iatf
 ```
 
 See [go/README.md](go/README.md) for details.
@@ -447,11 +447,11 @@ See [go/README.md](go/README.md) for details.
 # Ensure Go is in your PATH
 
 # Build for your platform
-go build -o atf main.go
+go build -o iatf main.go
 
 # Run commands
-./atf rebuild document.atf
-./atf validate document.atf
+./iatf rebuild document.iatf
+./iatf validate document.iatf
 
 # Cross-compile for all platforms
 ./build.sh
@@ -467,7 +467,7 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md).
 - [ ] VS Code extension
 - [ ] Vim/Neovim plugin
 - [ ] Language Server Protocol (LSP) implementation
-- [ ] Conversion tools (Markdown → ATF, HTML → ATF)
+- [ ] Conversion tools (Markdown â†’ IATF, HTML â†’ IATF)
 - [ ] Documentation and examples
 
 ---
@@ -476,10 +476,10 @@ We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 | Format | Human Readable | Agent Navigation | Self-Indexing | Token Efficient |
 |--------|----------------|------------------|---------------|-----------------|
-| **Markdown** | ✅ | ❌ | ❌ | ❌ |
-| **HTML** | ~ | ~ | ❌ | ❌ |
-| **PDF** | ~ | ❌ | ❌ | ❌ |
-| **ATF** | ✅ | ✅ | ✅ | ✅ |
+| **Markdown** | âœ… | âŒ | âŒ | âŒ |
+| **HTML** | ~ | ~ | âŒ | âŒ |
+| **PDF** | ~ | âŒ | âŒ | âŒ |
+| **IATF** | âœ… | âœ… | âœ… | âœ… |
 
 ---
 
@@ -495,8 +495,17 @@ MIT License - see [LICENSE](LICENSE) for details.
 - **Problem Statement:** [docs/PROBLEM_STATEMENT.md](docs/PROBLEM_STATEMENT.md)
 - **Design Decisions:** [docs/DESIGN.md](docs/DESIGN.md)
 - **Usage Guide:** [docs/USAGE.md](docs/USAGE.md)
-- **GitHub Releases:** [Latest Release](https://github.com/atf-tools/atf/releases/latest)
+- **GitHub Releases:** [Latest Release](https://github.com/iatf-tools/iatf/releases/latest)
 
 ---
 
-**Made with ❤️ for AI agents and the humans who work with them.**
+**Made with â¤ï¸ for AI agents and the humans who work with them.**
+
+
+
+
+
+
+
+
+

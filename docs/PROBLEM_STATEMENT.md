@@ -1,4 +1,4 @@
-# Problem Statement: Why ATF Exists
+﻿# Problem Statement: Why IATF Exists
 
 ## The Fundamental Challenge
 
@@ -51,18 +51,18 @@ Result: Still loads whole file, no token savings
 
 An ideal solution would:
 
-1. ✅ **Self-contained** - No external databases or services
-2. ✅ **Token-efficient** - Agents load only what they need
-3. ✅ **Human-editable** - Plain text, works with any editor
-4. ✅ **Auto-maintained** - No manual index updates
-5. ✅ **Navigable** - Agents can jump to specific sections
-6. ✅ **Summarized** - Understand content before loading it
+1. âœ… **Self-contained** - No external databases or services
+2. âœ… **Token-efficient** - Agents load only what they need
+3. âœ… **Human-editable** - Plain text, works with any editor
+4. âœ… **Auto-maintained** - No manual index updates
+5. âœ… **Navigable** - Agents can jump to specific sections
+6. âœ… **Summarized** - Understand content before loading it
 
 **None of the existing formats provide all of these.**
 
-## The ATF Solution
+## The IATF Solution
 
-ATF introduces a **dual-region architecture**:
+IATF introduces a **dual-region architecture**:
 
 ### Region 1: INDEX (Auto-Generated)
 
@@ -115,7 +115,7 @@ Extract: Read authentication section
 Tokens used: ~6,000
 ```
 
-**ATF Format:**
+**IATF Format:**
 ```
 Load: 250 lines (INDEX only)
 Search: Read summaries, find "Authentication" at lines 120-280
@@ -129,14 +129,14 @@ Savings: 90%
 
 ### Use Case 1: API Documentation
 
-**Before ATF:**
+**Before IATF:**
 - 15,000-line API reference
 - Agent loads entire document to answer one question
 - ~18,000 tokens per query
 - Expensive, slow, may exceed context limit
 
-**With ATF:**
-- Same content in ATF format
+**With IATF:**
+- Same content in IATF format
 - Agent loads 750-line INDEX
 - Finds relevant section (200 lines)
 - ~950 tokens per query
@@ -144,13 +144,13 @@ Savings: 90%
 
 ### Use Case 2: Product Specifications
 
-**Before ATF:**
+**Before IATF:**
 - 50-page product spec (8,000 lines)
 - Agent loads all to find "Performance Requirements"
 - ~10,000 tokens
 - Multiple sections referenced? Load multiple times
 
-**With ATF:**
+**With IATF:**
 - Agent loads INDEX (400 lines)
 - Identifies 3 relevant sections
 - Loads just those sections (600 lines total)
@@ -159,13 +159,13 @@ Savings: 90%
 
 ### Use Case 3: Knowledge Base
 
-**Before ATF:**
+**Before IATF:**
 - Team wiki with 100 articles in single file
 - Agent loads everything
 - ~50,000 tokens
 - Exceeds most context windows
 
-**With ATF:**
+**With IATF:**
 - Agent loads INDEX (1,500 lines)
 - Finds 2 relevant articles
 - Loads just those (800 lines)
@@ -176,12 +176,12 @@ Savings: 90%
 
 | Format | Self-Contained | Token-Efficient | Human-Editable | Auto-Maintained | Navigable |
 |--------|----------------|-----------------|----------------|-----------------|-----------|
-| **Markdown** | ✅ | ❌ | ✅ | ✅ | ❌ |
-| **HTML** | ✅ | ❌ | ❌ | ✅ | ~ |
-| **PDF** | ✅ | ❌ | ❌ | ~ | ❌ |
-| **JSON** | ✅ | ❌ | ❌ | ✅ | ~ |
-| **Vector DB** | ❌ | ✅ | ~ | ~ | ✅ |
-| **ATF** | ✅ | ✅ | ✅ | ✅ | ✅ |
+| **Markdown** | âœ… | âŒ | âœ… | âœ… | âŒ |
+| **HTML** | âœ… | âŒ | âŒ | âœ… | ~ |
+| **PDF** | âœ… | âŒ | âŒ | ~ | âŒ |
+| **JSON** | âœ… | âŒ | âŒ | âœ… | ~ |
+| **Vector DB** | âŒ | âœ… | ~ | ~ | âœ… |
+| **IATF** | âœ… | âœ… | âœ… | âœ… | âœ… |
 
 ## The Auto-Indexing Innovation
 
@@ -192,7 +192,7 @@ The key innovation is **separating human-editable content from machine-generated
 - Error-prone (line numbers get stale)
 - Tedious (update all numbers when content changes)
 
-**ATF approach:**
+**IATF approach:**
 - Human edits CONTENT only
 - Tool auto-generates INDEX
 - Always accurate, zero manual maintenance
@@ -207,24 +207,24 @@ Building agents that work with documentation:
 doc = load_file("api-docs.md")  # 50,000 tokens
 
 # Load just the index
-index = load_file("api-docs.atf", lines=1, limit=500)  # 600 tokens
+index = load_file("api-docs.iatf", lines=1, limit=500)  # 600 tokens
 sections = parse_index(index)
 relevant = find_section(sections, "authentication")
-content = load_file("api-docs.atf", lines=relevant.start, limit=relevant.end)
+content = load_file("api-docs.iatf", lines=relevant.start, limit=relevant.end)
 ```
 
 ### 2. Documentation Writers
 
 Creating docs for AI agent consumption:
 ```
-Write content normally → Run `atf rebuild` → Index auto-generated
+Write content normally â†’ Run `iatf rebuild` â†’ Index auto-generated
 ```
 
 ### 3. Knowledge Base Maintainers
 
 Large wikis, FAQs, internal docs:
 ```
-Organize content in sections → Agents can efficiently search → Better answers
+Organize content in sections â†’ Agents can efficiently search â†’ Better answers
 ```
 
 ## The Vision
@@ -235,7 +235,7 @@ Organize content in sections → Agents can efficiently search → Better answer
 - Token costs are minimized
 - Content creators don't think about indexing
 
-**ATF makes this possible today.**
+**IATF makes this possible today.**
 
 ## Summary
 
@@ -243,4 +243,11 @@ Organize content in sections → Agents can efficiently search → Better answer
 **Solution:** Self-indexing format with auto-generated navigation  
 **Result:** Token-efficient, human-friendly, auto-maintained documentation
 
-The ATF format solves a real problem that will only grow as AI agents become more prevalent in software development workflows.
+The IATF format solves a real problem that will only grow as AI agents become more prevalent in software development workflows.
+
+
+
+
+
+
+

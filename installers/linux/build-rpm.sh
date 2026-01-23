@@ -1,13 +1,13 @@
-#!/bin/bash
-# Build ATF Tools RPM Package (.rpm) for Fedora/RHEL/CentOS
+﻿#!/bin/bash
+# Build IATF Tools RPM Package (.rpm) for Fedora/RHEL/CentOS
 
 set -e
 
 VERSION=${1:-1.0.0}
-BINARY_AMD64="../../dist/atf-linux-amd64"
-BINARY_ARM64="../../dist/atf-linux-arm64"
+BINARY_AMD64="../../dist/iatf-linux-amd64"
+BINARY_ARM64="../../dist/iatf-linux-arm64"
 
-echo "Building ATF Tools RPM Packages v$VERSION"
+echo "Building IATF Tools RPM Packages v$VERSION"
 
 # Check if rpmbuild is installed
 if ! command -v rpmbuild &> /dev/null; then
@@ -42,22 +42,22 @@ build_rpm() {
     mkdir -p ~/rpmbuild/{BUILD,RPMS,SOURCES,SPECS,SRPMS}
     
     # Create spec file
-    cat > ~/rpmbuild/SPECS/atf-tools.spec <<EOF
-Name:           atf-tools
+    cat > ~/rpmbuild/SPECS/iatf-tools.spec <<EOF
+Name:           iatf-tools
 Version:        $VERSION
 Release:        1%{?dist}
-Summary:        Agent Traversable File - Self-indexing documents for AI agents
+Summary:        Indexed Agent Traversable File - Self-indexing documents for AI agents
 
 License:        MIT
-URL:            https://github.com/atf-tools/atf
-Source0:        atf
+URL:            https://github.com/iatf-tools/iatf
+Source0:        iatf
 
 BuildArch:      $ARCH
 Requires:       bash
 
 %description
-ATF Tools provides commands to create and manage ATF (Agent Traversable File)
-documents. ATF is a file format designed for AI agents to efficiently
+IATF Tools provides commands to create and manage IATF (Indexed Agent Traversable File)
+documents. IATF is a file format designed for AI agents to efficiently
 navigate large documents by loading only relevant sections.
 
 Features:
@@ -75,55 +75,55 @@ Features:
 %install
 rm -rf \$RPM_BUILD_ROOT
 mkdir -p \$RPM_BUILD_ROOT/usr/bin
-mkdir -p \$RPM_BUILD_ROOT/usr/share/doc/atf-tools
+mkdir -p \$RPM_BUILD_ROOT/usr/share/doc/iatf-tools
 mkdir -p \$RPM_BUILD_ROOT/usr/share/man/man1
 
 # Install binary
-install -m 755 %{SOURCE0} \$RPM_BUILD_ROOT/usr/bin/atf
+install -m 755 %{SOURCE0} \$RPM_BUILD_ROOT/usr/bin/iatf
 
 # Install documentation
-cat > \$RPM_BUILD_ROOT/usr/share/doc/atf-tools/README <<DOCEOF
-ATF Tools v$VERSION
+cat > \$RPM_BUILD_ROOT/usr/share/doc/iatf-tools/README <<DOCEOF
+IATF Tools v$VERSION
 
-Agent Traversable File - Self-indexing documents for AI agents
+Indexed Agent Traversable File - Self-indexing documents for AI agents
 
 USAGE:
-  atf rebuild <file>              Rebuild index for a file
-  atf rebuild-all [directory]     Rebuild all .atf files
-  atf watch <file>                Watch and auto-rebuild
-  atf unwatch <file>              Stop watching
-  atf validate <file>             Validate file
+  iatf rebuild <file>              Rebuild index for a file
+  iatf rebuild-all [directory]     Rebuild all .iatf files
+  iatf watch <file>                Watch and auto-rebuild
+  iatf unwatch <file>              Stop watching
+  iatf validate <file>             Validate file
 
 EXAMPLES:
-  atf rebuild document.atf
-  atf rebuild-all ./docs
-  atf watch api-reference.atf
+  iatf rebuild document.iatf
+  iatf rebuild-all ./docs
+  iatf watch api-reference.iatf
 
 DOCUMENTATION:
-  https://github.com/atf-tools/atf
+  https://github.com/iatf-tools/iatf
 
 LICENSE: MIT
 DOCEOF
 
 # Install man page
-cat > \$RPM_BUILD_ROOT/usr/share/man/man1/atf.1 <<'MANEOF'
-.TH ATF 1 "January 2025" "ATF Tools $VERSION" "User Commands"
+cat > \$RPM_BUILD_ROOT/usr/share/man/man1/iatf.1 <<'MANEOF'
+.TH iatf 1 "January 2025" "IATF Tools $VERSION" "User Commands"
 .SH NAME
-atf \- Agent Traversable File document manager
+iatf \\- Indexed Agent Traversable File document manager
 .SH SYNOPSIS
-.B atf
+.B iatf
 .I command
 [\fIoptions\fR] [\fIfile\fR]
 .SH DESCRIPTION
-ATF Tools manages ATF (Agent Traversable File) documents. ATF is a file format
+IATF Tools manages IATF (Indexed Agent Traversable File) documents. IATF is a file format
 designed for AI agents to efficiently navigate large documents.
 .SH COMMANDS
 .TP
 .B rebuild \fIfile\fR
-Rebuild the index for a single ATF file
+Rebuild the index for a single iatf file
 .TP
 .B rebuild-all [\fIdir\fR]
-Rebuild all .atf files in directory
+Rebuild all .iatf files in directory
 .TP
 .B watch \fIfile\fR
 Watch file and auto-rebuild index when it changes
@@ -132,59 +132,59 @@ Watch file and auto-rebuild index when it changes
 Stop watching a file
 .TP
 .B validate \fIfile\fR
-Validate ATF file structure
+Validate iatf file structure
 .SH EXAMPLES
-Rebuild: atf rebuild document.atf
+Rebuild: iatf rebuild document.iatf
 .br
-Watch: atf watch api-reference.atf
+Watch: iatf watch api-reference.iatf
 .SH SEE ALSO
-Documentation: https://github.com/atf-tools/atf
+Documentation: https://github.com/iatf-tools/iatf
 MANEOF
 
-gzip -9 \$RPM_BUILD_ROOT/usr/share/man/man1/atf.1
+gzip -9 \$RPM_BUILD_ROOT/usr/share/man/man1/iatf.1
 
 %files
 %defattr(-,root,root,-)
-/usr/bin/atf
-/usr/share/doc/atf-tools/README
-/usr/share/man/man1/atf.1.gz
+/usr/bin/iatf
+/usr/share/doc/iatf-tools/README
+/usr/share/man/man1/iatf.1.gz
 
 %post
 # Verify installation
-if [ -x "/usr/bin/atf" ]; then
-    echo "ATF Tools installed successfully"
-    /usr/bin/atf --version || true
+if [ -x "/usr/bin/iatf" ]; then
+    echo "IATF Tools installed successfully"
+    /usr/bin/iatf --version || true
 fi
 
 %preun
 # Stop any running watch processes
-if command -v atf >/dev/null 2>&1; then
-    WATCH_FILE="\$HOME/.atf/watch.json"
+if command -v iatf >/dev/null 2>&1; then
+    WATCH_FILE="\$HOME/.iatf/watch.json"
     if [ -f "\$WATCH_FILE" ]; then
         rm -f "\$WATCH_FILE" || true
     fi
 fi
 
 %changelog
-* $(date '+%a %b %d %Y') ATF Project <atf@example.com> - $VERSION-1
+* $(date '+%a %b %d %Y') IATF Project <IATF@example.com> - $VERSION-1
 - Initial release
 EOF
     
     # Copy binary to SOURCES
-    cp "$BINARY" ~/rpmbuild/SOURCES/atf
+    cp "$BINARY" ~/rpmbuild/SOURCES/iatf
     
     # Build RPM
-    rpmbuild -bb ~/rpmbuild/SPECS/atf-tools.spec --target "$ARCH"
+    rpmbuild -bb ~/rpmbuild/SPECS/iatf-tools.spec --target "$ARCH"
     
     # Copy RPM to current directory (dist tag may be empty or include .fcXX)
-    rpm_source=$(ls ~/rpmbuild/RPMS/$ARCH/atf-tools-${VERSION}-1*.${ARCH}.rpm 2>/dev/null | head -n 1)
+    rpm_source=$(ls ~/rpmbuild/RPMS/$ARCH/iatf-tools-${VERSION}-1*.${ARCH}.rpm 2>/dev/null | head -n 1)
     if [ -z "$rpm_source" ]; then
         echo "Error: RPM not found for $ARCH"
         return 1
     fi
     cp "$rpm_source" .
     
-    echo "✓ Created: $(basename "$rpm_source")"
+    echo "âœ“ Created: $(basename "$rpm_source")"
 }
 
 # Build for both architectures
@@ -192,10 +192,19 @@ build_rpm "x86_64" "$BINARY_AMD64"
 build_rpm "aarch64" "$BINARY_ARM64"
 
 echo ""
-echo "✓ RPM packages created"
+echo "âœ“ RPM packages created"
 echo ""
 echo "Test installation:"
-echo "  sudo rpm -i atf-tools-${VERSION}-1.*.x86_64.rpm"
+echo "  sudo rpm -i iatf-tools-${VERSION}-1.*.x86_64.rpm"
 echo ""
 echo "Or:"
-echo "  sudo dnf install ./atf-tools-${VERSION}-1.*.x86_64.rpm"
+echo "  sudo dnf install ./iatf-tools-${VERSION}-1.*.x86_64.rpm"
+
+
+
+
+
+
+
+
+

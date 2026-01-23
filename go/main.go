@@ -1,4 +1,4 @@
-package main
+﻿package main
 
 import (
 	"bufio"
@@ -77,12 +77,12 @@ func main() {
 		printUsage()
 		os.Exit(0)
 	case "--version", "-v", "version":
-		fmt.Printf("ATF Tools v%s\n", VERSION)
+		fmt.Printf("IATF Tools v%s\n", VERSION)
 		os.Exit(0)
 	case "rebuild":
 		if len(os.Args) < 3 {
 			fmt.Fprintln(os.Stderr, "Error: Missing file argument")
-			fmt.Fprintln(os.Stderr, "Usage: atf rebuild <file>")
+			fmt.Fprintln(os.Stderr, "Usage: iatf rebuild <file>")
 			os.Exit(1)
 		}
 		os.Exit(rebuildCommand(os.Args[2]))
@@ -98,36 +98,36 @@ func main() {
 		}
 		if len(os.Args) < 3 {
 			fmt.Fprintln(os.Stderr, "Error: Missing file argument")
-			fmt.Fprintln(os.Stderr, "Usage: atf watch <file>")
+			fmt.Fprintln(os.Stderr, "Usage: iatf watch <file>")
 			os.Exit(1)
 		}
 		os.Exit(watchCommand(os.Args[2]))
 	case "unwatch":
 		if len(os.Args) < 3 {
 			fmt.Fprintln(os.Stderr, "Error: Missing file argument")
-			fmt.Fprintln(os.Stderr, "Usage: atf unwatch <file>")
+			fmt.Fprintln(os.Stderr, "Usage: iatf unwatch <file>")
 			os.Exit(1)
 		}
 		os.Exit(unwatchCommand(os.Args[2]))
 	case "validate":
 		if len(os.Args) < 3 {
 			fmt.Fprintln(os.Stderr, "Error: Missing file argument")
-			fmt.Fprintln(os.Stderr, "Usage: atf validate <file>")
+			fmt.Fprintln(os.Stderr, "Usage: iatf validate <file>")
 			os.Exit(1)
 		}
 		os.Exit(validateCommand(os.Args[2]))
 	case "index":
 		if len(os.Args) < 3 {
 			fmt.Fprintln(os.Stderr, "Error: Missing file argument")
-			fmt.Fprintln(os.Stderr, "Usage: atf index <file>")
+			fmt.Fprintln(os.Stderr, "Usage: iatf index <file>")
 			os.Exit(1)
 		}
 		os.Exit(indexCommand(os.Args[2]))
 	case "read":
 		if len(os.Args) < 4 {
 			fmt.Fprintln(os.Stderr, "Error: Missing arguments")
-			fmt.Fprintln(os.Stderr, "Usage: atf read <file> <section-id>")
-			fmt.Fprintln(os.Stderr, "       atf read <file> --title \"Title\"")
+			fmt.Fprintln(os.Stderr, "Usage: iatf read <file> <section-id>")
+			fmt.Fprintln(os.Stderr, "       iatf read <file> --title \"Title\"")
 			os.Exit(1)
 		}
 
@@ -143,37 +143,37 @@ func main() {
 		}
 	default:
 		fmt.Fprintf(os.Stderr, "Error: Unknown command: %s\n", command)
-		fmt.Fprintln(os.Stderr, "Run 'atf --help' for usage information")
+		fmt.Fprintln(os.Stderr, "Run 'iatf --help' for usage information")
 		os.Exit(1)
 	}
 }
 
 func printUsage() {
-	fmt.Printf(`ATF Tools v%s
+	fmt.Printf(`IATF Tools v%s
 
 Usage:
-    atf rebuild <file>              Rebuild index for a single file
-    atf rebuild-all [directory]     Rebuild all .atf files in directory
-    atf watch <file>                Watch file and auto-rebuild on changes
-    atf unwatch <file>              Stop watching a file
-    atf watch --list                List all watched files
-    atf validate <file>             Validate ATF file structure
-    atf index <file>                Output INDEX section only
-    atf read <file> <section-id>    Extract section by ID
-    atf read <file> --title "Title" Extract section by title
-    atf --help                      Show this help message
-    atf --version                   Show version
+    iatf rebuild <file>              Rebuild index for a single file
+    iatf rebuild-all [directory]     Rebuild all .iatf files in directory
+    iatf watch <file>                Watch file and auto-rebuild on changes
+    iatf unwatch <file>              Stop watching a file
+    iatf watch --list                List all watched files
+    iatf validate <file>             Validate iatf file structure
+    iatf index <file>                Output INDEX section only
+    iatf read <file> <section-id>    Extract section by ID
+    iatf read <file> --title "Title" Extract section by title
+    iatf --help                      Show this help message
+    iatf --version                   Show version
 
 Examples:
-    atf rebuild document.atf
-    atf rebuild-all ./docs
-    atf watch api-reference.atf
-    atf validate my-doc.atf
-    atf index document.atf
-    atf read document.atf intro
-    atf read document.atf --title "Introduction"
+    iatf rebuild document.iatf
+    iatf rebuild-all ./docs
+    iatf watch api-reference.iatf
+    iatf validate my-doc.iatf
+    iatf index document.iatf
+    iatf read document.iatf intro
+    iatf read document.iatf --title "Introduction"
 
-For more information, visit: https://github.com/atf-tools/atf
+For more information, visit: https://github.com/iatf-tools/iatf
 `, VERSION)
 }
 
@@ -470,7 +470,7 @@ func rebuildIndex(filepath string) error {
 	if headerEnd == -1 {
 		// No existing INDEX, insert after header
 		for i, line := range lines {
-			if strings.HasPrefix(strings.TrimSpace(line), ":::ATF/") {
+			if strings.HasPrefix(strings.TrimSpace(line), ":::IATF/") {
 				headerEnd = i + 1
 				// Skip metadata lines
 				for i+1 < len(lines) && strings.HasPrefix(lines[i+1], "@") {
@@ -483,7 +483,7 @@ func rebuildIndex(filepath string) error {
 	}
 
 	if headerEnd == -1 || indexEnd == -1 {
-		return fmt.Errorf("invalid ATF file format")
+		return fmt.Errorf("invalid iatf file format")
 	}
 
 	// Update @modified and @hash in CONTENT section
@@ -547,11 +547,11 @@ func rebuildCommand(filepath string) int {
 	fmt.Printf("Rebuilding index: %s\n", filepath)
 
 	if err := rebuildIndex(filepath); err != nil {
-		fmt.Fprintf(os.Stderr, "✗ Failed to rebuild index: %v\n", err)
+		fmt.Fprintf(os.Stderr, "âœ— Failed to rebuild index: %v\n", err)
 		return 1
 	}
 
-	fmt.Println("✓ Index rebuilt successfully")
+	fmt.Println("âœ“ Index rebuilt successfully")
 	return 0
 }
 
@@ -561,13 +561,13 @@ func rebuildAllCommand(directory string) int {
 		return 1
 	}
 
-	var atfFiles []string
+	var iatfFiles []string
 	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if !info.IsDir() && filepath.Ext(path) == ".atf" {
-			atfFiles = append(atfFiles, path)
+		if !info.IsDir() && filepath.Ext(path) == ".iatf" {
+			iatfFiles = append(iatfFiles, path)
 		}
 		return nil
 	})
@@ -577,27 +577,27 @@ func rebuildAllCommand(directory string) int {
 		return 1
 	}
 
-	if len(atfFiles) == 0 {
-		fmt.Printf("No .atf files found in %s\n", directory)
+	if len(iatfFiles) == 0 {
+		fmt.Printf("No .iatf files found in %s\n", directory)
 		return 0
 	}
 
-	fmt.Printf("Found %d .atf file(s)\n", len(atfFiles))
+	fmt.Printf("Found %d .iatf file(s)\n", len(iatfFiles))
 
 	successCount := 0
-	for _, file := range atfFiles {
+	for _, file := range iatfFiles {
 		fmt.Printf("\nProcessing: %s\n", file)
 		if err := rebuildIndex(file); err != nil {
-			fmt.Printf("  ✗ Failed: %v\n", err)
+			fmt.Printf("  âœ— Failed: %v\n", err)
 		} else {
-			fmt.Println("  ✓ Success")
+			fmt.Println("  âœ“ Success")
 			successCount++
 		}
 	}
 
-	fmt.Printf("\nCompleted: %d/%d files rebuilt successfully\n", successCount, len(atfFiles))
+	fmt.Printf("\nCompleted: %d/%d files rebuilt successfully\n", successCount, len(iatfFiles))
 
-	if successCount == len(atfFiles) {
+	if successCount == len(iatfFiles) {
 		return 0
 	}
 	return 1
@@ -605,7 +605,7 @@ func rebuildAllCommand(directory string) int {
 
 func getWatchStateFile() string {
 	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".atf", "watch.json")
+	return filepath.Join(home, ".iatf", "watch.json")
 }
 
 func loadWatchState() (WatchState, error) {
@@ -692,7 +692,7 @@ func checkWatchedFile(filePath string) bool {
 	fmt.Println("Options:")
 	fmt.Println("  - Press 'y' to proceed with manual rebuild anyway")
 	fmt.Println("  - Press 'N' (default) to cancel")
-	fmt.Printf("  - Run 'atf unwatch %s' to stop watching first\n", filePath)
+	fmt.Printf("  - Run 'iatf unwatch %s' to stop watching first\n", filePath)
 	fmt.Println()
 
 	return promptUserConfirmation("Continue with manual rebuild?", false)
@@ -750,7 +750,7 @@ func watchCommand(filePath string) int {
 
 	fmt.Printf("Started watching: %s\n", filePath)
 	fmt.Println("File will auto-rebuild on save")
-	fmt.Printf("To stop: atf unwatch %s\n\n", filePath)
+	fmt.Printf("To stop: iatf unwatch %s\n\n", filePath)
 	fmt.Println("Press Ctrl+C to stop watching")
 
 	lastMod := info.ModTime()
@@ -762,8 +762,8 @@ func watchCommand(filePath string) int {
 		case <-sigChan:
 			cleanupPID()
 			fmt.Println("\n\nWatch stopped")
-			fmt.Printf("To resume: atf watch %s\n", filePath)
-			fmt.Printf("To stop permanently: atf unwatch %s\n", filePath)
+			fmt.Printf("To resume: iatf watch %s\n", filePath)
+			fmt.Printf("To stop permanently: iatf unwatch %s\n", filePath)
 			return 0
 		case <-ticker.C:
 			state, err := loadWatchState()
@@ -784,9 +784,9 @@ func watchCommand(filePath string) int {
 			if currentInfo.ModTime().After(lastMod) {
 				fmt.Printf("\n[%s] File changed, rebuilding...\n", time.Now().Format("15:04:05"))
 				if err := rebuildIndex(absPath); err != nil {
-					fmt.Printf("  ✗ Rebuild failed: %v\n", err)
+					fmt.Printf("  âœ— Rebuild failed: %v\n", err)
 				} else {
-					fmt.Println("  ✓ Index rebuilt")
+					fmt.Println("  âœ“ Index rebuilt")
 				}
 				lastMod = currentInfo.ModTime()
 			}
@@ -866,7 +866,7 @@ func indexCommand(filepath string) int {
 	}
 
 	if indexStart == -1 || indexEnd == -1 {
-		fmt.Fprintln(os.Stderr, "Error: Invalid ATF file format")
+		fmt.Fprintln(os.Stderr, "Error: Invalid iatf file format")
 		return 1
 	}
 
@@ -960,7 +960,7 @@ func readByTitleCommand(filepath string, title string) int {
 	}
 
 	if indexStart == -1 || indexEnd == -1 {
-		fmt.Fprintln(os.Stderr, "Error: Invalid ATF file format")
+		fmt.Fprintln(os.Stderr, "Error: Invalid iatf file format")
 		return 1
 	}
 
@@ -1030,10 +1030,10 @@ func validateCommand(filepath string) int {
 	warnings := []string{}
 
 	// Check 1: Format declaration
-	if !strings.HasPrefix(lines[0], ":::ATF/") {
-		errors = append(errors, "Missing format declaration (:::ATF/1.0)")
+	if !strings.HasPrefix(lines[0], ":::IATF/") {
+		errors = append(errors, "Missing format declaration (:::IATF/1.0)")
 	} else {
-		fmt.Println("✓ Format declaration found")
+		fmt.Println("âœ“ Format declaration found")
 	}
 
 	// Check 2: INDEX/CONTENT sections and order
@@ -1050,13 +1050,13 @@ func validateCommand(filepath string) int {
 	hasContent := len(contentPositions) > 0
 
 	if hasIndex {
-		fmt.Println("✓ INDEX section found")
+		fmt.Println("âœ“ INDEX section found")
 	} else {
-		warnings = append(warnings, "No INDEX section (run 'atf rebuild' to create)")
+		warnings = append(warnings, "No INDEX section (Run 'iatf rebuild' to create)")
 	}
 
 	if hasContent {
-		fmt.Println("✓ CONTENT section found")
+		fmt.Println("âœ“ CONTENT section found")
 	} else {
 		errors = append(errors, "Missing CONTENT section")
 	}
@@ -1119,7 +1119,7 @@ func validateCommand(filepath string) int {
 				}
 			}
 		} else {
-			warnings = append(warnings, "INDEX missing Content-Hash (run 'atf rebuild' to add)")
+			warnings = append(warnings, "INDEX missing Content-Hash (Run 'iatf rebuild' to add)")
 		}
 	}
 
@@ -1148,7 +1148,7 @@ func validateCommand(filepath string) int {
 		invalidNesting = true
 	}
 	if !invalidNesting {
-		fmt.Println("✓ All sections properly closed")
+		fmt.Println("âœ“ All sections properly closed")
 	}
 
 	// Check 6: No content outside section blocks
@@ -1240,7 +1240,7 @@ func validateCommand(filepath string) int {
 	}
 
 	if len(sectionIDs) > 0 {
-		fmt.Printf("✓ Found %d section(s) with unique IDs\n", len(sectionIDs))
+		fmt.Printf("âœ“ Found %d section(s) with unique IDs\n", len(sectionIDs))
 	} else {
 		warnings = append(warnings, "No sections found in CONTENT")
 	}
@@ -1248,27 +1248,33 @@ func validateCommand(filepath string) int {
 	// Summary
 	fmt.Println()
 	if len(errors) > 0 {
-		fmt.Printf("✗ %d error(s) found:\n", len(errors))
+		fmt.Printf("âœ— %d error(s) found:\n", len(errors))
 		for _, err := range errors {
 			fmt.Printf("  - %s\n", err)
 		}
 	}
 
 	if len(warnings) > 0 {
-		fmt.Printf("⚠ %d warning(s):\n", len(warnings))
+		fmt.Printf("âš  %d warning(s):\n", len(warnings))
 		for _, warn := range warnings {
 			fmt.Printf("  - %s\n", warn)
 		}
 	}
 
 	if len(errors) == 0 && len(warnings) == 0 {
-		fmt.Println("✓ File is valid!")
+		fmt.Println("âœ“ File is valid!")
 		return 0
 	} else if len(errors) == 0 {
-		fmt.Println("\n✓ File is valid (with warnings)")
+		fmt.Println("\nâœ“ File is valid (with warnings)")
 		return 0
 	}
 
-	fmt.Println("\n✗ File is invalid")
+	fmt.Println("\nâœ— File is invalid")
 	return 1
 }
+
+
+
+
+
+

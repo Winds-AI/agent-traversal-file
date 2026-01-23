@@ -1,4 +1,4 @@
-# Task List
+﻿# Task List
 
 ## Task 1: Add PID-based warning for rebuild on watched files
 
@@ -6,11 +6,11 @@
 **Status:** Completed
 
 ### Summary
-Prevents redundant double rebuilds when manually running `atf rebuild` on a file that's being watched.
+Prevents redundant double rebuilds when manually running `iatf rebuild` on a file that's being watched.
 
 ### What was implemented
 
-**Python (`python/atf.py`):**
+**Python (`python/iatf.py`):**
 - `is_process_running(pid)` - checks if process exists
 - `prompt_user_confirmation()` - interactive yes/no prompt
 - `check_watched_file()` - validates PID and prompts user
@@ -36,23 +36,26 @@ This will cause the file to be rebuilt twice.
 Options:
   - Press 'y' to proceed with manual rebuild anyway
   - Press 'N' (default) to cancel
-  - Run 'atf unwatch file.atf' to stop watching first
+  - Run 'iatf unwatch file.iatf' to stop watching first
 
 Continue with manual rebuild? [y/N]:
 ```
 
 **Exit codes:**
-- User cancels → exit 1 with "Rebuild cancelled, no changes made."
-- User confirms → proceeds with rebuild
-- Non-interactive (CI/scripts) → returns default (cancel)
+- User cancels â†’ exit 1 with "Rebuild cancelled, no changes made."
+- User confirms â†’ proceeds with rebuild
+- Non-interactive (CI/scripts) â†’ returns default (cancel)
 
 ### Edge cases handled
-- Stale PID (process dead) → proceeds without warning
-- Corrupt watch state → cleans up and exits watch
-- File deleted during watch → cleans up PID
-- Windows support → uses `OpenProcess` API instead of Unix signals
-- Non-TTY stdin → returns default to avoid hanging in CI
+- Stale PID (process dead) â†’ proceeds without warning
+- Corrupt watch state â†’ cleans up and exits watch
+- File deleted during watch â†’ cleans up PID
+- Windows support â†’ uses `OpenProcess` API instead of Unix signals
+- Non-TTY stdin â†’ returns default to avoid hanging in CI
 
 ### Documentation
 - README.md updated with rebuild warning info
 - Watch state file format documented
+
+
+

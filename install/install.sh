@@ -1,9 +1,9 @@
-#!/bin/bash
-# ATF Tools Installer for macOS/Linux
+﻿#!/bin/bash
+# IATF Tools Installer for macOS/Linux
 
 set -e
 
-echo "Installing ATF Tools..."
+echo "Installing IATF Tools..."
 
 # Detect OS and architecture
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
@@ -18,16 +18,16 @@ fi
 
 # Determine binary name
 if [ "$OS" = "darwin" ]; then
-    BINARY="atf-darwin-${ARCH}"
+    BINARY="iatf-darwin-${ARCH}"
 elif [ "$OS" = "linux" ]; then
-    BINARY="atf-linux-${ARCH}"
+    BINARY="iatf-linux-${ARCH}"
 else
     echo "Error: Unsupported OS: $OS"
     exit 1
 fi
 
 # Get latest version
-LATEST_URL="https://api.github.com/repos/atf-tools/atf/releases/latest"
+LATEST_URL="https://api.github.com/repos/iatf-tools/iatf/releases/latest"
 VERSION=$(curl -s $LATEST_URL | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 
 if [ -z "$VERSION" ]; then
@@ -38,10 +38,10 @@ fi
 echo "Latest version: $VERSION"
 
 # Download URL
-DOWNLOAD_URL="https://github.com/atf-tools/atf/releases/download/${VERSION}/${BINARY}"
+DOWNLOAD_URL="https://github.com/iatf-tools/iatf/releases/download/${VERSION}/${BINARY}"
 
 # Temporary download location
-TMP_FILE="/tmp/atf-${VERSION}"
+TMP_FILE="/tmp/iatf-${VERSION}"
 
 # Download binary
 echo "Downloading ${BINARY}..."
@@ -72,7 +72,7 @@ fi
 
 # Install
 echo "Installing to $INSTALL_DIR..."
-$SUDO mv "$TMP_FILE" "$INSTALL_DIR/atf"
+$SUDO mv "$TMP_FILE" "$INSTALL_DIR/iatf"
 
 # Add to PATH if needed
 if [ "$INSTALL_DIR" = "$HOME/.local/bin" ]; then
@@ -89,9 +89,9 @@ if [ "$INSTALL_DIR" = "$HOME/.local/bin" ]; then
     if [ -n "$SHELL_CONFIG" ]; then
         if ! grep -q "$INSTALL_DIR" "$SHELL_CONFIG"; then
             echo "" >> "$SHELL_CONFIG"
-            echo "# ATF Tools" >> "$SHELL_CONFIG"
+            echo "# IATF Tools" >> "$SHELL_CONFIG"
             echo "export PATH=\"\$PATH:$INSTALL_DIR\"" >> "$SHELL_CONFIG"
-            echo "✓ Added to $SHELL_CONFIG"
+            echo "âœ“ Added to $SHELL_CONFIG"
             echo ""
             echo "Please restart your terminal or run:"
             echo "  source $SHELL_CONFIG"
@@ -100,8 +100,16 @@ if [ "$INSTALL_DIR" = "$HOME/.local/bin" ]; then
 fi
 
 echo ""
-echo "✓ Installation complete!"
-echo "  Binary installed to: $INSTALL_DIR/atf"
+echo "âœ“ Installation complete!"
+echo "  Binary installed to: $INSTALL_DIR/iatf"
 echo ""
 echo "Try it out:"
-echo "  atf --help"
+echo "  iatf --help"
+
+
+
+
+
+
+
+

@@ -1,6 +1,6 @@
-# Contributing to ATF Tools
+﻿# Contributing to IATF Tools
 
-Thank you for your interest in contributing to ATF Tools! 
+Thank you for your interest in contributing to IATF Tools! 
 
 ## How to Contribute
 
@@ -12,7 +12,7 @@ Thank you for your interest in contributing to ATF Tools!
    - Steps to reproduce
    - Expected vs actual behavior
    - Your OS and version
-   - ATF Tools version (`atf --version`)
+   - IATF Tools version (`iatf --version`)
 
 ### Suggesting Features
 
@@ -33,11 +33,11 @@ Thank you for your interest in contributing to ATF Tools!
 4. **Test your changes**:
    ```bash
    # Python
-   python python/atf.py rebuild examples/simple.atf
+   python python/iatf.py rebuild examples/simple.iatf
    
    # Go
    cd go
-   go run main.go rebuild ../examples/simple.atf
+   go run main.go rebuild ../examples/simple.iatf
    ```
 5. **Commit your changes**:
    ```bash
@@ -74,7 +74,7 @@ Before submitting:
 
 - [ ] **Editor Plugins**: VS Code, Vim, Emacs extensions
 - [ ] **Language Server Protocol (LSP)**: Universal editor support
-- [ ] **Conversion Tools**: Markdown → ATF, HTML → ATF
+- [ ] **Conversion Tools**: Markdown â†’ IATF, HTML â†’ IATF
 - [ ] **Documentation**: Examples, tutorials, use cases
 - [ ] **Testing**: More comprehensive test suite
 - [ ] **Localization**: Translations for error messages
@@ -91,7 +91,7 @@ When adding features:
 ### Ideas & Future Directions
 
 See [IDEAS.md](IDEAS.md) for a list of proposed features and experiments we're interested in, including:
-- FUSE/Dokany/macFUSE filesystem mounting for transparent ATF access
+- FUSE/Dokany/macFUSE filesystem mounting for transparent IATF access
 - Editor plugins for auto-rebuilding index on save
 - LSP integration for semantic navigation
 - And more...
@@ -104,8 +104,14 @@ See [IDEAS.md](IDEAS.md) for a list of proposed features and experiments we're i
 
 ## Code of Conduct
 
-Be respectful, constructive, and helpful. We're all here to make ATF better!
+Be respectful, constructive, and helpful. We're all here to make IATF better!
 
 ## License
 
 By contributing, you agree that your contributions will be licensed under the MIT License.
+
+
+
+
+
+

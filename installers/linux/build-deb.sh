@@ -1,19 +1,19 @@
-#!/bin/bash
-# Build ATF Tools Debian Package (.deb)
+﻿#!/bin/bash
+# Build IATF Tools Debian Package (.deb)
 
 set -e
 
 VERSION=${1:-1.0.0}
-BINARY_AMD64="../../dist/atf-linux-amd64"
-BINARY_ARM64="../../dist/atf-linux-arm64"
+BINARY_AMD64="../../dist/iatf-linux-amd64"
+BINARY_ARM64="../../dist/iatf-linux-arm64"
 
-echo "Building ATF Tools Debian Packages v$VERSION"
+echo "Building IATF Tools Debian Packages v$VERSION"
 
 # Function to build package for an architecture
 build_package() {
     local ARCH=$1
     local BINARY=$2
-    local PACKAGE_NAME="atf-tools_${VERSION}_${ARCH}"
+    local PACKAGE_NAME="iatf-tools_${VERSION}_${ARCH}"
     
     echo ""
     echo "Building package for $ARCH..."
@@ -28,24 +28,24 @@ build_package() {
     rm -rf "$PACKAGE_NAME"
     mkdir -p "$PACKAGE_NAME/DEBIAN"
     mkdir -p "$PACKAGE_NAME/usr/bin"
-    mkdir -p "$PACKAGE_NAME/usr/share/doc/atf-tools"
+    mkdir -p "$PACKAGE_NAME/usr/share/doc/iatf-tools"
     mkdir -p "$PACKAGE_NAME/usr/share/man/man1"
     
     # Copy binary
-    cp "$BINARY" "$PACKAGE_NAME/usr/bin/atf"
-    chmod 755 "$PACKAGE_NAME/usr/bin/atf"
+    cp "$BINARY" "$PACKAGE_NAME/usr/bin/iatf"
+    chmod 755 "$PACKAGE_NAME/usr/bin/iatf"
     
     # Create control file
     cat > "$PACKAGE_NAME/DEBIAN/control" <<EOF
-Package: atf-tools
+Package: iatf-tools
 Version: $VERSION
 Section: utils
 Priority: optional
 Architecture: $ARCH
-Maintainer: ATF Project <atf@example.com>
-Description: Agent Traversable File - Self-indexing documents for AI agents
- ATF Tools provides commands to create and manage ATF (Agent Traversable File)
- documents. ATF is a file format designed for AI agents to efficiently
+Maintainer: IATF Project <IATF@example.com>
+Description: Indexed Agent Traversable File - Self-indexing documents for AI agents
+ IATF Tools provides commands to create and manage IATF (Indexed Agent Traversable File)
+ documents. IATF is a file format designed for AI agents to efficiently
  navigate large documents by loading only relevant sections.
  .
  Features:
@@ -53,7 +53,7 @@ Description: Agent Traversable File - Self-indexing documents for AI agents
   - Token-efficient agent navigation
   - Plain text, human-readable format
   - Watch mode for auto-rebuild on save
-Homepage: https://github.com/atf-tools/atf
+Homepage: https://github.com/iatf-tools/iatf
 EOF
     
     # Create postinst script
@@ -62,9 +62,9 @@ EOF
 set -e
 
 # Verify installation
-if [ -x "/usr/bin/atf" ]; then
-    echo "ATF Tools installed successfully"
-    /usr/bin/atf --version || true
+if [ -x "/usr/bin/iatf" ]; then
+    echo "IATF Tools installed successfully"
+    /usr/bin/iatf --version || true
 fi
 
 exit 0
@@ -77,9 +77,9 @@ EOF
 set -e
 
 # Stop any running watch processes
-if command -v atf >/dev/null 2>&1; then
+if command -v iatf >/dev/null 2>&1; then
     # Stop all watches (best effort)
-    WATCH_FILE="$HOME/.atf/watch.json"
+    WATCH_FILE="$HOME/.iatf/watch.json"
     if [ -f "$WATCH_FILE" ]; then
         rm -f "$WATCH_FILE" || true
     fi
@@ -90,37 +90,37 @@ EOF
     chmod 755 "$PACKAGE_NAME/DEBIAN/prerm"
     
     # Create documentation
-    cat > "$PACKAGE_NAME/usr/share/doc/atf-tools/README" <<EOF
-ATF Tools v$VERSION
+    cat > "$PACKAGE_NAME/usr/share/doc/iatf-tools/README" <<EOF
+IATF Tools v$VERSION
 
-Agent Traversable File - Self-indexing documents for AI agents
+Indexed Agent Traversable File - Self-indexing documents for AI agents
 
 USAGE:
-  atf rebuild <file>              Rebuild index for a file
-  atf rebuild-all [directory]     Rebuild all .atf files
-  atf watch <file>                Watch and auto-rebuild
-  atf unwatch <file>              Stop watching
-  atf validate <file>             Validate file
+  iatf rebuild <file>              Rebuild index for a file
+  iatf rebuild-all [directory]     Rebuild all .iatf files
+  iatf watch <file>                Watch and auto-rebuild
+  iatf unwatch <file>              Stop watching
+  iatf validate <file>             Validate file
 
 EXAMPLES:
-  atf rebuild document.atf
-  atf rebuild-all ./docs
-  atf watch api-reference.atf
+  iatf rebuild document.iatf
+  iatf rebuild-all ./docs
+  iatf watch api-reference.iatf
 
 DOCUMENTATION:
-  https://github.com/atf-tools/atf
+  https://github.com/iatf-tools/iatf
 
 LICENSE: MIT
 EOF
     
     # Create copyright file
-    cat > "$PACKAGE_NAME/usr/share/doc/atf-tools/copyright" <<EOF
+    cat > "$PACKAGE_NAME/usr/share/doc/iatf-tools/copyright" <<EOF
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: atf-tools
-Source: https://github.com/atf-tools/atf
+Upstream-Name: iatf-tools
+Source: https://github.com/iatf-tools/iatf
 
 Files: *
-Copyright: 2025 ATF Project
+Copyright: 2025 IATF Project
 License: MIT
  Permission is hereby granted, free of charge, to any person obtaining a
  copy of this software and associated documentation files (the "Software"),
@@ -142,24 +142,24 @@ License: MIT
 EOF
     
     # Create man page
-    cat > "$PACKAGE_NAME/usr/share/man/man1/atf.1" <<'EOF'
-.TH ATF 1 "January 2025" "ATF Tools 1.0.0" "User Commands"
+    cat > "$PACKAGE_NAME/usr/share/man/man1/iatf.1" <<'EOF'
+.TH iatf 1 "January 2025" "IATF Tools 1.0.0" "User Commands"
 .SH NAME
-atf \- Agent Traversable File document manager
+iatf \\- Indexed Agent Traversable File document manager
 .SH SYNOPSIS
-.B atf
+.B iatf
 .I command
 [\fIoptions\fR] [\fIfile\fR]
 .SH DESCRIPTION
-ATF Tools manages ATF (Agent Traversable File) documents. ATF is a file format
+IATF Tools manages IATF (Indexed Agent Traversable File) documents. IATF is a file format
 designed for AI agents to efficiently navigate large documents.
 .SH COMMANDS
 .TP
 .B rebuild \fIfile\fR
-Rebuild the index for a single ATF file
+Rebuild the index for a single iatf file
 .TP
 .B rebuild-all [\fIdir\fR]
-Rebuild all .atf files in directory (default: current directory)
+Rebuild all .iatf files in directory (default: current directory)
 .TP
 .B watch \fIfile\fR
 Watch file and auto-rebuild index when it changes
@@ -168,7 +168,7 @@ Watch file and auto-rebuild index when it changes
 Stop watching a file
 .TP
 .B validate \fIfile\fR
-Validate ATF file structure
+Validate iatf file structure
 .TP
 .B --help
 Display help information
@@ -178,40 +178,40 @@ Display version information
 .SH EXAMPLES
 .TP
 Rebuild a single file:
-.B atf rebuild document.atf
+.B iatf rebuild document.iatf
 .TP
 Rebuild all files in docs directory:
-.B atf rebuild-all ./docs
+.B iatf rebuild-all ./docs
 .TP
 Watch a file for changes:
-.B atf watch api-reference.atf
+.B iatf watch api-reference.iatf
 .SH FILES
 .TP
-.I ~/.atf/watch.json
+.I ~/.iatf/watch.json
 Watch state file (tracks which files are being watched)
 .SH AUTHOR
-ATF Project
+IATF Project
 .SH SEE ALSO
-Full documentation: <https://github.com/atf-tools/atf>
+Full documentation: <https://github.com/iatf-tools/iatf>
 EOF
     
     # Compress man page
-    gzip -9 -n "$PACKAGE_NAME/usr/share/man/man1/atf.1"
+    gzip -9 -n "$PACKAGE_NAME/usr/share/man/man1/iatf.1"
     
     # Create changelog
-    cat > "$PACKAGE_NAME/usr/share/doc/atf-tools/changelog.gz" <<EOF
-atf-tools ($VERSION) stable; urgency=medium
+    cat > "$PACKAGE_NAME/usr/share/doc/iatf-tools/changelog.gz" <<EOF
+iatf-tools ($VERSION) stable; urgency=medium
 
   * Initial release
 
- -- ATF Project <atf@example.com>  $(date -R)
+ -- IATF Project <IATF@example.com>  $(date -R)
 EOF
-    gzip -9 -n "$PACKAGE_NAME/usr/share/doc/atf-tools/changelog.gz"
+    gzip -9 -n "$PACKAGE_NAME/usr/share/doc/iatf-tools/changelog.gz"
     
     # Build package
     dpkg-deb --build "$PACKAGE_NAME"
     
-    echo "✓ Created: ${PACKAGE_NAME}.deb"
+    echo "âœ“ Created: ${PACKAGE_NAME}.deb"
 }
 
 # Build for both architectures
@@ -219,10 +219,19 @@ build_package "amd64" "$BINARY_AMD64"
 build_package "arm64" "$BINARY_ARM64"
 
 echo ""
-echo "✓ Debian packages created"
+echo "âœ“ Debian packages created"
 echo ""
 echo "Test installation:"
-echo "  sudo dpkg -i atf-tools_${VERSION}_amd64.deb"
+echo "  sudo dpkg -i iatf-tools_${VERSION}_amd64.deb"
 echo ""
 echo "Or:"
-echo "  sudo apt install ./atf-tools_${VERSION}_amd64.deb"
+echo "  sudo apt install ./iatf-tools_${VERSION}_amd64.deb"
+
+
+
+
+
+
+
+
+

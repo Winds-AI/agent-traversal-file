@@ -1,4 +1,4 @@
-:::ATF/1.0
+﻿:::IATF/1.0
 @title: Checklist Example
 @purpose: Manual test coverage for lists, code blocks, and metadata
 
@@ -41,7 +41,7 @@
 
 Notes:
 - Keep the terminal in the repo root
-- Use `examples/simple.atf` for quick sanity checks
+- Use `examples/simple.iatf` for quick sanity checks
 {/setup}
 
 {#workflow}
@@ -56,9 +56,9 @@ Notes:
 3. Validate structure
 
 ```bash
-go build -o atf ./go
-./atf rebuild examples/checklist.atf
-./atf validate examples/checklist.atf
+go build -o IATF ./go
+./iatf rebuild examples/checklist.iatf
+./iatf validate examples/checklist.iatf
 ```
 
 Expected output should include a successful rebuild message and no validation errors.
@@ -75,3 +75,8 @@ Expected output should include a successful rebuild message and no validation er
 - Validate reports correct INDEX/CONTENT structure
 - Section counts match the INDEX entries
 {/acceptance}
+
+
+
+
+

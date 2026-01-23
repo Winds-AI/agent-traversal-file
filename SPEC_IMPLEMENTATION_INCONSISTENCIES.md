@@ -1,14 +1,14 @@
-# Specification vs Implementation Inconsistencies
+﻿# Specification vs Implementation Inconsistencies
 
 **Analysis Date**: 2026-01-21
 **Spec Version**: v1.0
-**Implementations Analyzed**: Python (atf.py), Go (main.go)
+**Implementations Analyzed**: Python (iatf.py), Go (main.go)
 
 ---
 
 ## CRITICAL Issues
 
-### 1. 🚨 Go Implementation Missing `===CONTENT===` Delimiter
+### 1. ðŸš¨ Go Implementation Missing `===CONTENT===` Delimiter
 
 **Severity**: CRITICAL - File corruption
 **Location**: `go/main.go:463-467`
@@ -18,7 +18,7 @@ The Go implementation fails to write the `===CONTENT===` delimiter when rebuildi
 
 **Evidence**:
 ```bash
-$ grep -n "===" examples/simple.atf
+$ grep -n "===" examples/simple.iatf
 15:===INDEX===
 # Missing ===CONTENT=== !
 ```
@@ -53,7 +53,7 @@ Ensure `===CONTENT===` delimiter is explicitly preserved or re-added during file
 **Severity**: HIGH - Spec/Implementation divergence
 **Locations**:
 - Spec: SPECIFICATION.md:109, 115, 445, 569
-- Python: python/atf.py:221
+- Python: python/iatf.py:221
 - Go: go/main.go:321
 
 **Spec Says**:
@@ -77,7 +77,7 @@ Ensure `===CONTENT===` delimiter is explicitly preserved or re-added during file
 **Severity**: MEDIUM - Format inconsistency
 **Locations**:
 - Spec: SPECIFICATION.md:110
-- Python: python/atf.py:222
+- Python: python/iatf.py:222
 - Go: go/main.go:322
 
 **Spec Shows**:
@@ -105,7 +105,7 @@ fmt.Sprintf("<!-- Generated: %s -->", time.Now().UTC().Format(time.RFC3339))
 ```
 <!-- Generated: 2026-01-21T19:01:35Z -->
 ```
-**Status**: ✅ Go matches spec format
+**Status**: âœ… Go matches spec format
 
 **Impact**:
 - Python timestamps are longer and use different timezone notation
@@ -126,7 +126,7 @@ f"<!-- Generated: {datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')} --
 **Severity**: LOW - Optional feature
 **Locations**:
 - Spec: SPECIFICATION.md:124, 146
-- Python: python/atf.py:generate_index()
+- Python: python/iatf.py:generate_index()
 - Go: go/main.go:generateIndex()
 
 **Spec Says** (Section 3.2):
@@ -155,12 +155,12 @@ Either:
 
 ## Confirmed Correct Implementations
 
-### ✅ Maximum Nesting Depth Enforcement
+### âœ… Maximum Nesting Depth Enforcement
 
 **Spec** (Section 3.3, line 169):
 > "Implementations may enforce a maximum nesting depth (this project enforces 2 levels)"
 
-**Python Implementation** (atf.py:685-687):
+**Python Implementation** (iatf.py:685-687):
 ```python
 if section.level > 2:
     errors.append(
@@ -175,11 +175,11 @@ if section.Level > 2 {
 }
 ```
 
-**Status**: ✅ Both implementations correctly enforce 2-level maximum
+**Status**: âœ… Both implementations correctly enforce 2-level maximum
 
 ---
 
-### ✅ @hash Automatic Tracking
+### âœ… @hash Automatic Tracking
 
 **Spec** (Section 4.2, lines 226-257): Fully documented
 
@@ -189,11 +189,11 @@ if section.Level > 2 {
 - Auto-update `@modified` when content changes
 - Write `@hash` back to CONTENT section
 
-**Status**: ✅ Fully aligned with spec
+**Status**: âœ… Fully aligned with spec
 
 ---
 
-### ✅ Validation Rules
+### âœ… Validation Rules
 
 **Spec** (Section 12): Lists 9 validation rules
 
@@ -205,7 +205,7 @@ if section.Level > 2 {
 - Proper nesting
 - Content hash verification
 
-**Status**: ✅ All required validation rules implemented
+**Status**: âœ… All required validation rules implemented
 
 ---
 
@@ -213,13 +213,13 @@ if section.Level > 2 {
 
 | Issue | Severity | Python | Go | Action Required |
 |-------|----------|--------|-----|-----------------|
-| Missing `===CONTENT===` delimiter | 🚨 CRITICAL | ✅ | ❌ | Fix Go immediately |
-| AUTO-GENERATED comment text | HIGH | ❌ | ❌ | Update both or spec |
-| Timestamp format | MEDIUM | ❌ | ✅ | Update Python |
+| Missing `===CONTENT===` delimiter | ðŸš¨ CRITICAL | âœ… | âŒ | Fix Go immediately |
+| AUTO-GENERATED comment text | HIGH | âŒ | âŒ | Update both or spec |
+| Timestamp format | MEDIUM | âŒ | âœ… | Update Python |
 | Optional `words:` field | LOW | N/A | N/A | Optional enhancement |
-| Max nesting enforcement | - | ✅ | ✅ | None |
-| @hash tracking | - | ✅ | ✅ | None |
-| Validation rules | - | ✅ | ✅ | None |
+| Max nesting enforcement | - | âœ… | âœ… | None |
+| @hash tracking | - | âœ… | âœ… | None |
+| Validation rules | - | âœ… | âœ… | None |
 
 ---
 
@@ -236,5 +236,8 @@ if section.Level > 2 {
 
 1. After fixing Go bug, run both implementations on same files
 2. Verify byte-for-byte identical output (except timestamps)
-3. Test round-trip: Python → Go → Python → Go
+3. Test round-trip: Python â†’ Go â†’ Python â†’ Go
 4. Add regression tests for `===CONTENT===` preservation
+
+
+

@@ -1,18 +1,43 @@
-# Build ATF Tools MSI Installer
+﻿# Build IATF Tools MSI Installer
 # Requirements: WiX Toolset v3.11+ installed
 
 param(
     [string]$Version = "1.0.0",
-    [string]$BinaryPath = "..\..\dist\atf-windows-amd64.exe"
+    [string]$BinaryPath = "..\..\dist\iatf-windows-amd64.exe"
 )
 
-Write-Host "Building ATF Tools MSI Installer v$Version" -ForegroundColor Green
+Write-Host "Building IATF Tools MSI Installer v$Version" -ForegroundColor Green
 
 # Check WiX is installed
-$wixPath = "${env:ProgramFiles(x86)}\WiX Toolset v3.11\bin"
-if (-not (Test-Path "$wixPath\candle.exe")) {
+$wixPathCandidates = @(
+    $env:WIX_PATH,
+    $env:WIX,
+    "$env:ProgramData\\chocolatey\\lib\\wixtoolset\\tools\\bin",
+    "${env:ProgramFiles(x86)}\WiX Toolset v3.14\bin",
+    "${env:ProgramFiles(x86)}\WiX Toolset v3.11\bin",
+    "${env:ProgramFiles(x86)}\WiX Toolset v3.10\bin",
+    "${env:ProgramFiles(x86)}\WiX Toolset v3.9\bin",
+    "${env:ProgramFiles(x86)}\WiX Toolset v3.8\bin"
+) | Where-Object { $_ -and $_.Trim().Length -gt 0 }
+
+$wixPath = $null
+foreach ($candidate in $wixPathCandidates) {
+    if (Test-Path (Join-Path $candidate "candle.exe")) {
+        $wixPath = $candidate
+        break
+    }
+}
+
+if (-not $wixPath) {
+    $candleCmd = Get-Command candle.exe -ErrorAction SilentlyContinue
+    if ($candleCmd) {
+        $wixPath = Split-Path $candleCmd.Source -Parent
+    }
+}
+
+if (-not $wixPath) {
     Write-Host "Error: WiX Toolset not found!" -ForegroundColor Red
-    Write-Host "Download from: https://wixtoolset.org/" -ForegroundColor Yellow
+    Write-Host "Download from: https://wixtoolset.org/ or set WIX_PATH" -ForegroundColor Yellow
     exit 1
 }
 
@@ -27,29 +52,29 @@ if (-not (Test-Path $BinaryPath)) {
 
 # Copy binary to installer directory
 Write-Host "Copying binary..." -ForegroundColor Cyan
-Copy-Item $BinaryPath "atf.exe" -Force
+Copy-Item $BinaryPath "iatf.exe" -Force
 
 # Create README.txt
 Write-Host "Creating documentation..." -ForegroundColor Cyan
 $readmeLines = @(
-    "ATF Tools v$Version",
+    "IATF Tools v$Version",
     "",
-    "Agent Traversable File - Self-indexing documents for AI agents",
+    "Indexed Agent Traversable File - Self-indexing documents for AI agents",
     "",
     "USAGE:",
-    "  atf rebuild <file>              Rebuild index for a file",
-    "  atf rebuild-all [directory]     Rebuild all .atf files",
-    "  atf watch <file>                Watch and auto-rebuild",
-    "  atf unwatch <file>              Stop watching",
-    "  atf validate <file>             Validate file",
+    "  iatf rebuild <file>              Rebuild index for a file",
+    "  iatf rebuild-all [directory]     Rebuild all .iatf files",
+    "  iatf watch <file>                Watch and auto-rebuild",
+    "  iatf unwatch <file>              Stop watching",
+    "  iatf validate <file>             Validate file",
     "",
     "EXAMPLES:",
-    "  atf rebuild document.atf",
-    "  atf rebuild-all ./docs",
-    "  atf watch api-reference.atf",
+    "  iatf rebuild document.iatf",
+    "  iatf rebuild-all ./docs",
+    "  iatf watch api-reference.iatf",
     "",
     "DOCUMENTATION:",
-    "  https://github.com/atf-tools/atf",
+    "  https://github.com/iatf-tools/iatf",
     "",
     "LICENSE: MIT"
 )
@@ -67,7 +92,7 @@ $licenseLines = @(
     '\\f0\\fs20',
     'MIT License\\par',
     '\\par',
-    'Copyright (c) 2025 ATF Project\\par',
+    'Copyright (c) 2025 IATF Project\\par',
     '\\par',
     'Permission is hereby granted, free of charge, to any person obtaining a copy\\par',
     'of this software and associated documentation files (the "Software"), to deal\\par',
@@ -92,20 +117,20 @@ $licenseLines -join "`r`n" | Out-File -FilePath "License.rtf" -Encoding ascii
 
 # Update version in WXS file
 Write-Host "Updating version in WXS..." -ForegroundColor Cyan
-$wxsContent = Get-Content "atf.wxs" -Raw
+$wxsContent = Get-Content "iatf.wxs" -Raw
 $wxsContent = $wxsContent -replace 'Version="[\d\.]+"', "Version=`"$Version`""
-$wxsContent | Out-File "atf-versioned.wxs" -Encoding utf8
+$wxsContent | Out-File "iatf-versioned.wxs" -Encoding utf8
 
 # Build installer
 Write-Host "Running candle.exe..." -ForegroundColor Cyan
-& candle.exe atf-versioned.wxs -out atf.wixobj
+& candle.exe iatf-versioned.wxs -out iatf.wixobj
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Candle failed!" -ForegroundColor Red
     exit 1
 }
 
 Write-Host "Running light.exe..." -ForegroundColor Cyan
-& light.exe -ext WixUIExtension -out "ATF-Tools-$Version.msi" atf.wixobj
+& light.exe -ext WixUIExtension -out "iatf-tools-$Version.msi" iatf.wixobj
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Light failed!" -ForegroundColor Red
     exit 1
@@ -113,10 +138,19 @@ if ($LASTEXITCODE -ne 0) {
 
 # Cleanup
 Write-Host "Cleaning up..." -ForegroundColor Cyan
-Remove-Item "atf.exe", "atf.wixobj", "atf-versioned.wxs", "ATF-Tools-$Version.wixpdb" -ErrorAction SilentlyContinue
+Remove-Item "iatf.exe", "iatf.wixobj", "iatf-versioned.wxs", "iatf-tools-$Version.wixpdb" -ErrorAction SilentlyContinue
 
 Write-Host ""
-Write-Host "Installer created: ATF-Tools-$Version.msi" -ForegroundColor Green
+Write-Host "Installer created: iatf-tools-$Version.msi" -ForegroundColor Green
 Write-Host ""
 Write-Host "Test it:" -ForegroundColor Yellow
-Write-Host "  msiexec /i ATF-Tools-$Version.msi" -ForegroundColor Cyan
+Write-Host "  msiexec /i iatf-tools-$Version.msi" -ForegroundColor Cyan
+
+
+
+
+
+
+
+
+

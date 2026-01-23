@@ -4,11 +4,11 @@ dist/
 *.dll
 *.so
 *.dylib
-atf
-atf-*
+iatf
+iatf-*
 
 # Go
-go/atf
+go/iatf
 *.test
 *.out
 go.sum
@@ -42,14 +42,14 @@ MANIFEST
 installers/windows/*.msi
 installers/windows/*.wixobj
 installers/windows/*.wixpdb
-installers/windows/atf.exe
+installers/windows/iatf.exe
 installers/windows/README.txt
 installers/windows/LICENSE.txt
 installers/windows/License.rtf
-installers/windows/atf-versioned.wxs
+installers/windows/iatf-versioned.wxs
 
 installers/macos/*.pkg
-installers/macos/atf
+installers/macos/iatf
 installers/macos/package-root/
 installers/macos/distribution.xml
 installers/macos/welcome.html
@@ -58,7 +58,7 @@ installers/macos/conclusion.html
 
 installers/linux/*.deb
 installers/linux/*.rpm
-installers/linux/atf-tools_*/
+installers/linux/iatf-tools_*/
 ~/rpmbuild/
 
 # IDE
@@ -81,8 +81,8 @@ Thumbs.db
 *.log
 
 # Test files
-test.atf
-temp*.atf
+test.iatf
+temp*.iatf
 
 
 # Documentation

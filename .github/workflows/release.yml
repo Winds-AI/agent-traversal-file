@@ -1,4 +1,4 @@
-name: Build and Release
+﻿name: Build and Release
 
 on:
   push:
@@ -36,27 +36,27 @@ jobs:
         run: |
           cd go
           mkdir -p ../dist
-          GOOS=windows GOARCH=amd64 go build -o ../dist/atf-windows-amd64.exe -ldflags="-s -w" .
+          GOOS=windows GOARCH=amd64 go build -o ../dist/iatf-windows-amd64.exe -ldflags="-s -w" .
       
       - name: Build for macOS (amd64)
         run: |
           cd go
-          GOOS=darwin GOARCH=amd64 go build -o ../dist/atf-darwin-amd64 -ldflags="-s -w" .
+          GOOS=darwin GOARCH=amd64 go build -o ../dist/iatf-darwin-amd64 -ldflags="-s -w" .
       
       - name: Build for macOS (arm64)
         run: |
           cd go
-          GOOS=darwin GOARCH=arm64 go build -o ../dist/atf-darwin-arm64 -ldflags="-s -w" .
+          GOOS=darwin GOARCH=arm64 go build -o ../dist/iatf-darwin-arm64 -ldflags="-s -w" .
       
       - name: Build for Linux (amd64)
         run: |
           cd go
-          GOOS=linux GOARCH=amd64 go build -o ../dist/atf-linux-amd64 -ldflags="-s -w" .
+          GOOS=linux GOARCH=amd64 go build -o ../dist/iatf-linux-amd64 -ldflags="-s -w" .
       
       - name: Build for Linux (arm64)
         run: |
           cd go
-          GOOS=linux GOARCH=arm64 go build -o ../dist/atf-linux-arm64 -ldflags="-s -w" .
+          GOOS=linux GOARCH=arm64 go build -o ../dist/iatf-linux-arm64 -ldflags="-s -w" .
       
       - name: Generate checksums
         run: |
@@ -90,41 +90,41 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            dist/atf-windows-amd64.exe
-            dist/atf-darwin-amd64
-            dist/atf-darwin-arm64
-            dist/atf-linux-amd64
-            dist/atf-linux-arm64
+            dist/iatf-windows-amd64.exe
+            dist/iatf-darwin-amd64
+            dist/iatf-darwin-arm64
+            dist/iatf-linux-amd64
+            dist/iatf-linux-arm64
             dist/SHA256SUMS
           body: |
-            ## ATF Tools ${{ github.ref_name }}
+            ## IATF Tools ${{ github.ref_name }}
             
             ### Installation
             
             **Windows:**
             ```powershell
-            Invoke-WebRequest -Uri "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/atf-windows-amd64.exe" -OutFile "atf.exe"
+            Invoke-WebRequest -Uri "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/iatf-windows-amd64.exe" -OutFile "iatf.exe"
             ```
             
             **macOS (Intel):**
             ```bash
-            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/atf-darwin-amd64" -o atf
-            chmod +x atf
-            sudo mv atf /usr/local/bin/
+            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/iatf-darwin-amd64" -o iatf
+            chmod +x iatf
+            sudo mv iatf /usr/local/bin/
             ```
             
             **macOS (Apple Silicon):**
             ```bash
-            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/atf-darwin-arm64" -o atf
-            chmod +x atf
-            sudo mv atf /usr/local/bin/
+            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/iatf-darwin-arm64" -o iatf
+            chmod +x iatf
+            sudo mv iatf /usr/local/bin/
             ```
             
             **Linux:**
             ```bash
-            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/atf-linux-amd64" -o atf
-            chmod +x atf
-            sudo mv atf /usr/local/bin/
+            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/iatf-linux-amd64" -o iatf
+            chmod +x iatf
+            sudo mv iatf /usr/local/bin/
             ```
             
             ### What's New
@@ -138,3 +138,4 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+

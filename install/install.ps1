@@ -1,10 +1,10 @@
-# ATF Tools Installer for Windows
+﻿# IATF Tools Installer for Windows
 # Run with: powershell -ExecutionPolicy Bypass -File install.ps1
 
-Write-Host "Installing ATF Tools..." -ForegroundColor Green
+Write-Host "Installing IATF Tools..." -ForegroundColor Green
 
 # Get latest version
-$LatestUrl = "https://api.github.com/repos/atf-tools/atf/releases/latest"
+$LatestUrl = "https://api.github.com/repos/iatf-tools/iatf/releases/latest"
 $Release = Invoke-RestMethod -Uri $LatestUrl
 $Version = $Release.tag_name
 
@@ -16,22 +16,22 @@ if (-not $Version) {
 Write-Host "Latest version: $Version" -ForegroundColor Cyan
 
 # Download URL
-$BinaryName = "atf-windows-amd64.exe"
-$DownloadUrl = "https://github.com/atf-tools/atf/releases/download/$Version/$BinaryName"
+$BinaryName = "iatf-windows-amd64.exe"
+$DownloadUrl = "https://github.com/iatf-tools/iatf/releases/download/$Version/$BinaryName"
 
 # Installation directory
-$InstallDir = "$env:LOCALAPPDATA\ATF"
+$InstallDir = "$env:LOCALAPPDATA\iatf"
 New-Item -ItemType Directory -Force -Path $InstallDir | Out-Null
 
 # Download
-$BinaryPath = "$InstallDir\atf.exe"
+$BinaryPath = "$InstallDir\iatf.exe"
 Write-Host "Downloading $BinaryName..." -ForegroundColor Cyan
 
 try {
     Invoke-WebRequest -Uri $DownloadUrl -OutFile $BinaryPath
-    Write-Host "✓ Downloaded successfully" -ForegroundColor Green
+    Write-Host "âœ“ Downloaded successfully" -ForegroundColor Green
 } catch {
-    Write-Host "✗ Download failed: $_" -ForegroundColor Red
+    Write-Host "âœ— Download failed: $_" -ForegroundColor Red
     exit 1
 }
 
@@ -43,14 +43,22 @@ if ($CurrentPath -notlike "*$InstallDir*") {
         "$CurrentPath;$InstallDir",
         "User"
     )
-    Write-Host "✓ Added to PATH" -ForegroundColor Green
+    Write-Host "âœ“ Added to PATH" -ForegroundColor Green
 } else {
-    Write-Host "✓ Already in PATH" -ForegroundColor Yellow
+    Write-Host "âœ“ Already in PATH" -ForegroundColor Yellow
 }
 
 Write-Host ""
-Write-Host "✓ Installation complete!" -ForegroundColor Green
+Write-Host "âœ“ Installation complete!" -ForegroundColor Green
 Write-Host "  Binary installed to: $BinaryPath" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Please restart your terminal and try:" -ForegroundColor Yellow
-Write-Host "  atf --help" -ForegroundColor Cyan
+Write-Host "  iatf --help" -ForegroundColor Cyan
+
+
+
+
+
+
+
+

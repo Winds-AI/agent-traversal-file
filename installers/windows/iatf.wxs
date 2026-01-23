@@ -1,28 +1,28 @@
-<?xml version="1.0" encoding="UTF-8"?>
+﻿<?xml version="1.0" encoding="UTF-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
   <!-- 
-    ATF Tools Windows Installer (.msi)
+    IATF Tools Windows Installer (.msi)
     
     Build instructions:
     1. Install WiX Toolset: https://wixtoolset.org/
-    2. Place atf.exe in same directory as this file
-    3. Run: candle atf.wxs
-    4. Run: light -ext WixUIExtension -out ATF-Tools-1.0.0.msi atf.wixobj
+    2. Place iatf.exe in same directory as this file
+    3. Run: candle iatf.wxs
+    4. Run: light -ext WixUIExtension -out iatf-tools-1.0.0.msi iatf.wixobj
   -->
   
   <Product 
     Id="*" 
-    Name="ATF Tools" 
+    Name="IATF Tools" 
     Language="1033" 
     Version="1.0.0" 
-    Manufacturer="ATF Project" 
+    Manufacturer="IATF Project" 
     UpgradeCode="12345678-1234-1234-1234-123456789ABC">
     
     <Package 
       InstallerVersion="200" 
       Compressed="yes" 
       InstallScope="perMachine" 
-      Description="ATF - Agent Traversable File Tools"
+      Description="IATF - Indexed Agent Traversable File Tools"
       Comments="Self-indexing document format for AI agents" />
     
     <!-- Major upgrade support -->
@@ -39,13 +39,13 @@
     <Directory Id="TARGETDIR" Name="SourceDir">
       <!-- Install to Program Files -->
       <Directory Id="ProgramFilesFolder">
-        <Directory Id="INSTALLFOLDER" Name="ATF Tools">
+        <Directory Id="INSTALLFOLDER" Name="IATF Tools">
           
           <!-- Main executable -->
           <Component Id="AtfExecutable" Guid="87654321-4321-4321-4321-210987654321">
             <File 
               Id="AtfExe" 
-              Source="atf.exe" 
+              Source="iatf.exe" 
               KeyPath="yes" 
               Checksum="yes" />
             
@@ -71,26 +71,26 @@
       
       <!-- Start Menu shortcut -->
       <Directory Id="ProgramMenuFolder">
-        <Directory Id="ApplicationProgramsFolder" Name="ATF Tools">
+        <Directory Id="ApplicationProgramsFolder" Name="IATF Tools">
           <Component Id="ApplicationShortcut" Guid="22222222-3333-4444-5555-666666666666">
             <Shortcut 
               Id="ReadmeShortcut"
-              Name="ATF Tools README"
-              Description="ATF Tools Documentation"
+              Name="IATF Tools README"
+              Description="IATF Tools Documentation"
               Target="[INSTALLFOLDER]README.txt"
               WorkingDirectory="INSTALLFOLDER" />
             
             <Shortcut
               Id="UninstallShortcut"
-              Name="Uninstall ATF Tools"
-              Description="Uninstalls ATF Tools"
+              Name="Uninstall IATF Tools"
+              Description="Uninstalls IATF Tools"
               Target="[SystemFolder]msiexec.exe"
               Arguments="/x [ProductCode]" />
             
             <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
             <RegistryValue 
               Root="HKLM" 
-              Key="Software\ATF\ATF Tools" 
+              Key="Software\IATF\IATF Tools" 
               Type="string" 
               Value="" 
               KeyPath="yes" />
@@ -102,7 +102,7 @@
     </Directory>
     
     <!-- Features to install -->
-    <Feature Id="ProductFeature" Title="ATF Tools" Level="1">
+    <Feature Id="ProductFeature" Title="IATF Tools" Level="1">
       <ComponentRef Id="AtfExecutable" />
       <ComponentRef Id="Documentation" />
       <ComponentRef Id="ApplicationShortcut" />
@@ -116,3 +116,12 @@
     
   </Product>
 </Wix>
+
+
+
+
+
+
+
+
+

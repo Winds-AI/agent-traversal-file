@@ -1,6 +1,6 @@
-# ATF Tools - Python Implementation
+﻿# IATF Tools - Python Implementation
 
-Pure Python implementation of ATF Tools with **zero dependencies**.
+Pure Python implementation of IATF Tools with **zero dependencies**.
 
 ## Requirements
 
@@ -11,38 +11,38 @@ Pure Python implementation of ATF Tools with **zero dependencies**.
 
 ```bash
 # Make executable (Unix)
-chmod +x atf.py
+chmod +x iatf.py
 
 # Run directly
-python atf.py rebuild document.atf
+python iatf.py rebuild document.iatf
 
 # Or on Unix
-./atf.py rebuild document.atf
+./iatf.py rebuild document.iatf
 ```
 
 ## Commands
 
 ```bash
 # Rebuild index
-python atf.py rebuild document.atf
+python iatf.py rebuild document.iatf
 
 # Rebuild all files
-python atf.py rebuild-all ./docs
+python iatf.py rebuild-all ./docs
 
 # Watch mode
-python atf.py watch document.atf
+python iatf.py watch document.iatf
 
 # Stop watching
-python atf.py unwatch document.atf
+python iatf.py unwatch document.iatf
 
 # List watched files
-python atf.py watch --list
+python iatf.py watch --list
 
 # Validate
-python atf.py validate document.atf
+python iatf.py validate document.iatf
 
 # Help
-python atf.py --help
+python iatf.py --help
 ```
 
 ## Installation
@@ -50,39 +50,39 @@ python atf.py --help
 ### System-wide (Unix)
 
 ```bash
-sudo cp atf.py /usr/local/bin/atf
-sudo chmod +x /usr/local/bin/atf
+sudo cp iatf.py /usr/local/bin/iatf
+sudo chmod +x /usr/local/bin/iatf
 ```
 
 ### System-wide (Windows)
 
 ```powershell
 # Copy to a folder in PATH
-copy atf.py C:\Windows\atf.py
+copy iatf.py C:\Windows\iatf.py
 
 # Or create batch wrapper
-echo @python "%~dp0atf.py" %* > atf.bat
-move atf.bat C:\Windows\
+echo @python "%~dp0iatf.py" %* > iatf.bat
+move iatf.bat C:\Windows\
 ```
 
 ## Features
 
-- ✅ All 5 commands implemented
-- ✅ Zero dependencies
-- ✅ Cross-platform (Windows, macOS, Linux)
-- ✅ Watch state persisted in ~/.atf/watch.json
-- ✅ Comprehensive validation
-- ✅ Clear error messages
+- âœ… All 5 commands implemented
+- âœ… Zero dependencies
+- âœ… Cross-platform (Windows, macOS, Linux)
+- âœ… Watch state persisted in ~/.iatf/watch.json
+- âœ… Comprehensive validation
+- âœ… Clear error messages
 
 ## Development
 
-The code is in a single file (`atf.py`) for easy distribution and modification.
+The code is in a single file (`iatf.py`) for easy distribution and modification.
 
 ### Code Structure
 
 ```python
 # Classes
-class ATFSection:    # Represents a section
+class IATFSection:    # Represents a section
 class WatchState:    # (uses JSON, no class needed)
 
 # Core Functions
@@ -102,8 +102,8 @@ validate_command()       # Validation
 
 ```bash
 # Create test file
-cat > test.atf <<'EOF'
-:::ATF/1.0
+cat > test.iatf <<'EOF'
+:::IATF/1.0
 @title: Test
 
 ===CONTENT===
@@ -118,10 +118,10 @@ Content here
 EOF
 
 # Test rebuild
-python atf.py rebuild test.atf
+python iatf.py rebuild test.iatf
 
 # Check result
-cat test.atf
+cat test.iatf
 ```
 
 ## Extending
@@ -153,3 +153,9 @@ To add new commands:
 ## License
 
 MIT License - see ../LICENSE
+
+
+
+
+
+

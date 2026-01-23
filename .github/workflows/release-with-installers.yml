@@ -1,4 +1,4 @@
-name: Build and Release with Installers
+﻿name: Build and Release with Installers
 
 on:
   push:
@@ -38,15 +38,15 @@ jobs:
           mkdir -p ../dist
           
           # Windows
-          GOOS=windows GOARCH=amd64 go build -o ../dist/atf-windows-amd64.exe -ldflags="-s -w" .
+          GOOS=windows GOARCH=amd64 go build -o ../dist/iatf-windows-amd64.exe -ldflags="-s -w" .
           
           # macOS
-          GOOS=darwin GOARCH=amd64 go build -o ../dist/atf-darwin-amd64 -ldflags="-s -w" .
-          GOOS=darwin GOARCH=arm64 go build -o ../dist/atf-darwin-arm64 -ldflags="-s -w" .
+          GOOS=darwin GOARCH=amd64 go build -o ../dist/iatf-darwin-amd64 -ldflags="-s -w" .
+          GOOS=darwin GOARCH=arm64 go build -o ../dist/iatf-darwin-arm64 -ldflags="-s -w" .
           
           # Linux
-          GOOS=linux GOARCH=amd64 go build -o ../dist/atf-linux-amd64 -ldflags="-s -w" .
-          GOOS=linux GOARCH=arm64 go build -o ../dist/atf-linux-arm64 -ldflags="-s -w" .
+          GOOS=linux GOARCH=amd64 go build -o ../dist/iatf-linux-amd64 -ldflags="-s -w" .
+          GOOS=linux GOARCH=arm64 go build -o ../dist/iatf-linux-arm64 -ldflags="-s -w" .
       
       - name: Generate checksums
         run: |
@@ -88,7 +88,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-installer
-          path: installers/windows/ATF-Tools-*.msi
+          path: installers/windows/iatf-tools-*.msi
   
   build-macos-installer:
     name: Build macOS PKG
@@ -117,7 +117,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-installer
-          path: installers/macos/ATF-Tools-*-Installer.pkg
+          path: installers/macos/iatf-tools-*-Installer.pkg
   
   build-linux-packages:
     name: Build Linux Packages
@@ -156,13 +156,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: linux-deb-packages
-          path: installers/linux/atf-tools_*.deb
+          path: installers/linux/iatf-tools_*.deb
       
       - name: Upload RPM packages
         uses: actions/upload-artifact@v4
         with:
           name: linux-rpm-packages
-          path: installers/linux/atf-tools-*.rpm
+          path: installers/linux/iatf-tools-*.rpm
   
   create-release:
     name: Create GitHub Release
@@ -181,37 +181,37 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: |
-            binaries/atf-windows-amd64.exe
-            binaries/atf-darwin-amd64
-            binaries/atf-darwin-arm64
-            binaries/atf-linux-amd64
-            binaries/atf-linux-arm64
+            binaries/iatf-windows-amd64.exe
+            binaries/iatf-darwin-amd64
+            binaries/iatf-darwin-arm64
+            binaries/iatf-linux-amd64
+            binaries/iatf-linux-arm64
             binaries/SHA256SUMS
             windows-installer/*.msi
             macos-installer/*.pkg
             linux-deb-packages/*.deb
             linux-rpm-packages/*.rpm
           body: |
-            ## ATF Tools ${{ github.ref_name }}
+            ## IATF Tools ${{ github.ref_name }}
             
             ### Installers (Recommended)
             
             **Windows:**
-            - [ATF-Tools.msi](installer) - Double-click to install, auto-adds to PATH
+            - [iatf-tools.msi](installer) - Double-click to install, auto-adds to PATH
             
             **macOS:**
-            - [ATF-Tools-Installer.pkg](installer) - Double-click to install
+            - [iatf-tools-Installer.pkg](installer) - Double-click to install
             
             **Linux (Debian/Ubuntu):**
             ```bash
-            wget https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/atf-tools_*_amd64.deb
-            sudo dpkg -i atf-tools_*_amd64.deb
+            wget https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/iatf-tools_*_amd64.deb
+            sudo dpkg -i iatf-tools_*_amd64.deb
             ```
             
             **Linux (Fedora/RHEL):**
             ```bash
-            wget https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/atf-tools-*.x86_64.rpm
-            sudo rpm -i atf-tools-*.x86_64.rpm
+            wget https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/iatf-tools-*.x86_64.rpm
+            sudo rpm -i iatf-tools-*.x86_64.rpm
             ```
             
             ---
@@ -220,28 +220,28 @@ jobs:
             
             **Windows:**
             ```powershell
-            Invoke-WebRequest -Uri "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/atf-windows-amd64.exe" -OutFile "atf.exe"
+            Invoke-WebRequest -Uri "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/iatf-windows-amd64.exe" -OutFile "iatf.exe"
             ```
             
             **macOS (Intel):**
             ```bash
-            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/atf-darwin-amd64" -o atf
-            chmod +x atf
-            sudo mv atf /usr/local/bin/
+            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/iatf-darwin-amd64" -o iatf
+            chmod +x iatf
+            sudo mv iatf /usr/local/bin/
             ```
             
             **macOS (Apple Silicon):**
             ```bash
-            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/atf-darwin-arm64" -o atf
-            chmod +x atf
-            sudo mv atf /usr/local/bin/
+            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/iatf-darwin-arm64" -o iatf
+            chmod +x iatf
+            sudo mv iatf /usr/local/bin/
             ```
             
             **Linux:**
             ```bash
-            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/atf-linux-amd64" -o atf
-            chmod +x atf
-            sudo mv atf /usr/local/bin/
+            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/iatf-linux-amd64" -o iatf
+            chmod +x iatf
+            sudo mv iatf /usr/local/bin/
             ```
             
             ---
@@ -249,8 +249,8 @@ jobs:
             ### Verify Installation
             
             ```bash
-            atf --version
-            atf --help
+            iatf --version
+            iatf --help
             ```
             
             ### Checksums
@@ -260,3 +260,5 @@ jobs:
           prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
