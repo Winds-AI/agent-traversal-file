@@ -78,7 +78,7 @@ $readmeLines = @(
     "",
     "LICENSE: MIT"
 )
-[System.IO.File]::WriteAllText("$PWD\README.txt", ($readmeLines -join "`r`n"), [System.Text.Encoding]::ASCII)
+$readmeLines -join "`r`n" | Out-File -FilePath "README.txt" -Encoding utf8
 
 # Create LICENSE.txt
 Copy-Item "..\..\LICENSE" "LICENSE.txt" -ErrorAction SilentlyContinue
@@ -113,26 +113,13 @@ $licenseLines = @(
     'SOFTWARE.\\par',
     '}'
 )
-[System.IO.File]::WriteAllText("$PWD\License.rtf", ($licenseLines -join "`r`n"), [System.Text.Encoding]::ASCII)
+$licenseLines -join "`r`n" | Out-File -FilePath "License.rtf" -Encoding ascii
 
 # Update version in WXS file
 Write-Host "Updating version in WXS..." -ForegroundColor Cyan
-# Read raw file bytes
-$bytes = [System.IO.File]::ReadAllBytes("iatf.wxs")
-# Convert to string - if it starts with UTF-8 BOM (EF BB BF), skip it
-$startIndex = 0
-if ($bytes.Length -gt 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF) {
-    $startIndex = 3
-    Write-Host "  BOM detected and will be removed" -ForegroundColor Yellow
-}
-# Decode without BOM
-$encoding = [System.Text.UTF8Encoding]::new($false)  # false = no BOM
-$content = $encoding.GetString($bytes, $startIndex, $bytes.Length - $startIndex)
-# Do version replacement
-$content = $content -replace 'Version="1\.0\.0"', "Version=`"$Version`""
-# Write clean bytes without any BOM
-$outputBytes = $encoding.GetBytes($content)
-[System.IO.File]::WriteAllBytes("iatf-versioned.wxs", $outputBytes)
+$wxsContent = Get-Content "iatf.wxs" -Raw
+$wxsContent = $wxsContent -replace 'Version="[\d\.]+"', "Version=`"$Version`""
+$wxsContent | Out-File "iatf-versioned.wxs" -Encoding utf8
 
 # Build installer
 Write-Host "Running candle.exe..." -ForegroundColor Cyan
@@ -158,7 +145,6 @@ Write-Host "Installer created: iatf-tools-$Version.msi" -ForegroundColor Green
 Write-Host ""
 Write-Host "Test it:" -ForegroundColor Yellow
 Write-Host "  msiexec /i iatf-tools-$Version.msi" -ForegroundColor Cyan
-
 
 
 
