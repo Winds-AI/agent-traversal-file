@@ -2,10 +2,9 @@
 
 **A file format designed for AI agents to efficiently navigate large documents.**
 
-> **Project Location:** `S:\Random_stuff\agent-traversal-file`
 > **Abbreviation:** IATF (Indexed Agent Traversable File)
 
-[![Latest Release](https://img.shields.io/github/v/release/iatf-tools/iatf)](https://github.com/iatf-tools/iatf/releases)
+[![Latest Release](https://img.shields.io/github/v/release/Winds-AI/agent-traversal-file)](https://github.com/Winds-AI/agent-traversal-file/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
@@ -60,19 +59,19 @@ IATF provides a **self-indexing document format** with two regions:
 
 **macOS/Linux:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/iatf-tools/iatf/main/install/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/install/install.sh | bash
 ```
 
 **Windows:**
 ```powershell
-irm https://raw.githubusercontent.com/iatf-tools/iatf/main/install/install.ps1 | iex
+irm https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/install/install.ps1 | iex
 ```
 
 **Or download binary directly:**
-- [Windows](https://github.com/iatf-tools/iatf/releases/latest/download/iatf-windows-amd64.exe)
-- [macOS Intel](https://github.com/iatf-tools/iatf/releases/latest/download/iatf-darwin-amd64)
-- [macOS Apple Silicon](https://github.com/iatf-tools/iatf/releases/latest/download/iatf-darwin-arm64)
-- [Linux](https://github.com/iatf-tools/iatf/releases/latest/download/iatf-linux-amd64)
+- [Windows](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-windows-amd64.exe)
+- [macOS Intel](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-darwin-amd64)
+- [macOS Apple Silicon](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-darwin-arm64)
+- [Linux](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-linux-amd64)
 
 **After downloading the binary:**
 
@@ -501,7 +500,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 - **Problem Statement:** [docs/PROBLEM_STATEMENT.md](docs/PROBLEM_STATEMENT.md)
 - **Design Decisions:** [docs/DESIGN.md](docs/DESIGN.md)
 - **Usage Guide:** [docs/USAGE.md](docs/USAGE.md)
-- **GitHub Releases:** [Latest Release](https://github.com/iatf-tools/iatf/releases/latest)
+- **GitHub Releases:** [Latest Release](https://github.com/Winds-AI/agent-traversal-file/releases/latest)
 
 ---
 
