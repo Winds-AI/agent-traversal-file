@@ -98,7 +98,6 @@
         </Directory>
       </Directory>
     </Directory>
-    </Directory>
 
     <!-- Features to install -->
     <Feature Id="ProductFeature" Title="IATF Tools" Level="1">
@@ -115,7 +114,6 @@
     
   </Product>
 </Wix>
-
 
 
 
