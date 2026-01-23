@@ -5,6 +5,7 @@
 > **Abbreviation:** IATF (Indexed Agent Traversable File)
 
 [![Latest Release](https://img.shields.io/github/v/release/Winds-AI/agent-traversal-file)](https://github.com/Winds-AI/agent-traversal-file/releases)
+[![Downloads](https://img.shields.io/github/downloads/Winds-AI/agent-traversal-file/total)](https://github.com/Winds-AI/agent-traversal-file/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ---
@@ -12,11 +13,11 @@
 ## The Problem
 
 AI agents struggle with large documents:
--**Token limits** - Can't load entire 10,000-line documents
--**Wasted tokens** - Loading everything to find one section
--**No navigation** - No standardized way to jump to sections
--**No references** - No way to reference sections to other sections reliably.
--**Blind loading** - Must read content to know what it contains
+- **Token limits** - Can't load entire 10,000-line documents
+- **Wasted tokens** - Loading everything to find one section
+- **No navigation** - No standardized way to jump to sections
+- **No references** - No way to reference sections to other sections reliably
+- **Blind loading** - Must read content to know what it contains
 
 At least till someone solves long term memory.
 
@@ -57,21 +58,20 @@ IATF provides a **self-indexing document format** with two regions:
 
 ### Installation
 
-**macOS/Linux:**
-```bash
-curl -fsSL https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/install/install.sh | bash
-```
+**Download from GitHub Releases:**
 
-**Windows:**
-```powershell
-irm https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/install/install.ps1 | iex
-```
+**Installers (Recommended):**
+- [Windows MSI](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-tools-windows.msi)
+- [macOS PKG](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-tools-macos.pkg)
+- [Linux DEB](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-tools-linux-amd64.deb)
+- [Linux RPM](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-tools-linux-amd64.rpm)
 
 **Or download binary directly:**
 - [Windows](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-windows-amd64.exe)
 - [macOS Intel](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-darwin-amd64)
 - [macOS Apple Silicon](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-darwin-arm64)
-- [Linux](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-linux-amd64)
+- [Linux amd64](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-linux-amd64)
+- [Linux ARM64](https://github.com/Winds-AI/agent-traversal-file/releases/latest/download/iatf-linux-arm64)
 
 **After downloading the binary:**
 

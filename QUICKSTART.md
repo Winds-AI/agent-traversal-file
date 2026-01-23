@@ -6,17 +6,18 @@ Get started with IATF in 5 minutes!
 
 ## Installation
 
-Choose your platform:
+Download from [GitHub Releases](https://github.com/Winds-AI/agent-traversal-file/releases/latest):
 
-### macOS/Linux
-```bash
-curl -fsSL https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/install/install.sh | bash
-```
+**Installers (Recommended):**
+- **Windows:** `iatf-tools-windows.msi`
+- **macOS:** `iatf-tools-macos.pkg`
+- **Linux:** `iatf-tools-linux-amd64.deb` or `.rpm`
 
-### Windows
-```powershell
-irm https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/install/install.ps1 | iex
-```
+**Or binary direct download:**
+- Windows: `iatf-windows-amd64.exe`
+- macOS Intel: `iatf-darwin-amd64`
+- macOS Apple Silicon: `iatf-darwin-arm64`
+- Linux: `iatf-linux-amd64` or `iatf-linux-arm64`
 
 ### Verify Installation
 ```bash
