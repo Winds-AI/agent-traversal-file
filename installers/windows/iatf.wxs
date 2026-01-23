@@ -89,7 +89,7 @@
             
             <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall" />
             <RegistryValue 
-              Root="HKLM" 
+              Root="HKCU" 
               Key="Software\IATF\IATF Tools" 
               Type="string" 
               Value="" 
@@ -114,7 +114,6 @@
     
   </Product>
 </Wix>
-
 
 
 
