@@ -83,7 +83,6 @@ Following the declaration, optional metadata fields can appear:
 | Field | Description | Example |
 |-------|-------------|---------|
 | `@title` | Document title | `@title: API Documentation` |
-| `@created` | Creation date (ISO 8601) | `@created: 2025-01-19` |
 | `@modified` | Last modified date | `@modified: 2025-01-20` |
 | `@total-words` | Total word count | `@total-words: 15420` |
 | `@total-sections` | Number of sections | `@total-sections: 24` |
@@ -113,6 +112,8 @@ Each index entry follows this format:
 ```
 [level-marker] Title {#id | lines:start-end | words:count}
 > Optional summary text (can span multiple lines if indented)
+  Created: YYYY-MM-DD | Modified: YYYY-MM-DD (optional)
+  Hash: a1b2c3d (optional)
 ```
 
 #### Level Markers
@@ -135,6 +136,8 @@ Each index entry follows this format:
    - `lines:start-end` (Required): Line range in content section
    - `words:count` (Required): Word count of section content
 4. **Summary** (Optional): Lines starting with `>` immediately after entry
+5. **Timestamps** (Optional): Line starting with `Created:` / `Modified:`
+6. **Hash** (Optional): Line starting with `Hash:` (7-char content hash)
 
 #### Examples
 
@@ -204,42 +207,32 @@ Actual content starts here...
 
 **Reserved annotations**:
 - `@summary:` - Description shown in index (can span multiple lines if continued with indentation)
-- `@created:` - Section creation date (YYYY-MM-DD format)
-- `@modified:` - Last modification date (YYYY-MM-DD format, automatically updated when content changes)
 - `@tags:` - Comma-separated keywords for searching
-- `@hash:` - Internal content hash (auto-generated, do not edit manually)
 
 **Automatic Modification Tracking**:
-When `iatf rebuild` runs, it automatically updates the `@modified` date if the section's content has changed:
+When `iatf rebuild` runs, it automatically updates section modification data stored in the INDEX:
 1. Computes a hash of the actual content (excluding metadata annotations)
-2. Compares with the stored `@hash` from the previous rebuild
-3. If different, updates `@modified` to today's date
-4. Updates `@hash` with the new hash
+2. Compares with the stored `Hash:` from the previous INDEX entry
+3. If different, updates `Modified:` in the INDEX to today's date
+4. Writes the new `Hash:` into the INDEX entry
 
-This allows you to track when sections were last edited without manual updates.
+This allows you to track when sections were last edited without modifying CONTENT.
 
-**Example**:
+**Example** (CONTENT):
 ```
 {#intro}
 @summary: Introduction guide
-@created: 2025-01-20
-@modified: 2025-01-20
-@hash: a7f3b9c
 # Introduction
 Hello world.
 {/intro}
 ```
 
-After editing "Hello world" to "Hello world! Welcome!":
+**Example** (INDEX entry after rebuild):
 ```
-{#intro}
-@summary: Introduction guide
-@created: 2025-01-20
-@modified: 2025-01-21        â† Auto-updated!
-@hash: bf5d286              â† New hash
-# Introduction
-Hello world! Welcome!
-{/intro}
+# Introduction {#intro | lines:1-6 | words:3}
+> Introduction guide
+  Created: 2025-01-20 | Modified: 2025-01-21
+  Hash: bf5d286
 ```
 
 ### 4.3 Content Format
@@ -442,7 +435,7 @@ Content here.
 {/main}
 ```
 
-**Note**: The INDEX section is optional in hand-written files. Parsing tools will generate it when needed.
+**Note**: The INDEX section is optional in hand-written files. Parsing tools will generate it when needed. The `graph` command requires an INDEX section and will fail if it is missing.
 
 ## 13A. Section References
 
@@ -472,8 +465,10 @@ See {@intro} for context.
 | **Self-reference** | **Error** - A section cannot reference itself |
 | **Missing target** | **Error** - Reference must point to existing section |
 | **Circular refs** | **Allowed** - A→B→A is valid |
-| **Inside code blocks/spans** | **Ignored** - References inside code blocks and inline code spans are not validated |
+| **Inside code blocks/spans** | **Ignored** - References inside fenced code blocks (```) are not validated |
 | **INDEX impact** | None - References do not affect INDEX generation |
+
+**Code block rule:** Only lines that are exactly three backticks (```), with no extra characters, open/close a fenced code block. Any other number of backticks is treated as normal text.
 
 ### 13A.3 Validation
 
@@ -494,12 +489,12 @@ References are plain text markers. Tools MUST NOT auto-expand or inline referenc
 
 ### 13A.5 Literal Reference Syntax (No Escapes in v1.0.0)
 
-The reference parser matches the exact pattern `{@section-id}` in regular CONTENT. v1.0.0 does not provide an escape mechanism outside code blocks or inline code spans. To document the syntax literally in prose without triggering validation, break the pattern so it no longer matches:
+The reference parser matches the exact pattern `{@section-id}` in regular CONTENT. v1.0.0 does not provide an escape mechanism outside fenced code blocks (``` on their own line). To document the syntax literally in prose without triggering validation, break the pattern so it no longer matches:
 
 ```
 Use {@ section-id} (note the space) in prose.
 Use { @section-id} (note the space after the brace) in examples.
-Use {@section-id } (note the trailing space) in inline code.
+Use {@section-id } (note the trailing space) in inline code or prose.
 ```
 
 ### 13A.6 Use Cases
@@ -509,6 +504,149 @@ Use {@section-id } (note the trailing space) in inline code.
 3. **Related sections**: "Related: {@error-handling} and {@performance}"
 4. **Navigation hints**: "Next: {@next-section}, Previous: {@prev-section}"
 
+## 13B. Graph Command
+
+### 13B.1 Purpose
+
+The `iatf graph` command displays section-to-section cross-reference relationships in a compact text format, enabling AI agents to:
+- Understand document reference topology without reading full content
+- Follow reading paths by seeing what sections reference what
+- Perform impact analysis when editing sections
+- Build mental models of concept dependencies
+
+### 13B.2 Output Format
+
+**Default (outgoing references):**
+
+```text
+@graph: filename.iatf
+
+section-id -> referenced-id-1, referenced-id-2
+another-section -> referenced-id-3
+section-with-no-refs
+```
+
+**With `--show-incoming` flag (incoming references):**
+
+```text
+@graph: filename.iatf
+
+section-id <- referencer-id-1, referencer-id-2
+another-section <- referencer-id-3
+section-with-no-incoming
+```
+
+**Rules:**
+- First line: `@graph: filename.iatf` header
+- One line per section in document order
+- Outgoing format: `id -> target1, target2, ...` (what this section references)
+- Incoming format: `id <- source1, source2, ...` (who references this section)
+- Sections without references: `id` (standalone)
+- References are comma-separated, sorted alphabetically
+- Blank line after header
+**Errors:**
+- Missing INDEX section: command fails with a non-zero exit code
+- Missing CONTENT section: command fails with a non-zero exit code
+- No sections in CONTENT: command fails with a non-zero exit code
+
+### 13B.3 Example
+
+**Given IATF file:**
+```
+{#intro}
+See {@setup} and {@auth} for details.
+{/intro}
+
+{#setup}
+Prerequisites are described in {@intro}.
+{/setup}
+
+{#auth}
+Authentication setup uses {@setup}.
+{/auth}
+
+{#endpoints}
+No references to other sections.
+{/endpoints}
+```
+
+**Output of `iatf graph file.iatf`:**
+```text
+@graph: file.iatf
+
+intro -> setup, auth
+setup -> intro
+auth -> setup
+endpoints
+```
+
+### 13B.4 Relationship to INDEX Command
+
+| Command | Shows | Use Case |
+|---------|-------|----------|
+| `iatf index` | Hierarchy (parent-child containment) | Understanding document structure |
+| `iatf graph` | References (cross-references via `{@id}`) | Understanding conceptual dependencies |
+
+**Hierarchy** is defined by nesting in CONTENT:
+```
+{#parent}
+  {#child}
+  {/child}
+{/parent}
+```
+
+**References** are defined by `{@section-id}` syntax:
+```
+{#section1}
+See {@section2} for details.
+{/section1}
+```
+
+The `graph` command shows only references, not hierarchy. Use `index` for hierarchy information.
+
+### 13B.5 Token Efficiency
+
+The compact text format is designed for minimal token usage:
+- No JSON overhead (brackets, quotes, commas)
+- No redundant words ("references", "contains", etc.)
+- One line per section maximum
+- Simple arrow notation: `->`
+- Comma-separated list on same line
+
+**Token comparison for 10 sections with 3 references each:**
+- JSON format: ~450 tokens
+- Mermaid format: ~350 tokens
+- Compact text: ~120 tokens
+
+### 13B.6 Parsing the Output
+
+AI agents can parse the output with simple rules:
+
+```python
+def parse_graph_output(output: str) -> dict[str, list[str]]:
+    """Parse graph output into section→references map."""
+    lines = output.strip().split('\n')
+    graph = {}
+
+    for line in lines[2:]:  # Skip header and blank line
+        if '->' in line:
+            # Has references
+            section, refs = line.split(' -> ')
+            graph[section] = [r.strip() for r in refs.split(',')]
+        else:
+            # No references
+            graph[line.strip()] = []
+
+    return graph
+```
+
+### 13B.7 Use Cases
+
+1. **Reading Path**: "To understand `deployment`, first read `auth` and `api-endpoints`"
+2. **Impact Analysis**: "If I change `auth`, which sections are affected?"
+3. **Circular Dependencies**: "Detect mutual references between sections"
+4. **Isolated Sections**: "Which sections have no connections?"
+
 ## 14. Complete Example
 
 ### 14.1 Source File (What You Edit)
@@ -516,7 +654,6 @@ Use {@section-id } (note the trailing space) in inline code.
 ```
 :::IATF/1.0
 @title: REST API Guide
-@created: 2025-01-19
 
 ===CONTENT===
 
@@ -612,7 +749,6 @@ Batch operations available at `/resources/batch`.
 ```
 :::IATF/1.0
 @title: REST API Guide
-@created: 2025-01-19
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
@@ -729,6 +865,5 @@ Batch operations available at `/resources/batch`.
 {/endpoints-resources}
 {/endpoints}
 ```
-
 
 

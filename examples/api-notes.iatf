@@ -1,39 +1,32 @@
-﻿:::IATF/1.0
+:::IATF/1.0
 @title: API Notes Example
 @purpose: Test tables, JSON blocks, and multiple sections
 
-
-
-
-
-
-
-
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-01-23T04:47:34Z -->
-<!-- Content-Hash: sha256:de4f29e -->
+<!-- Generated: 2026-01-26T14:44:25Z -->
+<!-- Content-Hash: sha256:25a5b4a -->
 
-# Overview {#overview | lines:32-41 | words:23}
+# Overview {#overview | lines:29-35 | words:23}
 > Short description of the sample API
-  Created: 2025-01-20 | Modified: 2026-01-22
+  Created: 2025-01-20 | Modified: 2026-01-26
+  Hash: cf62d0f
 
-# Endpoints {#endpoints | lines:43-66 | words:56}
+# Endpoints {#endpoints | lines:37-57 | words:56}
 > Endpoint list with table formatting
-  Created: 2025-01-20 | Modified: 2026-01-22
+  Created: 2025-01-20 | Modified: 2026-01-26
+  Hash: d3b70d5
 
-# Errors {#errors | lines:68-79 | words:25}
+# Errors {#errors | lines:59-67 | words:25}
 > Error codes used by the sample API
-  Created: 2025-01-20 | Modified: 2026-01-22
+  Created: 2025-01-20 | Modified: 2026-01-26
+  Hash: ea249a3
 
 
 ===CONTENT===
 
 {#overview}
 @summary: Short description of the sample API
-@created: 2025-01-20
-@modified: 2026-01-22
-@hash: cf62d0f
 # Overview
 
 This document sketches a minimal API used for manual testing examples.
@@ -42,9 +35,6 @@ The endpoints are fictional and meant to cover mixed formatting.
 
 {#endpoints}
 @summary: Endpoint list with table formatting
-@created: 2025-01-20
-@modified: 2026-01-22
-@hash: 8058f78
 # Endpoints
 
 | Method | Path           | Notes              |
@@ -56,7 +46,7 @@ The endpoints are fictional and meant to cover mixed formatting.
 
 Example response:
 
-```json
+```
 {
   "id": "task_123",
   "state": "queued",
@@ -67,9 +57,6 @@ Example response:
 
 {#errors}
 @summary: Error codes used by the sample API
-@created: 2025-01-20
-@modified: 2026-01-22
-@hash: ea249a3
 # Errors
 
 - `400` bad_request: invalid payload
@@ -77,6 +64,7 @@ Example response:
 - `409` conflict: task already exists
 - `500` internal: unexpected error
 {/errors}
+
 
 
 

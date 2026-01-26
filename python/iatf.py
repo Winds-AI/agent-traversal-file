@@ -101,7 +101,7 @@ def check_watched_file(filepath: Path) -> bool:
     print(f"  - Run 'iatf unwatch {filepath}' to stop watching first")
     print()
 
-    return prompt_user_confirmation("Continue with manual rebuild?", default=False)
+    return prompt_user_confirmation("Continue with manual rebuild[OK] ", default=False)
 
 
 class IATFSection:
@@ -150,13 +150,7 @@ def parse_content_section(lines: List[str], content_start: int) -> List[IATFSect
                     stack[-1].summary = line[9:].strip()
                     stack[-1].summary_continuation = True
                 elif line.startswith("@created:"):
-                    stack[-1].created = line[9:].strip()
-                    stack[-1].summary_continuation = False
-                elif line.startswith("@modified:"):
-                    stack[-1].modified = line[10:].strip()
-                    stack[-1].summary_continuation = False
-                elif line.startswith("@hash:"):
-                    stack[-1].x_hash = line[6:].strip()
+                    # @created is stored in INDEX, not CONTENT
                     stack[-1].summary_continuation = False
                 continue
             if line.startswith((" ", "\t")) and getattr(stack[-1], "summary_continuation", False):
@@ -208,8 +202,8 @@ def validate_nesting(lines: List[str], content_start: int) -> Optional[str]:
 
 def extract_references(lines: List[str], content_start: int) -> Dict[str, List[tuple]]:
     """
-    Extract all {@section-id} references from content, ignoring code fences,
-    indented code blocks, and inline code spans.
+    Extract all {@section-id} references from content, ignoring fenced code blocks.
+    Only lines that are exactly ``` open/close a fence.
     Returns dict of section_id -> list of (line_num, containing_section) tuples.
     """
     references: Dict[str, List[tuple]] = {}
@@ -219,21 +213,7 @@ def extract_references(lines: List[str], content_start: int) -> Dict[str, List[t
     ref_pattern = re.compile(r"\{@([a-zA-Z][a-zA-Z0-9_-]*)\}")
 
     def is_code_fence_line(value: str) -> bool:
-        return value.strip().startswith("```")
-
-    def is_indented_code_block_line(value: str) -> bool:
-        return value.startswith("    ") or value.startswith("\t")
-
-    def strip_inline_code(value: str) -> str:
-        builder: List[str] = []
-        in_code_span = False
-        for ch in value:
-            if ch == "`":
-                in_code_span = not in_code_span
-                continue
-            if not in_code_span:
-                builder.append(ch)
-        return "".join(builder)
+        return value.strip() == "```"
 
     open_sections = []
     in_code_fence = False
@@ -248,9 +228,6 @@ def extract_references(lines: List[str], content_start: int) -> Dict[str, List[t
         if is_code_fence_line(line):
             in_code_fence = True
             continue
-        if is_indented_code_block_line(line):
-            continue
-
         # Track current section
         if match := open_pattern.match(line):
             open_sections.append(match.group(1))
@@ -263,7 +240,7 @@ def extract_references(lines: List[str], content_start: int) -> Dict[str, List[t
             continue
 
         # Find all references in this line
-        for match in ref_pattern.finditer(strip_inline_code(line)):
+        for match in ref_pattern.finditer(line):
             target = match.group(1)
             containing_section = open_sections[-1] if open_sections else None
             if target not in references:
@@ -327,72 +304,54 @@ def count_words(content_lines: List[str]) -> int:
     words = [word for word in text.split() if word]
     return len(words)
 
+def parse_index_metadata(lines: List[str]) -> Dict[str, Dict[str, str]]:
+    """Parse INDEX section for per-section metadata (hash/modified)."""
+    index_start = None
+    index_end = None
+    for i, line in enumerate(lines):
+        if line.strip() == "===INDEX===":
+            index_start = i
+        elif line.strip() == "===CONTENT===":
+            index_end = i
+            break
 
-def update_content_metadata(lines: List[str], content_start: int, sections: List[IATFSection]) -> List[str]:
-    """Update @modified and @hash in CONTENT section in-place"""
-    # Create a map of section_id -> section for quick lookup
-    section_map = {section.id: section for section in sections}
+    if index_start is None or index_end is None:
+        return {}
 
-    # Track current section being processed
-    current_section_id = None
-    metadata_end_line = None
+    index_entry_re = re.compile(
+        r"^#{1,6}\s+.*\{#([a-zA-Z][a-zA-Z0-9_-]*)\s*\|"
+    )
 
-    open_pattern = re.compile(r"^\{#([a-zA-Z][a-zA-Z0-9_-]*)\}")
-    close_pattern = re.compile(r"^\{/([a-zA-Z][a-zA-Z0-9_-]*)\}")
+    metadata: Dict[str, Dict[str, str]] = {}
+    current_id: Optional[str] = None
 
-    i = content_start
-    while i < len(lines):
-        line = lines[i]
-
-        # Opening tag
-        if match := open_pattern.match(line):
-            current_section_id = match.group(1)
-            metadata_end_line = None
-            i += 1
+    for line in lines[index_start + 1:index_end]:
+        stripped = line.strip()
+        if not stripped:
+            current_id = None
             continue
 
-        # Closing tag
-        if match := close_pattern.match(line):
-            current_section_id = None
-            i += 1
+        if match := index_entry_re.match(stripped):
+            current_id = match.group(1)
+            metadata.setdefault(current_id, {})
             continue
 
-        # Process metadata lines
-        if current_section_id and current_section_id in section_map:
-            section = section_map[current_section_id]
+        if current_id is None:
+            continue
 
-            # Check if we're still in metadata
-            if line.startswith("@"):
-                if line.startswith("@modified:"):
-                    # Update @modified
-                    lines[i] = f"@modified: {section.modified}"
-                elif line.startswith("@hash:"):
-                    # Update @hash
-                    lines[i] = f"@hash: {section.x_hash}"
-                i += 1
-                continue
-            elif metadata_end_line is None:
-                # We've reached the end of metadata, insert missing fields if needed
-                metadata_end_line = i
+        if stripped.startswith("Hash:"):
+            metadata[current_id]["hash"] = stripped.split(":", 1)[1].strip()
+            continue
 
-                # Check if @hash needs to be inserted
-                # Look back to see if we already have @hash
-                has_hash = False
-                for j in range(i - 1, content_start, -1):
-                    if lines[j].startswith(f"{{#{current_section_id}}}"):
-                        break
-                    if lines[j].startswith("@hash:"):
-                        has_hash = True
-                        break
+        if stripped.startswith("Created:") or stripped.startswith("Modified:"):
+            parts = [p.strip() for p in stripped.split("|")]
+            for part in parts:
+                if part.startswith("Created:"):
+                    metadata[current_id]["created"] = part.split(":", 1)[1].strip()
+                elif part.startswith("Modified:"):
+                    metadata[current_id]["modified"] = part.split(":", 1)[1].strip()
 
-                # Insert @hash if missing
-                if not has_hash and section.x_hash:
-                    lines.insert(i, f"@hash: {section.x_hash}")
-                    i += 1
-
-        i += 1
-
-    return lines
+    return metadata
 
 
 def generate_index(sections: List[IATFSection], content_hash: str) -> List[str]:
@@ -425,6 +384,10 @@ def generate_index(sections: List[IATFSection], content_hash: str) -> List[str]:
             if section.modified:
                 timestamps.append(f"Modified: {section.modified}")
             index_lines.append(f"  {' | '.join(timestamps)}")
+
+        # Hash (per-section)
+        if section.x_hash:
+            index_lines.append(f"  Hash: {section.x_hash}")
 
         index_lines.append("")  # Blank line after each entry
 
@@ -462,6 +425,9 @@ def rebuild_index(filepath: Path) -> bool:
         # Parse sections
         sections = parse_content_section(lines, content_start)
 
+        # Parse existing INDEX metadata (hash/modified)
+        index_meta = parse_index_metadata(lines)
+
         if not sections:
             print(f"Warning: No sections found in {filepath}", file=sys.stderr)
             return False
@@ -481,30 +447,36 @@ def rebuild_index(filepath: Path) -> bool:
         if ref_errors:
             for err in ref_errors:
                 print(f"  - {err}", file=sys.stderr)
-            print(f"Error: {len(ref_errors)} reference error(s) found in {filepath}", file=sys.stderr)
+            print(f"[ERROR] {len(errors)} error(s) found:")
             return False
 
-        # Auto-update @modified based on content hash changes
+        # Auto-update Modified based on content hash changes
         today = datetime.now().date().isoformat()
         for section in sections:
             # Compute current content hash
             new_hash = compute_content_hash(section.content_lines)
-            old_hash = section.x_hash
+            old_hash = index_meta.get(section.id, {}).get("hash", "")
+            old_modified = index_meta.get(section.id, {}).get("modified", "")
+            old_created = index_meta.get(section.id, {}).get("created", "")
 
             # Compute word count
             section.word_count = count_words(section.content_lines)
 
-            # Check if content changed
-            if old_hash and old_hash != new_hash:
-                # Content changed! Update @modified
-                section.modified = today
-            elif not old_hash:
-                # New section or first time with hash tracking
-                if not section.modified:
-                    section.modified = today
-            # else: hash matches, preserve existing @modified
+            # Update Created
+            if old_created:
+                section.created = old_created
+            else:
+                section.created = today
 
-            # Update hash for writing back
+            # Update Modified
+            if old_hash and old_hash != new_hash:
+                section.modified = today
+            elif old_hash:
+                section.modified = old_modified
+            else:
+                section.modified = old_modified or today
+
+            # Update hash for INDEX output
             section.x_hash = new_hash
 
         # Find where to insert INDEX
@@ -533,9 +505,6 @@ def rebuild_index(filepath: Path) -> bool:
             print(f"Error: Invalid iatf file format in {filepath}", file=sys.stderr)
             return False
 
-        # Update @modified and @hash in CONTENT section
-        lines = update_content_metadata(lines, content_start, sections)
-
         # Recalculate content hash after updates (Git-style 7 chars)
         content_text = "\n".join(lines[content_start:])
         content_hash = hashlib.sha256(content_text.encode("utf-8")).hexdigest()[:7]
@@ -551,8 +520,16 @@ def rebuild_index(filepath: Path) -> bool:
                 section.end_line += line_delta
             new_index = generate_index(sections, content_hash)
 
-        # Rebuild file
-        new_lines = lines[:header_end] + [""] + new_index + [""] + lines[index_end:]
+        # Rebuild file (normalize spacing around INDEX)
+        pre_lines = lines[:header_end]
+        while pre_lines and pre_lines[-1].strip() == "":
+            pre_lines.pop()
+
+        post_lines = lines[index_end:]
+        while post_lines and post_lines[0].strip() == "":
+            post_lines.pop(0)
+
+        new_lines = pre_lines + [""] + new_index + [""] + post_lines
 
         new_content = "\n".join(new_lines)
 
@@ -584,10 +561,10 @@ def rebuild_command(filepath: str) -> int:
     print(f"Rebuilding index: {filepath}")
 
     if rebuild_index(path):
-        print(f"✅“ Index rebuilt successfully")
+        print("[OK] Index rebuilt successfully")
         return 0
     else:
-        print(f"✅— Failed to rebuild index", file=sys.stderr)
+        print("[ERROR] Failed to rebuild index", file=sys.stderr)
         return 1
 
 
@@ -612,10 +589,10 @@ def rebuild_all_command(directory: str = ".") -> int:
     for filepath in iatf_files:
         print(f"\nProcessing: {filepath}")
         if rebuild_index(filepath):
-            print(f"  ✅“ Success")
+            print("  [OK] Success")
             success_count += 1
         else:
-            print(f"  ✅— Failed")
+            print("  [ERROR] Failed")
 
     print(f"\nCompleted: {success_count}/{len(iatf_files)} files rebuilt successfully")
     return 0 if success_count == len(iatf_files) else 1
@@ -698,9 +675,9 @@ def watch_command(filepath: str) -> int:
                         f"\n[{datetime.now().strftime('%H:%M:%S')}] File changed, rebuilding..."
                     )
                     if rebuild_index(path):
-                        print(f"  ✅“ Index rebuilt")
+                        print("  [OK] Index rebuilt")
                     else:
-                        print(f"  ✅— Rebuild failed")
+                        print("  [ERROR] Rebuild failed")
                     last_mtime = current_mtime
             except FileNotFoundError:
                 cleanup_pid()
@@ -781,7 +758,13 @@ def index_command(filepath: str) -> int:
                 break
 
         if index_start is None or index_end is None:
-            print("Error: Invalid iatf file format", file=sys.stderr)
+            print("Error: INDEX not generated", file=sys.stderr)
+            return 1
+
+        content_start = index_end + 1
+        nesting_error = validate_nesting(lines, content_start)
+        if nesting_error:
+            print(f"Error: Invalid section nesting: {nesting_error}", file=sys.stderr)
             return 1
 
         # Output INDEX section (lines between markers, excluding the markers)
@@ -807,12 +790,19 @@ def read_command(filepath: str, section_id: str) -> int:
         content = path.read_text(encoding="utf-8")
         lines = content.split("\n")
 
-        # Find CONTENT section start
+        # Find INDEX and CONTENT section start
+        index_start = None
         content_start = None
         for i, line in enumerate(lines):
             if line.strip() == "===CONTENT===":
                 content_start = i + 1
                 break
+            if line.strip() == "===INDEX===":
+                index_start = i
+
+        if index_start is None:
+            print("Error: No ===INDEX=== section found", file=sys.stderr)
+            return 1
 
         if content_start is None:
             print("Error: No ===CONTENT=== section found", file=sys.stderr)
@@ -873,7 +863,7 @@ def read_by_title_command(filepath: str, title: str) -> int:
 
         # Parse INDEX entries to extract title->ID mappings (preserve order)
         index_entry_pattern = re.compile(
-            r"^#{1,6}\s+(.+?)\s*\{#([a-zA-Z][a-zA-Z0-9_-]*)\s*\|.*\}$"
+            r"^#{1,6}\s+(.+[OK] )\s*\{#([a-zA-Z][a-zA-Z0-9_-]*)\s*\|.*\}$"
         )
 
         entries = []
@@ -911,6 +901,99 @@ def read_by_title_command(filepath: str, title: str) -> int:
         return 1
 
 
+def graph_command(filepath: str, show_incoming: bool = False) -> int:
+    """Command: display section reference graph"""
+    path = Path(filepath)
+
+    if not path.exists():
+        print(f"Error: File not found: {filepath}", file=sys.stderr)
+        return 1
+
+    try:
+        content = path.read_text(encoding="utf-8")
+        lines = content.split("\n")
+
+        # Find CONTENT section start
+        content_start = None
+        for i, line in enumerate(lines):
+            if line.strip() == "===CONTENT===":
+                content_start = i + 1
+                break
+
+        if content_start is None:
+            print("Error: No ===CONTENT=== section found", file=sys.stderr)
+            return 1
+
+        nesting_error = validate_nesting(lines, content_start)
+        if nesting_error:
+            print(f"Error: Invalid section nesting: {nesting_error}", file=sys.stderr)
+            return 1
+
+        # Parse sections to get ordered list
+        sections = parse_content_section(lines, content_start)
+
+        if len(sections) == 0:
+            print("Error: No sections found in CONTENT", file=sys.stderr)
+            return 1
+
+        # Extract references (returns map of target -> list of (line_num, containing_section))
+        # This is the "incoming" map: targetID -> who references it
+        incoming_refs_raw = extract_references(lines, content_start)
+
+        # Build outgoing reference map (section -> what it references)
+        outgoing_refs: Dict[str, List[str]] = {}
+        for target_id, locations in incoming_refs_raw.items():
+            for line_num, containing_section in locations:
+                if containing_section:
+                    # Add target_id to the list of refs from containing_section
+                    if containing_section not in outgoing_refs:
+                        outgoing_refs[containing_section] = []
+                    if target_id not in outgoing_refs[containing_section]:
+                        outgoing_refs[containing_section].append(target_id)
+
+        # Build simplified incoming reference map
+        incoming_refs: Dict[str, List[str]] = {}
+        for target_id, locations in incoming_refs_raw.items():
+            for line_num, containing_section in locations:
+                if containing_section:
+                    if target_id not in incoming_refs:
+                        incoming_refs[target_id] = []
+                    if containing_section not in incoming_refs[target_id]:
+                        incoming_refs[target_id].append(containing_section)
+
+        # Sort references for deterministic output
+        for section_id in outgoing_refs:
+            outgoing_refs[section_id].sort()
+        for section_id in incoming_refs:
+            incoming_refs[section_id].sort()
+
+        # Output in compact format
+        print(f"@graph: {path.name}\n")
+
+        if show_incoming:
+            # Show incoming references (who references this section)
+            for section in sections:
+                refs = incoming_refs.get(section.id, [])
+                if refs:
+                    print(f"{section.id} <- {', '.join(refs)}")
+                else:
+                    print(section.id)
+        else:
+            # Show outgoing references (what this section references)
+            for section in sections:
+                refs = outgoing_refs.get(section.id, [])
+                if refs:
+                    print(f"{section.id} -> {', '.join(refs)}")
+                else:
+                    print(section.id)
+
+        return 0
+
+    except Exception as e:
+        print(f"Error generating graph: {e}", file=sys.stderr)
+        return 1
+
+
 def validate_command(filepath: str) -> int:
     """Command: validate an iatf file"""
     path = Path(filepath)
@@ -932,7 +1015,7 @@ def validate_command(filepath: str) -> int:
         if not lines[0].startswith(":::IATF/"):
             errors.append("Missing format declaration (:::IATF/1.0)")
         else:
-            print("✅“ Format declaration found")
+            print("[OK] Format declaration found")
 
         # Check 2: INDEX/CONTENT sections and order
         index_positions = [i for i, line in enumerate(lines) if line.strip() == "===INDEX==="]
@@ -941,12 +1024,12 @@ def validate_command(filepath: str) -> int:
         has_content = bool(content_positions)
 
         if has_index:
-            print("✅“ INDEX section found")
+            print("[OK] INDEX section found")
         else:
             warnings.append("No INDEX section (Run 'iatf rebuild' to create)")
 
         if has_content:
-            print("✅“ CONTENT section found")
+            print("[OK] CONTENT section found")
         else:
             errors.append("Missing CONTENT section")
 
@@ -968,6 +1051,11 @@ def validate_command(filepath: str) -> int:
                 content_start = i + 1
                 break
 
+        if content_start is not None:
+            nesting_error = validate_nesting(lines, content_start)
+            if nesting_error:
+                errors.append(f"Invalid section nesting: {nesting_error}")
+
         if has_index:
             content_hash_line = None
             if index_start is not None and content_start is not None:
@@ -978,7 +1066,7 @@ def validate_command(filepath: str) -> int:
             if content_hash_line and content_start is not None:
                 match = re.match(
                     r"^<!-- Content-Hash:\s*([a-z0-9]+):([a-f0-9]+)\s*-->$",
-                    content_hash_line,
+                    content_hash_line.strip(),
                 )
                 if not match:
                     warnings.append("Invalid Content-Hash format in INDEX")
@@ -1022,7 +1110,7 @@ def validate_command(filepath: str) -> int:
                 errors.append(f"Unclosed section: {section_id}")
             invalid_nesting = True
         if not invalid_nesting:
-            print("✅“ All sections properly closed")
+            print("[OK] All sections properly closed")
 
         # Check 6: No content outside section blocks
         if not invalid_nesting and content_start is not None:
@@ -1104,7 +1192,7 @@ def validate_command(filepath: str) -> int:
                 section_ids.append(section_id)
 
         if section_ids:
-            print(f"✅“ Found {len(section_ids)} section(s) with unique IDs")
+            print(f"[OK] Found {len(section_ids)} section(s) with unique IDs")
         else:
             warnings.append("No sections found in CONTENT")
 
@@ -1113,7 +1201,7 @@ def validate_command(filepath: str) -> int:
             parsed_sections_for_refs = parse_content_section(lines, content_start)
             ref_errors = validate_references(lines, content_start, parsed_sections_for_refs)
             if not ref_errors:
-                print("✅“ All references valid")
+                print("[OK] All references valid")
             else:
                 for ref_err in ref_errors:
                     errors.append(ref_err)
@@ -1121,23 +1209,23 @@ def validate_command(filepath: str) -> int:
         # Summary
         print()
         if errors:
-            print(f"✅— {len(errors)} error(s) found:")
+            print(f"[ERROR] {len(errors)} error(s) found:")
             for error in errors:
                 print(f"  - {error}")
 
         if warnings:
-            print(f"âš  {len(warnings)} warning(s):")
+            print(f"[WARN] {len(warnings)} warning(s):")
             for warning in warnings:
                 print(f"  - {warning}")
 
         if not errors and not warnings:
-            print("✅“ File is valid!")
+            print("[OK] File is valid!")
             return 0
         elif not errors:
-            print("\n✅“ File is valid (with warnings)")
+            print("\n[WARN] File is valid (with warnings)")
             return 0
         else:
-            print(f"\n✅— File is invalid")
+            print("\n[ERROR] File is invalid")
             return 1
 
     except Exception as e:
@@ -1159,6 +1247,8 @@ Usage:
     iatf index <file>                Output INDEX section only
     iatf read <file> <section-id>    Extract section by ID
     iatf read <file> --title "Title" Extract section by title
+    iatf graph <file>                Show section reference graph
+    iatf graph <file> --show-incoming  Show incoming references (impact analysis)
     iatf --help                      Show this help message
     iatf --version                   Show version
 
@@ -1247,6 +1337,14 @@ def main():
             return read_by_title_command(sys.argv[2], sys.argv[4])
         else:
             return read_command(sys.argv[2], sys.argv[3])
+
+    elif command == "graph":
+        if len(sys.argv) < 3:
+            print("Error: Missing file argument", file=sys.stderr)
+            print("Usage: iatf graph <file> [--show-incoming]", file=sys.stderr)
+            return 1
+        show_incoming = len(sys.argv) >= 4 and sys.argv[3] == "--show-incoming"
+        return graph_command(sys.argv[2], show_incoming)
 
     else:
         print(f"Error: Unknown command: {command}", file=sys.stderr)
