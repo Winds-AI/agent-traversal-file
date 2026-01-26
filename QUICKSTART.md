@@ -179,9 +179,9 @@ auth_content = read_file("docs.iatf", lines=120, limit=61)  # 600 tokens
 
 ## Getting Help
 
-- **Documentation**: https://github.com/iatf-tools/iatf
-- **Issues**: https://github.com/iatf-tools/iatf/issues
-- **Discussions**: https://github.com/iatf-tools/iatf/discussions
+- **Documentation**: https://github.com/Winds-AI/agent-traversal-file
+- **Issues**: https://github.com/Winds-AI/agent-traversal-file/issues
+- **Discussions**: https://github.com/Winds-AI/agent-traversal-file/discussions
 
 ---
 

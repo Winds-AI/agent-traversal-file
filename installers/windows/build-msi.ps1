@@ -74,7 +74,7 @@ $readmeLines = @(
     "  iatf watch api-reference.iatf",
     "",
     "DOCUMENTATION:",
-    "  https://github.com/iatf-tools/iatf",
+    "  https://github.com/Winds-AI/agent-traversal-file",
     "",
     "LICENSE: MIT"
 )

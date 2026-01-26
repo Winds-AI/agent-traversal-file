@@ -636,7 +636,7 @@ Libraries for parsing and manipulating IATF files in various programming languag
 | Language | Library | Status |
 |----------|---------|--------|
 | Python | `iatf-lib` | Planned |
-| Go | `github.com/iatf-tools/iatf` | Planned |
+| Go | `github.com/Winds-AI/agent-traversal-file` | Planned |
 | JavaScript/TypeScript | `@IATF/parser` | Planned |
 | Rust | `iatf-rs` | Community |
 | Java | `atf4j` | Community |
@@ -665,7 +665,7 @@ doc.save()
 ### Go Example
 
 ```go
-import "github.com/iatf-tools/iatf"
+import "github.com/Winds-AI/agent-traversal-file"
 
 // Parse IATF file
 doc, err := IATF.Parse("doc.iatf")

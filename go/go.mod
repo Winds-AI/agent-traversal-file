@@ -1,4 +1,4 @@
-module github.com/iatf-tools/iatf
+module github.com/Winds-AI/agent-traversal-file
 
 go 1.24.0
 

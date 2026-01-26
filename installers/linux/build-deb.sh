@@ -53,7 +53,7 @@ Description: Indexed Agent Traversable File - Self-indexing documents for AI age
   - Token-efficient agent navigation
   - Plain text, human-readable format
   - Watch mode for auto-rebuild on save
-Homepage: https://github.com/iatf-tools/iatf
+Homepage: https://github.com/Winds-AI/agent-traversal-file
 EOF
     
     # Create postinst script
@@ -108,7 +108,7 @@ EXAMPLES:
   iatf watch api-reference.iatf
 
 DOCUMENTATION:
-  https://github.com/iatf-tools/iatf
+  https://github.com/Winds-AI/agent-traversal-file
 
 LICENSE: MIT
 EOF
@@ -117,7 +117,7 @@ EOF
     cat > "$PACKAGE_NAME/usr/share/doc/iatf-tools/copyright" <<EOF
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: iatf-tools
-Source: https://github.com/iatf-tools/iatf
+Source: https://github.com/Winds-AI/agent-traversal-file
 
 Files: *
 Copyright: 2025 IATF Project
@@ -192,7 +192,7 @@ Watch state file (tracks which files are being watched)
 .SH AUTHOR
 IATF Project
 .SH SEE ALSO
-Full documentation: <https://github.com/iatf-tools/iatf>
+Full documentation: <https://github.com/Winds-AI/agent-traversal-file>
 EOF
     
     # Compress man page

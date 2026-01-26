@@ -1,4 +1,4 @@
-﻿# IATF - Indexed Agent Traversable File
+# IATF - Indexed Agent Traversable File
 
 **A file format designed for AI agents to efficiently navigate large documents.**
 
@@ -59,9 +59,25 @@ IATF provides a **self-indexing document format** with two regions:
 
 ### Installation
 
+**Quick Install (Scripts):**
+
+Run this one-line command to download and install automatically:
+
+**Linux / macOS:**
+```bash
+curl -fsSL https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/install/install.sh | bash
+```
+
+**Windows (PowerShell):**
+```powershell
+irm https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/install/install.ps1 | iex
+```
+
+**Manual Installers:**
+
 Visit [GitHub Releases](https://github.com/Winds-AI/agent-traversal-file/releases/latest) to download:
 
-**Installers (Recommended):**
+**Installers:**
 - Windows: `.msi` file
 - macOS: `.pkg` file
 - Linux: `.deb` or `.rpm` file

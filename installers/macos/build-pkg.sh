@@ -56,7 +56,7 @@ EXAMPLES:
   iatf watch api-reference.iatf
 
 DOCUMENTATION:
-  https://github.com/iatf-tools/iatf
+  https://github.com/Winds-AI/agent-traversal-file
 
 LICENSE: MIT
 EOF
@@ -195,7 +195,7 @@ cat > conclusion.html <<EOF
         <li>Run: <code>iatf rebuild yourfile.iatf</code></li>
         <li>See the auto-generated index!</li>
     </ol>
-    <p>Documentation: <a href="https://github.com/iatf-tools/iatf">https://github.com/iatf-tools/iatf</a></p>
+    <p>Documentation: <a href="https://github.com/Winds-AI/agent-traversal-file">https://github.com/Winds-AI/agent-traversal-file</a></p>
 </body>
 </html>
 EOF

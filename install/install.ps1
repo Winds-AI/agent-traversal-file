@@ -17,7 +17,7 @@ Write-Host "Latest version: $Version" -ForegroundColor Cyan
 
 # Download URL
 $BinaryName = "iatf-windows-amd64.exe"
-$DownloadUrl = "https://github.com/iatf-tools/iatf/releases/download/$Version/$BinaryName"
+$DownloadUrl = "https://github.com/Winds-AI/agent-traversal-file/releases/download/$Version/$BinaryName"
 
 # Installation directory
 $InstallDir = "$env:LOCALAPPDATA\iatf"

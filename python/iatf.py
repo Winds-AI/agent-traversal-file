@@ -1171,7 +1171,7 @@ Examples:
     iatf read document.iatf intro
     iatf read document.iatf --title "Introduction"
 
-For more information, visit: https://github.com/iatf-tools/iatf
+For more information, visit: https://github.com/Winds-AI/agent-traversal-file
 """)
 
 

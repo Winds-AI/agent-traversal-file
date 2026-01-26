@@ -49,7 +49,7 @@ Release:        1%{?dist}
 Summary:        Indexed Agent Traversable File - Self-indexing documents for AI agents
 
 License:        MIT
-URL:            https://github.com/iatf-tools/iatf
+URL:            https://github.com/Winds-AI/agent-traversal-file
 Source0:        iatf
 
 BuildArch:      $ARCH
@@ -100,7 +100,7 @@ EXAMPLES:
   iatf watch api-reference.iatf
 
 DOCUMENTATION:
-  https://github.com/iatf-tools/iatf
+  https://github.com/Winds-AI/agent-traversal-file
 
 LICENSE: MIT
 DOCEOF
@@ -138,7 +138,7 @@ Rebuild: iatf rebuild document.iatf
 .br
 Watch: iatf watch api-reference.iatf
 .SH SEE ALSO
-Documentation: https://github.com/iatf-tools/iatf
+Documentation: https://github.com/Winds-AI/agent-traversal-file
 MANEOF
 
 gzip -9 \$RPM_BUILD_ROOT/usr/share/man/man1/iatf.1

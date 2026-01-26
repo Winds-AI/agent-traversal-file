@@ -38,7 +38,7 @@ fi
 echo "Latest version: $VERSION"
 
 # Download URL
-DOWNLOAD_URL="https://github.com/iatf-tools/iatf/releases/download/${VERSION}/${BINARY}"
+DOWNLOAD_URL="https://github.com/Winds-AI/agent-traversal-file/releases/download/${VERSION}/${BINARY}"
 
 # Temporary download location
 TMP_FILE="/tmp/iatf-${VERSION}"
