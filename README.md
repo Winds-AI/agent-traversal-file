@@ -89,6 +89,12 @@ Visit [GitHub Releases](https://github.com/Winds-AI/agent-traversal-file/release
 - Linux x86_64: `iatf-linux-amd64`
 - Linux ARM64: `iatf-linux-arm64`
 
+**VSCode Extension (Optional):**
+
+For syntax highlighting in VSCode, install the IATF extension:
+- **Marketplace:** [IATF Extension](https://open-vsx.org/extension/Winds-AI/iatf)
+- **Features:** Syntax highlighting for headers, sections, index entries, references, and code blocks
+
 **After downloading the binary:**
 
 **Linux/macOS:**
@@ -130,6 +136,9 @@ iatf unwatch document.iatf
 
 # Validate file structure
 iatf validate document.iatf
+
+# Show section reference graph
+iatf graph document.iatf
 ```
 
 ### Uninstalling
@@ -337,6 +346,63 @@ iatf validate document.iatf
 - `0` - File is valid
 - `1` - File has errors
 
+### `iatf graph <file> [--show-incoming]`
+
+Display section cross-reference graph in compact text format. Requires an INDEX section.
+
+```bash
+# Show outgoing references (default)
+iatf graph document.iatf
+
+# Show incoming references (impact analysis)
+iatf graph document.iatf --show-incoming
+```
+
+**Default (outgoing references):**
+- Shows what each section references via `{@section-id}`
+- Arrow direction: `section -> what-it-references`
+- Use for: Reading path, understanding dependencies
+
+**Example output:**
+```text
+@graph: document.iatf
+
+intro -> setup, auth
+setup -> prerequisites
+auth -> setup, security-model
+api-endpoints -> auth, data-models
+deployment -> auth, api-endpoints
+troubleshooting
+```
+
+**With `--show-incoming` flag:**
+- Shows who references each section
+- Arrow direction: `section <- who-references-it`
+- Use for: Impact analysis, "what will break if I change this?"
+
+**Example output:**
+```text
+@graph: document.iatf
+
+intro
+setup <- intro, auth
+auth <- intro, api-endpoints, deployment
+prerequisites <- setup
+security-model <- auth
+api-endpoints <- deployment
+data-models <- api-endpoints
+deployment
+troubleshooting
+```
+
+**Use cases:**
+- **Reading path** (outgoing): Understand which sections to read first
+- **Impact analysis** (incoming): See what sections will be affected by changes
+- **Navigation**: Build a mental map of document structure
+- **Dependencies**: Track conceptual relationships
+
+**Note:** For hierarchy (parent-child containment), use `iatf index` instead. The `graph` command shows only cross-references made via `{@section-id}` syntax.
+
 ---
 
 ## File Format Specification
@@ -381,7 +447,7 @@ All are optional but recommended.
 
 ### Section References
 
-Use `{@section-id}` inside section content to cross-reference other sections (for example, "See `{@setup}` for installation details."). References are validated during `iatf rebuild` and `iatf validate`: a reference must point to an existing section, and a section cannot reference itself. The validator ignores references inside fenced/indented code blocks and inline code spans. For full rules and examples, see [SPECIFICATION.md](SPECIFICATION.md#13a-section-references).
+Use `{@section-id}` inside section content to cross-reference other sections (for example, "See `{@setup}` for installation details."). References are validated during `iatf rebuild` and `iatf validate`: a reference must point to an existing section, and a section cannot reference itself. The validator ignores references inside fenced code blocks only when the fence line is exactly ``` (no language tag). For full rules and examples, see [SPECIFICATION.md](SPECIFICATION.md#13a-section-references).
 
 ---
 
@@ -485,7 +551,7 @@ go build -o iatf main.go
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 **Areas where we need help:**
-- [ ] VS Code extension
+- [x] VS Code extension ([Available](https://open-vsx.org/extension/Winds-AI/iatf))
 - [ ] Vim/Neovim plugin
 - [ ] Language Server Protocol (LSP) implementation
 - [ ] Conversion tools (Markdown -> IATF, HTML -> IATF)
@@ -521,8 +587,6 @@ MIT License - see [LICENSE](LICENSE) for details.
 ---
 
 **Made with love for AI agents and the humans who work with them.**
-
-
 
 
 

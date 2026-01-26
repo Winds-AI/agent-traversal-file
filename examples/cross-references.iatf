@@ -1,46 +1,46 @@
 :::IATF/1.0
 @title: API Tutorial with Cross-References
 
-
-
-
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-01-23T04:47:34Z -->
-<!-- Content-Hash: sha256:b04661c -->
+<!-- Generated: 2026-01-26T14:44:25Z -->
+<!-- Content-Hash: sha256:ad7d2b8 -->
 
-# Introduction {#intro | lines:39-56 | words:57}
+# Introduction {#intro | lines:43-57 | words:57}
 > Getting started with the API
-  Created: 2025-01-23 | Modified: 2025-01-23
+  Created: 2025-01-23 | Modified: 2026-01-26
+  Hash: b4bade1
 
-# Fundamentals {#fundamentals | lines:58-73 | words:47}
+# Fundamentals {#fundamentals | lines:59-71 | words:47}
 > Basic concepts and terminology
-  Created: 2025-01-23 | Modified: 2025-01-23
+  Created: 2025-01-23 | Modified: 2026-01-26
+  Hash: a1b6ea5
 
-# Quick Start {#quickstart | lines:75-98 | words:72}
+# Quick Start {#quickstart | lines:73-95 | words:80}
 > Your first API request in 5 minutes
-  Created: 2025-01-23 | Modified: 2025-01-23
+  Created: 2025-01-23 | Modified: 2026-01-26
+  Hash: 9ad2396
 
-# Error Handling {#error-handling | lines:100-125 | words:57}
+# Error Handling {#error-handling | lines:97-119 | words:57}
 > Understanding error responses and status codes
-  Created: 2025-01-23 | Modified: 2025-01-23
+  Created: 2025-01-23 | Modified: 2026-01-26
+  Hash: b75bf08
 
-# Rate Limiting {#rate-limiting | lines:127-149 | words:68}
+# Rate Limiting {#rate-limiting | lines:121-140 | words:68}
 > Understanding API rate limits
-  Created: 2025-01-23 | Modified: 2025-01-23
+  Created: 2025-01-23 | Modified: 2026-01-26
+  Hash: 702c83b
 
-# Troubleshooting Authentication {#troubleshooting-auth | lines:151-178 | words:98}
+# Troubleshooting Authentication {#troubleshooting-auth | lines:142-166 | words:98}
 > Common authentication issues and solutions
-  Created: 2025-01-23 | Modified: 2025-01-23
+  Created: 2025-01-23 | Modified: 2026-01-26
+  Hash: cd69c93
 
 
 ===CONTENT===
 
 {#intro}
 @summary: Getting started with the API
-@created: 2025-01-23
-@modified: 2025-01-23
-@hash: b4bade1
 # Introduction
 
 Welcome to our API documentation! This tutorial will guide you through the basics.
@@ -57,9 +57,6 @@ This guide covers:
 
 {#fundamentals}
 @summary: Basic concepts and terminology
-@created: 2025-01-23
-@modified: 2025-01-23
-@hash: a1b6ea5
 # Fundamentals
 
 This section covers the basic HTTP concepts you need to know:
@@ -74,9 +71,6 @@ For practical examples, see {@quickstart}.
 
 {#quickstart}
 @summary: Your first API request in 5 minutes
-@created: 2025-01-23
-@modified: 2025-01-23
-@hash: b572e59
 # Quick Start
 
 Make your first API call in under 5 minutes!
@@ -85,12 +79,14 @@ Make your first API call in under 5 minutes!
 
 Step 1: Get an API key from your dashboard
 Step 2: Use cURL to make a request:
-```bash
+```
 curl -H "Authorization: Bearer YOUR_API_KEY" \
   https://api.example.com/v1/users
 ```
 
 Step 3: Parse the JSON response
+
+Inline reference example: `{@troubleshooting-auth}` should still be detected.
 
 **Common issues**: See {@troubleshooting-auth} if you get authentication errors.
 
@@ -99,9 +95,6 @@ Step 3: Parse the JSON response
 
 {#error-handling}
 @summary: Understanding error responses and status codes
-@created: 2025-01-23
-@modified: 2025-01-23
-@hash: b75bf08
 # Error Handling
 
 APIs return different status codes and error messages.
@@ -126,9 +119,6 @@ Always check these fields before retrying.
 
 {#rate-limiting}
 @summary: Understanding API rate limits
-@created: 2025-01-23
-@modified: 2025-01-23
-@hash: 702c83b
 # Rate Limiting
 
 All API requests are rate-limited to ensure fair usage.
@@ -150,9 +140,6 @@ Recommendation: Implement exponential backoff and monitor the rate limit headers
 
 {#troubleshooting-auth}
 @summary: Common authentication issues and solutions
-@created: 2025-01-23
-@modified: 2025-01-23
-@hash: cd69c93
 # Troubleshooting Authentication
 
 Getting authentication errors? Here are the most common causes:
@@ -176,3 +163,4 @@ See {@error-handling} for status code details.
 
 **Related**: Check {@quickstart} for a working example request.
 {/troubleshooting-auth}
+

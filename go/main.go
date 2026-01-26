@@ -67,26 +67,11 @@ func validateNesting(lines []string, contentStart int) error {
 
 func isCodeFenceLine(line string) bool {
 	trimmed := strings.TrimSpace(line)
-	return strings.HasPrefix(trimmed, "```")
-}
-
-func isIndentedCodeBlockLine(line string) bool {
-	return strings.HasPrefix(line, "    ") || strings.HasPrefix(line, "\t")
+	return trimmed == "```"
 }
 
 func stripInlineCode(line string) string {
-	var builder strings.Builder
-	inCodeSpan := false
-	for i := 0; i < len(line); i++ {
-		if line[i] == '`' {
-			inCodeSpan = !inCodeSpan
-			continue
-		}
-		if !inCodeSpan {
-			builder.WriteByte(line[i])
-		}
-	}
-	return builder.String()
+	return line
 }
 
 // ReferenceLocation stores information about where a reference was found
@@ -95,8 +80,8 @@ type ReferenceLocation struct {
 	ContainingSection string
 }
 
-// extractReferences extracts all {@section-id} references from content, ignoring code fences,
-// indented code blocks, and inline code spans.
+// extractReferences extracts all {@section-id} references from content, ignoring fenced code blocks.
+// Only lines that are exactly ``` open/close a fence.
 // Returns a map of section_id -> list of ReferenceLocation where it's referenced.
 func extractReferences(lines []string, contentStart int) map[string][]ReferenceLocation {
 	references := make(map[string][]ReferenceLocation)
@@ -121,10 +106,6 @@ func extractReferences(lines []string, contentStart int) map[string][]ReferenceL
 			inCodeFence = true
 			continue
 		}
-		if isIndentedCodeBlockLine(line) {
-			continue
-		}
-
 		// Track current section
 		if match := openPattern.FindStringSubmatch(line); match != nil {
 			openSections = append(openSections, match[1])
@@ -140,8 +121,7 @@ func extractReferences(lines []string, contentStart int) map[string][]ReferenceL
 		}
 
 		// Find all references in this line
-		trimmedLine := stripInlineCode(line)
-		matches := refPattern.FindAllStringSubmatch(trimmedLine, -1)
+		matches := refPattern.FindAllStringSubmatch(stripInlineCode(line), -1)
 		for _, match := range matches {
 			target := match[1]
 			containingSection := ""
@@ -300,6 +280,17 @@ func main() {
 		} else {
 			os.Exit(readCommand(os.Args[2], os.Args[3]))
 		}
+	case "graph":
+		if len(os.Args) < 3 {
+			fmt.Fprintln(os.Stderr, "Error: Missing file argument")
+			fmt.Fprintln(os.Stderr, "Usage: iatf graph <file> [--show-incoming]")
+			os.Exit(1)
+		}
+		showIncoming := false
+		if len(os.Args) >= 4 && os.Args[3] == "--show-incoming" {
+			showIncoming = true
+		}
+		os.Exit(graphCommand(os.Args[2], showIncoming))
 	default:
 		fmt.Fprintf(os.Stderr, "Error: Unknown command: %s\n", command)
 		fmt.Fprintln(os.Stderr, "Run 'iatf --help' for usage information")
@@ -320,6 +311,8 @@ Usage:
     iatf index <file>                Output INDEX section only
     iatf read <file> <section-id>    Extract section by ID
     iatf read <file> --title "Title" Extract section by title
+    iatf graph <file>                Show section reference graph
+    iatf graph <file> --show-incoming  Show incoming references (impact analysis)
     iatf --help                      Show this help message
     iatf --version                   Show version
 
@@ -369,13 +362,7 @@ func parseContentSection(lines []string, contentStart int) []Section {
 					sections[stack[len(stack)-1]].Summary = strings.TrimSpace(line[9:])
 					summaryContinuation[len(summaryContinuation)-1] = true
 				} else if strings.HasPrefix(line, "@created:") {
-					sections[stack[len(stack)-1]].Created = strings.TrimSpace(line[9:])
-					summaryContinuation[len(summaryContinuation)-1] = false
-				} else if strings.HasPrefix(line, "@modified:") {
-					sections[stack[len(stack)-1]].Modified = strings.TrimSpace(line[10:])
-					summaryContinuation[len(summaryContinuation)-1] = false
-				} else if strings.HasPrefix(line, "@hash:") {
-					sections[stack[len(stack)-1]].XHash = strings.TrimSpace(line[6:])
+					// @created is stored in INDEX, not CONTENT
 					summaryContinuation[len(summaryContinuation)-1] = false
 				}
 				continue
@@ -432,6 +419,77 @@ func countWords(contentLines []string) int {
 	// Split on whitespace and count non-empty strings
 	words := strings.Fields(text)
 	return len(words)
+}
+
+type indexMeta struct {
+	Hash     string
+	Modified string
+	Created  string
+}
+
+func parseIndexMetadata(lines []string) map[string]indexMeta {
+	indexStart := -1
+	indexEnd := -1
+	for i, line := range lines {
+		if strings.TrimSpace(line) == "===INDEX===" {
+			indexStart = i
+		} else if strings.TrimSpace(line) == "===CONTENT===" {
+			indexEnd = i
+			break
+		}
+	}
+
+	if indexStart == -1 || indexEnd == -1 {
+		return map[string]indexMeta{}
+	}
+
+	entryRe := regexp.MustCompile(`^#{1,6}\s+.*\{#([a-zA-Z][a-zA-Z0-9_-]*)\s*\|`)
+	metadata := map[string]indexMeta{}
+	currentID := ""
+
+	for _, line := range lines[indexStart+1 : indexEnd] {
+		stripped := strings.TrimSpace(line)
+		if stripped == "" {
+			currentID = ""
+			continue
+		}
+
+		if match := entryRe.FindStringSubmatch(stripped); match != nil {
+			currentID = match[1]
+			if _, exists := metadata[currentID]; !exists {
+				metadata[currentID] = indexMeta{}
+			}
+			continue
+		}
+
+		if currentID == "" {
+			continue
+		}
+
+		if strings.HasPrefix(stripped, "Hash:") {
+			meta := metadata[currentID]
+			meta.Hash = strings.TrimSpace(strings.TrimPrefix(stripped, "Hash:"))
+			metadata[currentID] = meta
+			continue
+		}
+
+		if strings.HasPrefix(stripped, "Created:") || strings.HasPrefix(stripped, "Modified:") {
+			parts := strings.Split(stripped, "|")
+			meta := metadata[currentID]
+			for _, part := range parts {
+				part = strings.TrimSpace(part)
+				if strings.HasPrefix(part, "Created:") {
+					meta.Created = strings.TrimSpace(strings.TrimPrefix(part, "Created:"))
+				}
+				if strings.HasPrefix(part, "Modified:") {
+					meta.Modified = strings.TrimSpace(strings.TrimPrefix(part, "Modified:"))
+				}
+			}
+			metadata[currentID] = meta
+		}
+	}
+
+	return metadata
 }
 
 func updateContentMetadata(lines []string, contentStart int, sections []Section) []string {
@@ -548,6 +606,10 @@ func generateIndex(sections []Section, contentHash string) []string {
 			indexLines = append(indexLines, fmt.Sprintf("  %s", strings.Join(timestamps, " | ")))
 		}
 
+		if section.XHash != "" {
+			indexLines = append(indexLines, fmt.Sprintf("  Hash: %s", section.XHash))
+		}
+
 		indexLines = append(indexLines, "")
 	}
 
@@ -604,29 +666,38 @@ func rebuildIndex(filepath string) error {
 		return fmt.Errorf("%d reference error(s) found", len(refErrors))
 	}
 
-	// Auto-update @modified based on content hash changes
+	// Parse existing INDEX metadata (hash/modified)
+	indexMeta := parseIndexMetadata(lines)
+
+	// Auto-update Modified based on content hash changes
 	today := time.Now().Format("2006-01-02")
 	for i := range sections {
 		// Compute current content hash
 		newHash := computeContentHash(sections[i].ContentLines)
-		oldHash := sections[i].XHash
+		meta := indexMeta[sections[i].ID]
 
 		// Compute word count
 		sections[i].WordCount = countWords(sections[i].ContentLines)
 
-		// Check if content changed
-		if oldHash != "" && oldHash != newHash {
-			// Content changed! Update @modified
-			sections[i].Modified = today
-		} else if oldHash == "" {
-			// New section or first time with hash tracking
-			if sections[i].Modified == "" {
-				sections[i].Modified = today
-			}
+		// Update Created
+		if meta.Created != "" {
+			sections[i].Created = meta.Created
+		} else {
+			sections[i].Created = today
 		}
-		// else: hash matches, preserve existing @modified
 
-		// Update hash for writing back
+		// Update Modified
+		if meta.Hash != "" && meta.Hash != newHash {
+			sections[i].Modified = today
+		} else if meta.Hash != "" {
+			sections[i].Modified = meta.Modified
+		} else if meta.Modified != "" {
+			sections[i].Modified = meta.Modified
+		} else {
+			sections[i].Modified = today
+		}
+
+		// Update hash for INDEX output
 		sections[i].XHash = newHash
 	}
 
@@ -662,10 +733,7 @@ func rebuildIndex(filepath string) error {
 		return fmt.Errorf("invalid iatf file format")
 	}
 
-	// Update @modified and @hash in CONTENT section
-	lines = updateContentMetadata(lines, contentStart, sections)
-
-	// Recalculate indexEnd after updateContentMetadata (lines may have been inserted)
+	// Recalculate indexEnd before rebuild
 	indexEnd = -1
 	for i, line := range lines {
 		if strings.TrimSpace(line) == "===CONTENT===" {
@@ -695,13 +763,23 @@ func rebuildIndex(filepath string) error {
 		newIndex = generateIndex(sections, contentHash)
 	}
 
-	// Rebuild file
+	// Rebuild file (normalize spacing around INDEX)
+	preLines := append([]string{}, lines[:headerEnd]...)
+	for len(preLines) > 0 && strings.TrimSpace(preLines[len(preLines)-1]) == "" {
+		preLines = preLines[:len(preLines)-1]
+	}
+
+	postLines := append([]string{}, lines[indexEnd:]...)
+	for len(postLines) > 0 && strings.TrimSpace(postLines[0]) == "" {
+		postLines = postLines[1:]
+	}
+
 	newLines := []string{}
-	newLines = append(newLines, lines[:headerEnd]...)
+	newLines = append(newLines, preLines...)
 	newLines = append(newLines, "")
 	newLines = append(newLines, newIndex...)
 	newLines = append(newLines, "")
-	newLines = append(newLines, lines[indexEnd:]...)
+	newLines = append(newLines, postLines...)
 
 	newContent := strings.Join(newLines, "\n")
 
@@ -723,11 +801,11 @@ func rebuildCommand(filepath string) int {
 	fmt.Printf("Rebuilding index: %s\n", filepath)
 
 	if err := rebuildIndex(filepath); err != nil {
-		fmt.Fprintf(os.Stderr, "âœ— Failed to rebuild index: %v\n", err)
+		fmt.Fprintf(os.Stderr, "[ERROR] Failed to rebuild index: %v\n", err)
 		return 1
 	}
 
-	fmt.Println("âœ“ Index rebuilt successfully")
+	fmt.Println("[OK] Index rebuilt successfully")
 	return 0
 }
 
@@ -764,9 +842,9 @@ func rebuildAllCommand(directory string) int {
 	for _, file := range iatfFiles {
 		fmt.Printf("\nProcessing: %s\n", file)
 		if err := rebuildIndex(file); err != nil {
-			fmt.Printf("  âœ— Failed: %v\n", err)
+			fmt.Printf("  [ERROR] Failed: %v\n", err)
 		} else {
-			fmt.Println("  âœ“ Success")
+			fmt.Println("  [OK] Success")
 			successCount++
 		}
 	}
@@ -871,7 +949,7 @@ func checkWatchedFile(filePath string) bool {
 	fmt.Printf("  - Run 'iatf unwatch %s' to stop watching first\n", filePath)
 	fmt.Println()
 
-	return promptUserConfirmation("Continue with manual rebuild?", false)
+	return promptUserConfirmation("Continue with manual rebuild", false)
 }
 
 func watchCommand(filePath string) int {
@@ -960,9 +1038,9 @@ func watchCommand(filePath string) int {
 			if currentInfo.ModTime().After(lastMod) {
 				fmt.Printf("\n[%s] File changed, rebuilding...\n", time.Now().Format("15:04:05"))
 				if err := rebuildIndex(absPath); err != nil {
-					fmt.Printf("  âœ— Rebuild failed: %v\n", err)
+					fmt.Printf("  [ERROR] Rebuild failed: %v\n", err)
 				} else {
-					fmt.Println("  âœ“ Index rebuilt")
+					fmt.Println("  [OK] Index rebuilt")
 				}
 				lastMod = currentInfo.ModTime()
 			}
@@ -1042,7 +1120,13 @@ func indexCommand(filepath string) int {
 	}
 
 	if indexStart == -1 || indexEnd == -1 {
-		fmt.Fprintln(os.Stderr, "Error: Invalid iatf file format")
+		fmt.Fprintln(os.Stderr, "Error: INDEX not generated")
+		return 1
+	}
+
+	contentStart := indexEnd + 1
+	if err := validateNesting(lines, contentStart); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: Invalid section nesting: %v\n", err)
 		return 1
 	}
 
@@ -1068,13 +1152,22 @@ func readCommand(filepath string, sectionID string) int {
 
 	lines := strings.Split(string(content), "\n")
 
-	// Find CONTENT section start
+	// Find INDEX and CONTENT section start
+	indexStart := -1
 	contentStart := -1
 	for i, line := range lines {
 		if strings.TrimSpace(line) == "===CONTENT===" {
 			contentStart = i + 1
 			break
 		}
+		if strings.TrimSpace(line) == "===INDEX===" {
+			indexStart = i
+		}
+	}
+
+	if indexStart == -1 {
+		fmt.Fprintln(os.Stderr, "Error: No ===INDEX=== section found")
+		return 1
 	}
 
 	if contentStart == -1 {
@@ -1141,7 +1234,7 @@ func readByTitleCommand(filepath string, title string) int {
 	}
 
 	// Parse INDEX entries to extract title->ID mappings (preserve order)
-	indexEntryPattern := regexp.MustCompile(`^#{1,6}\s+(.+?)\s*\{#([a-zA-Z][a-zA-Z0-9_-]*)\s*\|.*\}$`)
+	indexEntryPattern := regexp.MustCompile(`^#{1,6}\s+(.+)\s*\{#([a-zA-Z][a-zA-Z0-9_-]*)\s*\|.*\}$`)
 
 	type indexEntry struct {
 		title string
@@ -1187,6 +1280,125 @@ func readByTitleCommand(filepath string, title string) int {
 	return readCommand(filepath, matchedID)
 }
 
+func graphCommand(filePath string, showIncoming bool) int {
+	// Extract base filename first before any shadowing
+	baseFilename := filepath.Base(filePath)
+
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		fmt.Fprintf(os.Stderr, "Error: File not found: %s\n", filePath)
+		return 1
+	}
+
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error reading file: %v\n", err)
+		return 1
+	}
+
+	lines := strings.Split(string(content), "\n")
+
+	// Find CONTENT section start
+	contentStart := -1
+	for i, line := range lines {
+		if strings.TrimSpace(line) == "===CONTENT===" {
+			contentStart = i + 1
+			break
+		}
+	}
+
+	if contentStart == -1 {
+		fmt.Fprintln(os.Stderr, "Error: No ===CONTENT=== section found")
+		return 1
+	}
+
+	if err := validateNesting(lines, contentStart); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: Invalid section nesting: %v\n", err)
+		return 1
+	}
+
+	// Parse sections to get ordered list
+	sections := parseContentSection(lines, contentStart)
+
+	if len(sections) == 0 {
+		fmt.Fprintln(os.Stderr, "Error: No sections found in CONTENT")
+		return 1
+	}
+
+	// Extract references (returns map of target -> locations where it's referenced)
+	// This is the "incoming" map: targetID -> who references it
+	incomingRefsMap := extractReferences(lines, contentStart)
+
+	// Build outgoing reference map (section -> what it references)
+	outgoingRefs := make(map[string][]string)
+	for targetID, locations := range incomingRefsMap {
+		for _, loc := range locations {
+			if loc.ContainingSection != "" {
+				// Add targetID to the list of refs from ContainingSection
+				if !contains(outgoingRefs[loc.ContainingSection], targetID) {
+					outgoingRefs[loc.ContainingSection] = append(outgoingRefs[loc.ContainingSection], targetID)
+				}
+			}
+		}
+	}
+
+	// Convert incoming refs to simpler format
+	incomingRefs := make(map[string][]string)
+	for targetID, locations := range incomingRefsMap {
+		for _, loc := range locations {
+			if loc.ContainingSection != "" {
+				if !contains(incomingRefs[targetID], loc.ContainingSection) {
+					incomingRefs[targetID] = append(incomingRefs[targetID], loc.ContainingSection)
+				}
+			}
+		}
+	}
+
+	// Sort references for deterministic output
+	for sectionID := range outgoingRefs {
+		sort.Strings(outgoingRefs[sectionID])
+	}
+	for sectionID := range incomingRefs {
+		sort.Strings(incomingRefs[sectionID])
+	}
+
+	// Output in compact format
+	fmt.Printf("@graph: %s\n\n", baseFilename)
+
+	if showIncoming {
+		// Show incoming references (who references this section)
+		for _, section := range sections {
+			refs := incomingRefs[section.ID]
+			if len(refs) > 0 {
+				fmt.Printf("%s <- %s\n", section.ID, strings.Join(refs, ", "))
+			} else {
+				fmt.Println(section.ID)
+			}
+		}
+	} else {
+		// Show outgoing references (what this section references)
+		for _, section := range sections {
+			refs := outgoingRefs[section.ID]
+			if len(refs) > 0 {
+				fmt.Printf("%s -> %s\n", section.ID, strings.Join(refs, ", "))
+			} else {
+				fmt.Println(section.ID)
+			}
+		}
+	}
+
+	return 0
+}
+
+// Helper function to check if a string slice contains a value
+func contains(slice []string, value string) bool {
+	for _, item := range slice {
+		if item == value {
+			return true
+		}
+	}
+	return false
+}
+
 func validateCommand(filepath string) int {
 	if _, err := os.Stat(filepath); os.IsNotExist(err) {
 		fmt.Fprintf(os.Stderr, "Error: File not found: %s\n", filepath)
@@ -1209,7 +1421,7 @@ func validateCommand(filepath string) int {
 	if !strings.HasPrefix(lines[0], ":::IATF/") {
 		errors = append(errors, "Missing format declaration (:::IATF/1.0)")
 	} else {
-		fmt.Println("âœ“ Format declaration found")
+		fmt.Println("[OK] Format declaration found")
 	}
 
 	// Check 2: INDEX/CONTENT sections and order
@@ -1226,13 +1438,13 @@ func validateCommand(filepath string) int {
 	hasContent := len(contentPositions) > 0
 
 	if hasIndex {
-		fmt.Println("âœ“ INDEX section found")
+		fmt.Println("[OK] INDEX section found")
 	} else {
 		warnings = append(warnings, "No INDEX section (Run 'iatf rebuild' to create)")
 	}
 
 	if hasContent {
-		fmt.Println("âœ“ CONTENT section found")
+		fmt.Println("[OK] CONTENT section found")
 	} else {
 		errors = append(errors, "Missing CONTENT section")
 	}
@@ -1259,6 +1471,12 @@ func validateCommand(filepath string) int {
 		}
 	}
 
+	if contentStart != -1 {
+		if err := validateNesting(lines, contentStart); err != nil {
+			errors = append(errors, fmt.Sprintf("Invalid section nesting: %v", err))
+		}
+	}
+
 	if hasIndex {
 		contentHashLine := ""
 		if indexStart != -1 && contentStart != -1 {
@@ -1271,7 +1489,7 @@ func validateCommand(filepath string) int {
 		}
 		if contentHashLine != "" && contentStart != -1 {
 			hashRe := regexp.MustCompile(`^<!-- Content-Hash:\s*([a-z0-9]+):([a-f0-9]+)\s*-->$`)
-			matches := hashRe.FindStringSubmatch(contentHashLine)
+			matches := hashRe.FindStringSubmatch(strings.TrimSpace(contentHashLine))
 			if matches == nil {
 				warnings = append(warnings, "Invalid Content-Hash format in INDEX")
 			} else {
@@ -1324,7 +1542,7 @@ func validateCommand(filepath string) int {
 		invalidNesting = true
 	}
 	if !invalidNesting {
-		fmt.Println("âœ“ All sections properly closed")
+		fmt.Println("[OK] All sections properly closed")
 	}
 
 	// Check 6: No content outside section blocks
@@ -1416,7 +1634,7 @@ func validateCommand(filepath string) int {
 	}
 
 	if len(sectionIDs) > 0 {
-		fmt.Printf("âœ“ Found %d section(s) with unique IDs\n", len(sectionIDs))
+		fmt.Printf("[OK] Found %d section(s) with unique IDs\n", len(sectionIDs))
 	} else {
 		warnings = append(warnings, "No sections found in CONTENT")
 	}
@@ -1426,7 +1644,7 @@ func validateCommand(filepath string) int {
 		parsedSectionsForRefs := parseContentSection(lines, contentStart)
 		refErrors := validateReferences(lines, contentStart, parsedSectionsForRefs)
 		if len(refErrors) == 0 {
-			fmt.Println("âœ“ All references valid")
+			fmt.Println("[OK] All references valid")
 		} else {
 			for _, refErr := range refErrors {
 				errors = append(errors, refErr)
@@ -1437,27 +1655,27 @@ func validateCommand(filepath string) int {
 	// Summary
 	fmt.Println()
 	if len(errors) > 0 {
-		fmt.Printf("âœ— %d error(s) found:\n", len(errors))
+		fmt.Printf("[ERROR] %d error(s) found:\n", len(errors))
 		for _, err := range errors {
 			fmt.Printf("  - %s\n", err)
 		}
 	}
 
 	if len(warnings) > 0 {
-		fmt.Printf("âš  %d warning(s):\n", len(warnings))
+		fmt.Printf("[WARN] %d warning(s):\n", len(warnings))
 		for _, warn := range warnings {
 			fmt.Printf("  - %s\n", warn)
 		}
 	}
 
 	if len(errors) == 0 && len(warnings) == 0 {
-		fmt.Println("âœ“ File is valid!")
+		fmt.Println("[OK] File is valid!")
 		return 0
 	} else if len(errors) == 0 {
-		fmt.Println("\nâœ“ File is valid (with warnings)")
+		fmt.Println("\n[WARN] File is valid (with warnings)")
 		return 0
 	}
 
-	fmt.Println("\nâœ— File is invalid")
+	fmt.Println("\n[ERROR] File is invalid")
 	return 1
 }

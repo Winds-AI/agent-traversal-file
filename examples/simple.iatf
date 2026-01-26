@@ -1,54 +1,31 @@
 :::IATF/1.0
 @title: Simple Example
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-01-23T04:47:34Z -->
-<!-- Content-Hash: sha256:f9a251d -->
+<!-- Generated: 2026-01-26T14:44:25Z -->
+<!-- Content-Hash: sha256:8a87391 -->
 
-# How It Works {#intro | lines:47-68 | words:72}
+# How It Works {#intro | lines:28-46 | words:72}
 > Introduction to iatf format
-  Created: 2025-01-20 | Modified: 2026-01-23
+  Created: 2025-01-20 | Modified: 2026-01-26
+  Hash: fafefda
 
-# Validate {#usage | lines:70-98 | words:39}
+# Validate {#usage | lines:48-73 | words:39}
 > Basic usage examples
-  Created: 2025-01-20 | Modified: 2026-01-23
+  Created: 2025-01-20 | Modified: 2026-01-26
+  Hash: 846db5b
 
-# Next Steps {#next-steps | lines:100-113 | words:29}
+# Next Steps {#next-steps | lines:75-85 | words:29}
 > What to do next
-  Created: 2025-01-20 | Modified: 2026-01-23
+  Created: 2025-01-20 | Modified: 2026-01-26
+  Hash: 7b293ef
 
 
 ===CONTENT===
 
 {#intro}
 @summary: Introduction to iatf format
-@created: 2025-01-20
-@modified: 2026-01-23
-@hash: fafefda
 # Introduction
 
 IATF (Indexed Agent Traversable File) is a document format designed for AI agents.
@@ -69,20 +46,17 @@ IATF (Indexed Agent Traversable File) is a document format designed for AI agent
 
 {#usage}
 @summary: Basic usage examples
-@created: 2025-01-20
-@modified: 2026-01-23
-@hash: 04134cf
 # Usage
 
 ## Rebuild Index
 
-```bash
+```
 iatf rebuild document.iatf
 ```
 
 ## Watch Mode
 
-```bash
+```
 iatf watch document.iatf
 ```
 
@@ -90,7 +64,7 @@ File will auto-rebuild when you save changes.
 
 ## Validate
 
-```bash
+```
 iatf validate document.iatf
 ```
 
@@ -99,9 +73,6 @@ Checks if the file structure is valid.
 
 {#next-steps}
 @summary: What to do next
-@created: 2025-01-20
-@modified: 2026-01-23
-@hash: 7b293ef
 # Next Steps
 
 1. Create your own iatf file
@@ -111,6 +82,7 @@ Checks if the file structure is valid.
 
 Happy documenting!
 {/next-steps}
+
 
 
 
