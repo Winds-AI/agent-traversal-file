@@ -25,6 +25,14 @@ Download from [GitHub Releases](https://github.com/Winds-AI/agent-traversal-file
 iatf --version
 ```
 
+### Editor Setup (Optional)
+
+For better syntax highlighting when editing IATF files in VSCode:
+
+**Install IATF Extension:**
+- **Marketplace:** [IATF Extension](https://open-vsx.org/extension/Winds-AI/iatf)
+- **Features:** Syntax highlighting for headers, INDEX/CONTENT sections, section IDs, references, and code blocks
+
 ---
 
 ## Your First IATF File

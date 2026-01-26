@@ -73,6 +73,12 @@ Visit [GitHub Releases](https://github.com/Winds-AI/agent-traversal-file/release
 - Linux x86_64: `iatf-linux-amd64`
 - Linux ARM64: `iatf-linux-arm64`
 
+**VSCode Extension (Optional):**
+
+For syntax highlighting in VSCode, install the IATF extension:
+- **Marketplace:** [IATF Extension](https://open-vsx.org/extension/Winds-AI/iatf)
+- **Features:** Syntax highlighting for headers, sections, index entries, references, and code blocks
+
 **After downloading the binary:**
 
 **Linux/macOS:**
@@ -529,7 +535,7 @@ go build -o iatf main.go
 We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md).
 
 **Areas where we need help:**
-- [ ] VS Code extension
+- [x] VS Code extension ([Available](https://open-vsx.org/extension/Winds-AI/iatf))
 - [ ] Vim/Neovim plugin
 - [ ] Language Server Protocol (LSP) implementation
 - [ ] Conversion tools (Markdown -> IATF, HTML -> IATF)

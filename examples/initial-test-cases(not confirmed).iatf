@@ -323,7 +323,7 @@ Example:
 {/content-block-tests}
 
 {#annotation-tests}
-@summary: Summary and tags extraction into INDEX.
+@summary: Summary extraction into INDEX.
 # Metadata Annotation Tests
 
 - ID: META-01
@@ -331,10 +331,6 @@ Example:
   Steps: Add @summary to a block, run rebuild
   Expected: INDEX entry includes summary lines
 
-- ID: META-02
-  Purpose: @tags does not affect INDEX entries
-  Steps: Add @tags to a block, run rebuild
-  Expected: INDEX remains unchanged except for hash/lines/words
 {/annotation-tests}
 
 {#modification-tracking-tests}

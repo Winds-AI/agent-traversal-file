@@ -6,8 +6,8 @@ This file contains experimental ideas and proposed features. These are not imple
 
 ## FUSE/Dokany/macFUSE Filesystem Mounting
 
-**Status:** Idea / Not Started  
-**Priority:** Low-Medium  
+**Status:** Idea / Not Started
+**Priority:** Low-Medium
 **Complexity:** High
 
 ### Description
@@ -114,20 +114,23 @@ $ wc -l /mnt/IATF/content/*
 
 ## Editor Plugins (Auto-Rebuild on Save)
 
-**Status:** Idea / Not Started  
-**Priority:** High  
+**Status:** Partially Implemented
+**Priority:** High
 **Complexity:** Medium
 
 ### Description
 
-Editor plugins that automatically run `iatf rebuild` when user saves an IATF file.
+Editor plugins that provide syntax highlighting and automatically run `iatf rebuild` when user saves an IATF file.
 
 ### Platforms to Support
 
-- VS Code
-- Vim/Neovim
-- Emacs
-- Sublime Text
+- **VS Code** ✅ **COMPLETED** - [IATF Extension](https://open-vsx.org/extension/Winds-AI/iatf)
+  - Syntax highlighting for all IATF elements
+  - Color scheme optimized for readability
+  - Support for headers, INDEX, CONTENT, references, and code blocks
+- Vim/Neovim - Not Started
+- Emacs - Not Started
+- Sublime Text - Not Started
 
 ### How It Would Work
 
@@ -156,8 +159,8 @@ When user edits and saves `doc.iatf`:
 
 ## LSP (Language Server Protocol) Integration
 
-**Status:** Idea / Not Started  
-**Priority:** Medium  
+**Status:** Idea / Not Started
+**Priority:** Medium
 **Complexity:** High
 
 ### Description
@@ -198,8 +201,8 @@ $ iatf-lsp --stdio < doc.iatf
 
 ## Conversion Tools
 
-**Status:** Idea / Not Started  
-**Priority:** Medium  
+**Status:** Idea / Not Started
+**Priority:** Medium
 **Complexity:** Medium
 
 ### Description
@@ -237,8 +240,8 @@ $ iatf2json doc.iatf
 
 ## Web Viewer
 
-**Status:** Idea / Not Started  
-**Priority:** Low  
+**Status:** Idea / Not Started
+**Priority:** Low
 **Complexity:** High
 
 ### Description
@@ -262,7 +265,7 @@ Web-based iatf viewer/editor that runs in browser.
 
 ## Performance Optimizations
 
-**Status:** Ongoing  
+**Status:** Ongoing
 **Priority:** Medium
 
 ### Ideas
@@ -276,8 +279,8 @@ Web-based iatf viewer/editor that runs in browser.
 
 ## Section Query Language
 
-**Status:** Idea / Not Started  
-**Priority:** High  
+**Status:** Idea / Not Started
+**Priority:** High
 **Complexity:** Low-Medium
 
 ### Description
@@ -340,8 +343,8 @@ $ iatf query --json '.[] | select(.level <= 2) | .title' doc.iatf
 
 ## Cross-File References and Linking
 
-**Status:** Idea / Not Started  
-**Priority:** Medium  
+**Status:** Idea / Not Started
+**Priority:** Medium
 **Complexity:** Medium
 
 ### Description
@@ -401,8 +404,8 @@ auth.iatf:
 
 ## Git Integration and Merge Drivers
 
-**Status:** Idea / Not Started  
-**Priority:** Medium  
+**Status:** Idea / Not Started
+**Priority:** Medium
 **Complexity:** Medium
 
 ### Description
@@ -421,7 +424,7 @@ Git-aware IATF tools for better version control and collaboration.
    ```bash
    # Automatic merge for non-conflicting changes
    $ git merge feature-branch
-   
+
    # Manual resolution for index conflicts
    $ iatf merge --interactive base.iatf main.iatf feature.iatf
    ```
@@ -463,8 +466,8 @@ Algorithm:
 
 ## Multi-File Projects
 
-**Status:** Idea / Not Started  
-**Priority:** Medium  
+**Status:** Idea / Not Started
+**Priority:** Medium
 **Complexity:** High
 
 ### Description
@@ -549,8 +552,8 @@ Project Index (atfproj-index.json):
 
 ## Static Site Generation
 
-**Status:** Idea / Not Started  
-**Priority:** Medium  
+**Status:** Idea / Not Started
+**Priority:** Medium
 **Complexity:** High
 
 ### Description
@@ -623,8 +626,8 @@ theme:
 
 ## API/SDK for Programmatic Access
 
-**Status:** Idea / Not Started  
-**Priority:** High  
+**Status:** Idea / Not Started
+**Priority:** High
 **Complexity:** Medium
 
 ### Description
@@ -707,8 +710,8 @@ fmt.Println(intro.Content)
 
 ## Section Templates and Snippets
 
-**Status:** Idea / Not Started  
-**Priority:** Low-Medium  
+**Status:** Idea / Not Started
+**Priority:** Low-Medium
 **Complexity:** Low
 
 ### Description
@@ -785,8 +788,8 @@ $ iatf template add custom-template.j2
 
 ## Validation and Linting
 
-**Status:** Idea / Not Started  
-**Priority:** High  
+**Status:** Idea / Not Started
+**Priority:** High
 **Complexity:** Low-Medium
 
 ### Description
@@ -845,7 +848,7 @@ from atf_lint import Rule
 
 class NoTODO(Rule):
     """Sections should not have TODO in content"""
-    
+
     def check(self, section):
         if "TODO" in section.content:
             return self.warning("TODO found in section content")
@@ -863,8 +866,8 @@ class NoTODO(Rule):
 
 ## Incremental Rebuild and Caching
 
-**Status:** Idea / Not Started  
-**Priority:** Medium  
+**Status:** Idea / Not Started
+**Priority:** Medium
 **Complexity:** Medium
 
 ### Description
@@ -923,8 +926,8 @@ $ iatf cache stats
 
 ## AI Model Benchmarking Framework
 
-**Status:** Idea / Not Started  
-**Priority:** High  
+**Status:** Idea / Not Started
+**Priority:** High
 **Complexity:** High
 
 ### Description
@@ -1378,8 +1381,8 @@ For discussion, open an [Issue](https://github.com/Winds-AI/agent-traversal-file
 
 ## Comprehensive Documentation
 
-**Status:** Ongoing  
-**Priority:** High  
+**Status:** Ongoing
+**Priority:** High
 **Complexity:** Low-Medium
 
 ### Description
@@ -1432,8 +1435,8 @@ Improve documentation with examples, tutorials, and real-world use cases to help
 
 ## Testing Infrastructure
 
-**Status:** Needs Improvement  
-**Priority:** High  
+**Status:** Needs Improvement
+**Priority:** High
 **Complexity:** Medium
 
 ### Current State
@@ -1517,8 +1520,8 @@ jobs:
 
 ## Localization (i18n)
 
-**Status:** Not Started  
-**Priority:** Low  
+**Status:** Not Started
+**Priority:** Low
 **Complexity:** Medium
 
 ### Description

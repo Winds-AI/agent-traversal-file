@@ -1,6 +1,6 @@
 # Contributing to IATF Tools
 
-Thank you for your interest in contributing to IATF Tools! 
+Thank you for your interest in contributing to IATF Tools!
 
 ## How to Contribute
 
@@ -34,7 +34,7 @@ Thank you for your interest in contributing to IATF Tools!
    ```bash
    # Python
    python python/iatf.py rebuild examples/simple.iatf
-   
+
    # Go
    cd go
    go run main.go rebuild ../examples/simple.iatf
@@ -72,7 +72,8 @@ Before submitting:
 
 ### Areas We Need Help
 
-- [ ] **Editor Plugins**: VS Code, Vim, Emacs extensions
+- [x] **Editor Plugins**: VS Code ([Available](https://open-vsx.org/extension/Winds-AI/iatf))
+- [ ] **Editor Plugins**: Vim, Neovim, Emacs, Sublime extensions
 - [ ] **Language Server Protocol (LSP)**: Universal editor support
 - [ ] **Conversion Tools**: Markdown → IATF, HTML → IATF
 - [ ] **Documentation**: Examples, tutorials, use cases

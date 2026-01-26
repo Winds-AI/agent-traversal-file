@@ -17,7 +17,7 @@ Manual line numbering is impractical:
 ### How It Works
 
 1. **You edit** the CONTENT section freely
-2. **You save** the file  
+2. **You save** the file
 3. **Tool rebuilds** the INDEX automatically (editor plugin, file watcher, or manual command)
 4. **Agents read** the current INDEX for efficient navigation
 
@@ -178,7 +178,6 @@ Content is organized into blocks matching index entries:
 ```
 {#section-id}
 @summary: Brief description for the index (optional)
-@tags: keyword1, keyword2 (optional)
 Content goes here...
 Multiple lines...
 {/section-id}
@@ -199,7 +198,6 @@ Annotations provide metadata that will be extracted into the INDEX:
 ```
 {#example}
 @summary: This appears as the summary in the generated index
-@tags: api, authentication, security
 
 Actual content starts here...
 {/example}
@@ -207,7 +205,6 @@ Actual content starts here...
 
 **Reserved annotations**:
 - `@summary:` - Description shown in index (can span multiple lines if continued with indentation)
-- `@tags:` - Comma-separated keywords for searching
 
 **Automatic Modification Tracking**:
 When `iatf rebuild` runs, it automatically updates section modification data stored in the INDEX:
@@ -347,7 +344,13 @@ JavaScript object: {{ key: "value" }}
 {/code}
 ```
 
-**Workaround**: Until escape characters are implemented, avoid using IATF syntax markers (`{#id}`, `{/id}`, `===INDEX===`, `===CONTENT===`) in your content text, or use alternative representations (e.g., code blocks with language-specific escaping).
+**Workaround**: Until escape characters are implemented, avoid using IATF syntax markers (`{#id}`, `{/id}`, `===INDEX===`, `===CONTENT===`) in your content text, or use alternative representations (e.g., code fences). The safest way to show literal IATF syntax is a fenced code block:
+
+```text
+{#example}
+===INDEX===
+{/example}
+```
 
 ## 8. Whitespace
 
@@ -369,6 +372,35 @@ Recommended extension: `.iatf`
 ## 11. MIME Type
 
 Proposed: `text/iatf` or `application/x-iatf`
+
+## 11A. Editor Support
+
+### 11A.1 Syntax Highlighting
+
+VSCode users can install the official IATF extension for syntax highlighting:
+
+**IATF Extension:**
+- **Marketplace:** [https://open-vsx.org/extension/Winds-AI/iatf](https://open-vsx.org/extension/Winds-AI/iatf)
+- **Repository:** [vscode/iatf](https://github.com/Winds-AI/agent-traversal-file/tree/main/vscode/iatf)
+
+**Features:**
+- Syntax highlighting for format declarations (`:::IATF/1.0`)
+- Section delimiters (`===INDEX===`, `===CONTENT===`)
+- Index entries with headings, IDs, line ranges, and metadata
+- Content blocks (`{#id}`, `{/id}`)
+- Section references (`{@section-id}`)
+- Code fences and comments
+- Optimized color scheme for readability
+
+### 11A.2 Other Editors
+
+Community contributions for other editors are welcome:
+- Vim/Neovim plugin
+- Emacs mode
+- Sublime Text package
+- Language Server Protocol (LSP) implementation
+
+See [IDEAS.md](IDEAS.md) for editor plugin development ideas.
 
 ## 12. Validation Rules
 
