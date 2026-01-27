@@ -1,4 +1,4 @@
-﻿name: Build and Release
+name: Build and Release
 
 on:
   push:
@@ -36,27 +36,32 @@ jobs:
         run: |
           cd go
           mkdir -p ../dist
-          GOOS=windows GOARCH=amd64 go build -o ../dist/iatf-windows-amd64.exe -ldflags="-s -w" .
+          VERSION=$(cat ../VERSION)
+          GOOS=windows GOARCH=amd64 go build -o ../dist/iatf-windows-amd64.exe -ldflags="-s -w -X main.Version=${VERSION}" .
       
       - name: Build for macOS (amd64)
         run: |
           cd go
-          GOOS=darwin GOARCH=amd64 go build -o ../dist/iatf-darwin-amd64 -ldflags="-s -w" .
+          VERSION=$(cat ../VERSION)
+          GOOS=darwin GOARCH=amd64 go build -o ../dist/iatf-darwin-amd64 -ldflags="-s -w -X main.Version=${VERSION}" .
       
       - name: Build for macOS (arm64)
         run: |
           cd go
-          GOOS=darwin GOARCH=arm64 go build -o ../dist/iatf-darwin-arm64 -ldflags="-s -w" .
+          VERSION=$(cat ../VERSION)
+          GOOS=darwin GOARCH=arm64 go build -o ../dist/iatf-darwin-arm64 -ldflags="-s -w -X main.Version=${VERSION}" .
       
       - name: Build for Linux (amd64)
         run: |
           cd go
-          GOOS=linux GOARCH=amd64 go build -o ../dist/iatf-linux-amd64 -ldflags="-s -w" .
+          VERSION=$(cat ../VERSION)
+          GOOS=linux GOARCH=amd64 go build -o ../dist/iatf-linux-amd64 -ldflags="-s -w -X main.Version=${VERSION}" .
       
       - name: Build for Linux (arm64)
         run: |
           cd go
-          GOOS=linux GOARCH=arm64 go build -o ../dist/iatf-linux-arm64 -ldflags="-s -w" .
+          VERSION=$(cat ../VERSION)
+          GOOS=linux GOARCH=arm64 go build -o ../dist/iatf-linux-arm64 -ldflags="-s -w -X main.Version=${VERSION}" .
       
       - name: Generate checksums
         run: |

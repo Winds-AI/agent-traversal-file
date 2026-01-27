@@ -1,4 +1,4 @@
-﻿name: Build and Release with Installers
+name: Build and Release with Installers
 
 on:
   push:
@@ -37,16 +37,20 @@ jobs:
           cd go
           mkdir -p ../dist
           
+          # Read version from VERSION file
+          VERSION=$(cat ../VERSION)
+          LDFLAGS="-s -w -X main.Version=${VERSION}"
+          
           # Windows
-          GOOS=windows GOARCH=amd64 go build -o ../dist/iatf-windows-amd64.exe -ldflags="-s -w" .
+          GOOS=windows GOARCH=amd64 go build -o ../dist/iatf-windows-amd64.exe -ldflags="${LDFLAGS}" .
           
           # macOS
-          GOOS=darwin GOARCH=amd64 go build -o ../dist/iatf-darwin-amd64 -ldflags="-s -w" .
-          GOOS=darwin GOARCH=arm64 go build -o ../dist/iatf-darwin-arm64 -ldflags="-s -w" .
+          GOOS=darwin GOARCH=amd64 go build -o ../dist/iatf-darwin-amd64 -ldflags="${LDFLAGS}" .
+          GOOS=darwin GOARCH=arm64 go build -o ../dist/iatf-darwin-arm64 -ldflags="${LDFLAGS}" .
           
           # Linux
-          GOOS=linux GOARCH=amd64 go build -o ../dist/iatf-linux-amd64 -ldflags="-s -w" .
-          GOOS=linux GOARCH=arm64 go build -o ../dist/iatf-linux-arm64 -ldflags="-s -w" .
+          GOOS=linux GOARCH=amd64 go build -o ../dist/iatf-linux-amd64 -ldflags="${LDFLAGS}" .
+          GOOS=linux GOARCH=arm64 go build -o ../dist/iatf-linux-arm64 -ldflags="${LDFLAGS}" .
       
       - name: Generate checksums
         run: |

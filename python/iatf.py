@@ -33,7 +33,18 @@ if os.name == "nt":
     sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
-VERSION = "1.0.0"
+def get_version():
+    """Get version from VERSION file or fallback to dev"""
+    try:
+        # Look for VERSION file relative to script location
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        version_file = os.path.join(os.path.dirname(script_dir), "VERSION")
+        with open(version_file, "r") as f:
+            return f.read().strip()
+    except (FileNotFoundError, IOError):
+        return "dev"
+
+VERSION = get_version()
 
 # Watch state file
 WATCH_STATE_FILE = Path.home() / ".iatf" / "watch.json"

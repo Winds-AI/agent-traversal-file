@@ -3,6 +3,20 @@
 
 set -e
 
+# Parse arguments
+UPDATE_ONLY=false
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --update|-u)
+            UPDATE_ONLY=true
+            shift
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
 echo "Installing IATF Tools..."
 
 # Detect OS and architecture
@@ -37,6 +51,40 @@ fi
 
 echo "Latest version: $VERSION"
 
+# Determine installation directory
+if [ -w "/usr/local/bin" ]; then
+    INSTALL_DIR="/usr/local/bin"
+    SUDO=""
+elif [ -n "$HOME" ]; then
+    INSTALL_DIR="$HOME/.local/bin"
+    mkdir -p "$INSTALL_DIR"
+    SUDO=""
+else
+    INSTALL_DIR="/usr/local/bin"
+    SUDO="sudo"
+fi
+
+# Check if already installed
+CURRENT_VERSION=""
+if [ -f "$INSTALL_DIR/iatf" ]; then
+    CURRENT_VERSION=$($INSTALL_DIR/iatf --version 2>/dev/null | grep -oE '[0-9]+\.[0-9]+\.[0-9]+' || echo "unknown")
+    echo "Current version: $CURRENT_VERSION"
+    
+    # Compare versions (strip 'v' prefix for comparison)
+    NEW_VER=${VERSION#v}
+    CUR_VER=${CURRENT_VERSION#v}
+    
+    if [ "$CUR_VER" = "$NEW_VER" ] && [ "$UPDATE_ONLY" = true ]; then
+        echo ""
+        echo "✓ IATF Tools is already up to date (version $CURRENT_VERSION)"
+        exit 0
+    fi
+    
+    # Backup existing binary
+    echo "Backing up existing binary to $INSTALL_DIR/iatf.backup..."
+    $SUDO cp "$INSTALL_DIR/iatf" "$INSTALL_DIR/iatf.backup"
+fi
+
 # Download URL
 DOWNLOAD_URL="https://github.com/Winds-AI/agent-traversal-file/releases/download/${VERSION}/${BINARY}"
 
@@ -56,19 +104,6 @@ fi
 
 # Make executable
 chmod +x "$TMP_FILE"
-
-# Determine installation directory
-if [ -w "/usr/local/bin" ]; then
-    INSTALL_DIR="/usr/local/bin"
-    SUDO=""
-elif [ -n "$HOME" ]; then
-    INSTALL_DIR="$HOME/.local/bin"
-    mkdir -p "$INSTALL_DIR"
-    SUDO=""
-else
-    INSTALL_DIR="/usr/local/bin"
-    SUDO="sudo"
-fi
 
 # Install
 echo "Installing to $INSTALL_DIR..."
@@ -91,7 +126,7 @@ if [ "$INSTALL_DIR" = "$HOME/.local/bin" ]; then
             echo "" >> "$SHELL_CONFIG"
             echo "# IATF Tools" >> "$SHELL_CONFIG"
             echo "export PATH=\"\$PATH:$INSTALL_DIR\"" >> "$SHELL_CONFIG"
-            echo "âœ“ Added to $SHELL_CONFIG"
+            echo "✓ Added to $SHELL_CONFIG"
             echo ""
             echo "Please restart your terminal or run:"
             echo "  source $SHELL_CONFIG"
@@ -100,7 +135,7 @@ if [ "$INSTALL_DIR" = "$HOME/.local/bin" ]; then
 fi
 
 echo ""
-echo "âœ“ Installation complete!"
+echo "✓ Installation complete!"
 echo "  Binary installed to: $INSTALL_DIR/iatf"
 echo ""
 echo "Try it out:"

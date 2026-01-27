@@ -1,4 +1,4 @@
-﻿package main
+package main
 
 import (
 	"bufio"
@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-const VERSION = "1.0.0"
+var Version = "dev" // Set at build time via ldflags
 
 type Section struct {
 	ID           string
@@ -216,7 +216,7 @@ func main() {
 		printUsage()
 		os.Exit(0)
 	case "--version", "-v", "version":
-		fmt.Printf("IATF Tools v%s\n", VERSION)
+		fmt.Printf("IATF Tools v%s\n", Version)
 		os.Exit(0)
 	case "rebuild":
 		if len(os.Args) < 3 {
@@ -326,7 +326,7 @@ Examples:
     iatf read document.iatf --title "Introduction"
 
 For more information, visit: https://github.com/Winds-AI/agent-traversal-file
-`, VERSION)
+`, Version)
 }
 
 func parseContentSection(lines []string, contentStart int) []Section {

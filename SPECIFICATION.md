@@ -790,7 +790,6 @@ Batch operations available at `/resources/batch`.
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
 <!-- Generated: 2025-01-19T10:30:00Z -->
-<!-- Tool: iatf-tools v1.0.0 -->
 <!-- Content-Hash: sha256:7a8b9c0d1e2f3g4h5i6j7k8l9m0n1o2p -->
 
 # Introduction {#intro | lines:1-15 | words:120}
