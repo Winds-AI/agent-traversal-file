@@ -358,7 +358,7 @@ After implementation, update:
 ## Task 4: Benchmark IATF against PageIndex on FinanceBench
 
 **Priority:** High
-**Status:** Pending
+**Status:** In Progress
 
 ### Summary
 Validate IATF format effectiveness by benchmarking against PageIndex's 98.7% accuracy on the FinanceBench dataset. This will prove whether IATF's line-level granularity and self-indexing approach can match or exceed existing solutions while maintaining claimed token efficiency (80-95% savings).
@@ -945,22 +945,22 @@ Based on error analysis, improve:
 ### Deliverables
 
 **Code:**
-- [ ] `scripts/pdf_to_iatf.py` - PDF conversion tool
-- [ ] `scripts/iatf_retriever.py` - Retrieval system
-- [ ] `scripts/evaluate.py` - Evaluation pipeline
-- [ ] `scripts/analyze.py` - Result analysis and visualization
+- [x] `benchmark/scripts/pdf_to_iatf.py` - PDF conversion tool
+- [x] `benchmark/scripts/iatf_retriever.py` - Retrieval system
+- [x] `benchmark/scripts/evaluate.py` - Evaluation pipeline
+- [x] `benchmark/scripts/analyze.py` - Result analysis and visualization
 
 **Data:**
-- [ ] `iatf_docs/` - 150 converted IATF files
-- [ ] `results/iatf_results.jsonl` - Raw evaluation results
-- [ ] `results/iatf_results.csv` - Spreadsheet format
-- [ ] `results/baseline_results.jsonl` - Full document baseline
+- [ ] `benchmark/iatf_docs/` - 150 converted IATF files (pending conversion)
+- [ ] `benchmark/results/iatf_results.jsonl` - Raw evaluation results (pending run)
+- [ ] `benchmark/results/iatf_results.csv` - Spreadsheet format (pending run)
+- [ ] `benchmark/results/baseline_results.jsonl` - Full document baseline (pending run)
 
 **Documentation:**
-- [ ] `BENCHMARK.md` - Detailed methodology and results
-- [ ] `results/summary_report.md` - Executive summary
-- [ ] `results/error_analysis.md` - Error breakdown and insights
-- [ ] Visual charts (accuracy, tokens, latency comparisons)
+- [x] `benchmark/BENCHMARK.md` - Detailed methodology and usage
+- [ ] `benchmark/results/summary_report.md` - Executive summary (pending run)
+- [ ] `benchmark/results/error_analysis.md` - Error breakdown (pending run)
+- [ ] Visual charts (accuracy, tokens, latency comparisons) (pending run)
 
 **Benchmark Report Structure:**
 ```markdown
@@ -994,13 +994,16 @@ Based on error analysis, improve:
 
 **Python Packages:**
 ```bash
+pip install -r benchmark/requirements.txt
+# Or manually:
 pip install pdfplumber PyMuPDF tiktoken openai pandas matplotlib seaborn tqdm
 ```
 
-**External Repos:**
+**External Repos (already cloned to benchmark/data/):**
 ```bash
-git clone https://github.com/patronus-ai/financebench.git
-git clone https://github.com/VectifyAI/Mafin2.5-FinanceBench.git
+# Already cloned during implementation:
+# benchmark/data/financebench
+# benchmark/data/Mafin2.5-FinanceBench
 ```
 
 **IATF Tools:**
