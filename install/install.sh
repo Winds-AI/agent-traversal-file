@@ -1,4 +1,4 @@
-﻿#!/bin/bash
+#!/bin/bash
 # IATF Tools Installer for macOS/Linux
 
 set -e
@@ -27,7 +27,7 @@ else
 fi
 
 # Get latest version
-LATEST_URL="https://api.github.com/repos/iatf-tools/iatf/releases/latest"
+LATEST_URL="https://api.github.com/repos/Winds-AI/agent-traversal-file/releases/latest"
 VERSION=$(curl -s $LATEST_URL | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
 
 if [ -z "$VERSION" ]; then
