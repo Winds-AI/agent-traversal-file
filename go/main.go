@@ -501,7 +501,6 @@ func updateContentMetadata(lines []string, contentStart int, sections []Section)
 
 	// Track current section being processed
 	var currentSectionID string
-	var metadataEndLine int
 
 	openPattern := regexp.MustCompile(`^\{#([a-zA-Z][a-zA-Z0-9_-]*)\}`)
 	closePattern := regexp.MustCompile(`^\{/([a-zA-Z][a-zA-Z0-9_-]*)\}`)
@@ -513,7 +512,6 @@ func updateContentMetadata(lines []string, contentStart int, sections []Section)
 		// Opening tag
 		if match := openPattern.FindStringSubmatch(line); match != nil {
 			currentSectionID = match[1]
-			metadataEndLine = 0
 			i++
 			continue
 		}
@@ -525,48 +523,14 @@ func updateContentMetadata(lines []string, contentStart int, sections []Section)
 			continue
 		}
 
-		// Process metadata lines
+		// Skip metadata lines in CONTENT blocks
+		// Note: @modified and @hash are not valid in CONTENT, they are only stored in INDEX
+		// Only @summary is valid in CONTENT blocks
 		if currentSectionID != "" {
-			if section, ok := sectionMap[currentSectionID]; ok {
-				// Check if we're still in metadata
-				if strings.HasPrefix(line, "@") {
-					if strings.HasPrefix(line, "@modified:") {
-						// Update @modified
-						lines[i] = fmt.Sprintf("@modified: %s", section.Modified)
-					} else if strings.HasPrefix(line, "@hash:") {
-						// Update @hash
-						lines[i] = fmt.Sprintf("@hash: %s", section.XHash)
-					}
-					i++
-					continue
-				} else if metadataEndLine == 0 {
-					// We've reached the end of metadata, insert missing fields if needed
-					metadataEndLine = i
-
-					// Check if @hash needs to be inserted
-					// Look back to see if we already have @hash
-					hasHash := false
-					for j := i - 1; j > contentStart; j-- {
-						if strings.HasPrefix(lines[j], fmt.Sprintf("{#%s}", currentSectionID)) {
-							break
-						}
-						if strings.HasPrefix(lines[j], "@hash:") {
-							hasHash = true
-							break
-						}
-					}
-
-					// Insert @hash if missing
-					if !hasHash && section.XHash != "" {
-						// Insert at current position
-						newLines := make([]string, len(lines)+1)
-						copy(newLines[:i], lines[:i])
-						newLines[i] = fmt.Sprintf("@hash: %s", section.XHash)
-						copy(newLines[i+1:], lines[i:])
-						lines = newLines
-						i++
-					}
-				}
+			if strings.HasPrefix(line, "@") {
+				// Skip metadata lines
+				i++
+				continue
 			}
 		}
 

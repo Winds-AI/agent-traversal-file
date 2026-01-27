@@ -83,9 +83,9 @@ Following the declaration, optional metadata fields can appear:
 | Field | Description | Example |
 |-------|-------------|---------|
 | `@title` | Document title | `@title: API Documentation` |
-| `@modified` | Last modified date | `@modified: 2025-01-20` |
-| `@total-words` | Total word count | `@total-words: 15420` |
-| `@total-sections` | Number of sections | `@total-sections: 24` |
+| `@purpose` | Document purpose | `@purpose: Test timelines and prose-heavy sections` |
+
+**Note**: Only reserved fields (`@title` and `@purpose`) should be preserved. Custom metadata fields are not supported and should be ignored or rejected by implementations.
 
 ## 3. Index Section
 
@@ -111,10 +111,15 @@ Each index entry follows this format:
 
 ```
 [level-marker] Title {#id | lines:start-end | words:count}
-> Optional summary text (can span multiple lines if indented)
+> Optional summary text (can span multiple lines if indented with 2 spaces)
   Created: YYYY-MM-DD | Modified: YYYY-MM-DD (optional)
   Hash: a1b2c3d (optional)
 ```
+
+**Indentation Rules**:
+- Summary lines start with `>` followed by a space
+- Multi-line summaries continue with `>` prefix on each line
+- Metadata lines (Created, Modified, Hash) are indented with exactly 2 spaces
 
 #### Level Markers
 

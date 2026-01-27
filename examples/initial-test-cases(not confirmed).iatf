@@ -1,136 +1,136 @@
 :::IATF/1.0
 @title: IATF Format Test Cases
-@modified: 2026-01-26
+@purpose: Comprehensive test cases for IATF format validation and CLI commands
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-01-26T15:55:53Z -->
-<!-- Content-Hash: sha256:4da6c7a -->
+<!-- Generated: 2026-01-27T17:53:44Z -->
+<!-- Content-Hash: sha256:2ec1983 -->
 
-# Overview {#overview | lines:138-155 | words:61}
+# Overview {#overview | lines:139-156 | words:61}
 > Purpose and scope of the test suite.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 44d98cb
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: e42f0b9
 
-# Test Case Format {#test-case-format | lines:157-173 | words:54}
+# Test Case Format {#test-case-format | lines:158-174 | words:54}
 > Standard structure for test cases in this document.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 909e8f0
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: 6b7a620
 
-# Header Tests {#header-tests | lines:175-198 | words:89}
+# Header Tests {#header-tests | lines:176-199 | words:95}
 > Header declaration and metadata validation.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: d3579f9
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: ab39516
 
-# Index Delimiter Tests {#index-delimiter-tests | lines:200-228 | words:118}
+# Index Delimiter Tests {#index-delimiter-tests | lines:201-229 | words:118}
 > INDEX section delimiter and auto-generated markers.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 6e13f6d
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: a4def8b
 
-# Index Entry Tests {#index-entry-tests | lines:230-258 | words:121}
+# Index Entry Tests {#index-entry-tests | lines:231-259 | words:130}
 > Index entry syntax, hierarchy, and metadata.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: a60f056
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: 24f0a37
 
-# Hierarchy Tests {#hierarchy-tests | lines:260-278 | words:80}
+# Hierarchy Tests {#hierarchy-tests | lines:261-279 | words:80}
 > Hierarchy rules and nesting limits.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: b8aba31
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: 53d0298
 
-# Content Delimiter Tests {#content-delimiter-tests | lines:280-298 | words:70}
+# Content Delimiter Tests {#content-delimiter-tests | lines:281-299 | words:70}
 > CONTENT delimiter and placement validation.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 53d368a
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: c5f64dd
 
-# Content Block Tests {#content-block-tests | lines:300-323 | words:101}
+# Content Block Tests {#content-block-tests | lines:301-324 | words:109}
 > Content block rules and nesting behavior.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 85d0f7a
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: ded7ca9
 
-# Metadata Annotation Tests {#annotation-tests | lines:325-338 | words:53}
-> Summary and tags extraction into INDEX.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 74e056d
+# Metadata Annotation Tests {#annotation-tests | lines:326-335 | words:28}
+> Summary extraction into INDEX.
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: 9581ce8
 
-# Modification Tracking Tests {#modification-tracking-tests | lines:340-358 | words:71}
+# Modification Tracking Tests {#modification-tracking-tests | lines:337-355 | words:71}
 > Hashing and Modified date behavior.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: c098a85
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: 35ba344
 
-# Line Numbering Tests {#line-number-tests | lines:360-378 | words:72}
+# Line Numbering Tests {#line-number-tests | lines:357-375 | words:72}
 > Absolute line numbering rules.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: c1ea358
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: b78e7b9
 
-# Identifier Tests {#id-format-tests | lines:380-398 | words:59}
+# Identifier Tests {#id-format-tests | lines:377-395 | words:59}
 > ID format and uniqueness rules.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 31331f1
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: 00bfca9
 
-# Escaping Tests {#escaping-tests | lines:400-413 | words:51}
+# Escaping Tests {#escaping-tests | lines:397-410 | words:51}
 > Escaping rules and current limitations.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 89ee23d
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: 2ce9847
 
-# Whitespace Tests {#whitespace-tests | lines:415-428 | words:45}
+# Whitespace Tests {#whitespace-tests | lines:412-425 | words:45}
 > Whitespace rules and formatting behavior.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 446f735
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: 531d901
 
-# Encoding Tests {#encoding-tests | lines:430-443 | words:39}
+# Encoding Tests {#encoding-tests | lines:427-440 | words:39}
 > UTF-8 and line endings.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: a7fed7d
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: 6fccbd3
 
-# Extension and MIME Tests {#extension-mime-tests | lines:445-458 | words:46}
+# Extension and MIME Tests {#extension-mime-tests | lines:442-455 | words:46}
 > File extension and MIME type guidance.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: db56b94
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: a46942c
 
-# Validation Level Tests {#validation-level-tests | lines:460-483 | words:89}
+# Validation Level Tests {#validation-level-tests | lines:457-480 | words:89}
 > Validation level behaviors.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 040cd2b
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: f2f8df9
 
-# Index Staleness Tests {#staleness-tests | lines:485-498 | words:45}
+# Index Staleness Tests {#staleness-tests | lines:482-495 | words:45}
 > Index staleness detection and warnings.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: cf02b66
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: 6f8a3f2
 
-# Minimal File Tests {#minimal-file-tests | lines:500-513 | words:48}
+# Minimal File Tests {#minimal-file-tests | lines:497-510 | words:48}
 > Minimal file examples and rebuild behavior.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 73fe6be
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: b2a2651
 
-# Section Reference Tests {#reference-tests | lines:515-543 | words:122}
+# Section Reference Tests {#reference-tests | lines:512-540 | words:134}
 > Cross-reference syntax and validation.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: dd6201f
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: b1a5ded
 
-# Graph Command Tests {#graph-command-tests | lines:545-573 | words:120}
+# Graph Command Tests {#graph-command-tests | lines:542-570 | words:120}
 > Graph command behavior and error cases.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 1e3b236
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: 44b7fc9
 
-# Index Command Tests {#index-command-tests | lines:575-588 | words:47}
+# Index Command Tests {#index-command-tests | lines:572-585 | words:47}
 > Index command output behavior.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: ec6b7c5
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: 0bfc2e3
 
-# Rebuild Command Tests {#rebuild-command-tests | lines:590-603 | words:49}
+# Rebuild Command Tests {#rebuild-command-tests | lines:587-600 | words:49}
 > Rebuild command behavior.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: c2eb808
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: 5f07d7f
 
-# Validate Command Tests {#validate-command-tests | lines:605-618 | words:44}
+# Validate Command Tests {#validate-command-tests | lines:602-615 | words:44}
 > Validate command behavior.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: ade01dc
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: c9036aa
 
-# Watch Command Tests {#watch-command-tests | lines:620-633 | words:44}
+# Watch Command Tests {#watch-command-tests | lines:617-630 | words:44}
 > Watch and unwatch behavior.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: d68ac92
+  Created: 2026-01-26 | Modified: 2026-01-27
+  Hash: baaeca6
 
 
 ===CONTENT===
@@ -187,14 +187,14 @@ Example:
   Expected: Validation fails with missing declaration error
 
 - ID: HEADER-03
-  Purpose: Accept optional metadata fields
-  Steps: Add @title and @modified in header
+  Purpose: Accept reserved metadata fields
+  Steps: Add @title and @purpose in header
   Expected: Validation passes and metadata preserved on rebuild
 
 - ID: HEADER-04
-  Purpose: Accept custom metadata fields
-  Steps: Add @owner: Team A
-  Expected: Validation passes and field is preserved
+  Purpose: Reject or ignore custom metadata fields
+  Steps: Add @owner: Team A (non-reserved field)
+  Expected: Validation fails or field is ignored (not preserved)
 {/header-tests}
 
 {#index-delimiter-tests}
@@ -252,8 +252,8 @@ Example:
   Expected: Validation fails for invalid word count
 
 - ID: ENTRY-05
-  Purpose: Summary lines are optional and indented
-  Steps: Add summary without leading >
+  Purpose: Summary lines must be indented with exactly 2 spaces
+  Steps: Add summary line with > but no indentation or wrong indentation
   Expected: Summary is ignored or flagged as invalid
 {/index-entry-tests}
 
@@ -307,9 +307,9 @@ Example:
   Expected: Validation fails for unmatched tag
 
 - ID: BLOCK-02
-  Purpose: All content is inside blocks
-  Steps: Add text outside any block, run `iatf validate`
-  Expected: Validation fails for content outside blocks
+  Purpose: All non-whitespace content must be inside blocks
+  Steps: Add text (not blank lines) outside any block, run `iatf validate`
+  Expected: Validation fails for text outside blocks, blank lines allowed
 
 - ID: BLOCK-03
   Purpose: Block IDs match index IDs
@@ -513,9 +513,9 @@ Example:
 # Section Reference Tests
 
 - ID: REF-01
-  Purpose: Reference syntax { @section-id} is recognized
-  Steps: Add { @overview} to a section
-  Expected: Rebuild succeeds if target exists
+  Purpose: Space in reference syntax breaks pattern (escapes it)
+  Steps: Add { @overview} (with space) to content outside code block
+  Expected: Reference is ignored (not validated), rebuild succeeds even if target missing
 
 - ID: REF-02
   Purpose: Self-reference is an error
