@@ -1,6 +1,7 @@
 # IATF - Indexed Agent Traversable File
 
 **A file format designed for AI agents to efficiently navigate large documents.**
+[In Active Development so expect Breaking Changes]
 
 > **Abbreviation:** IATF (Indexed Agent Traversable File)
 
