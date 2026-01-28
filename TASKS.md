@@ -72,7 +72,7 @@ Developed and published a VSCode extension providing comprehensive syntax highli
 ### What was implemented
 
 **Extension Features:**
-- Format declaration highlighting (`:::IATF/1.0`)
+- Format declaration highlighting (`:::IATF`)
 - Section delimiter highlighting (`===INDEX===`, `===CONTENT===`)
 - Index entry syntax highlighting (headings, IDs, line ranges, word counts)
 - Content block tags (`{#id}`, `{/id}`)

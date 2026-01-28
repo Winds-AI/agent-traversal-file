@@ -1,26 +1,26 @@
-:::IATF/1.0
+:::IATF
 @title: Incident Playbook Example
 @purpose: Test timelines, inline code, and prose-heavy sections
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-01-26T14:44:25Z -->
-<!-- Content-Hash: sha256:8d1aba7 -->
+<!-- Generated: 2026-01-28T03:21:47Z -->
+<!-- Content-Hash: sha256:e51334e -->
 
-# Incident Timeline {#incident | lines:29-39 | words:38}
+# Incident Timeline {#incident | lines:28-38 | words:38}
 > Incident response timeline template
-  Created: 2025-01-20 | Modified: 2026-01-26
-  Hash: f036dfc
+  Created: 2025-01-20 | Modified: 2026-01-28
+  Hash: 9bd6e5e
 
-# Rollback Steps {#rollback | lines:41-54 | words:37}
+# Rollback Steps {#rollback | lines:40-53 | words:37}
 > Rollback steps with commands
-  Created: 2025-01-20 | Modified: 2026-01-26
-  Hash: af904f2
+  Created: 2025-01-20 | Modified: 2026-01-28
+  Hash: d0c16de
 
-# Action Items {#postmortem | lines:56-70 | words:45}
+# Action Items {#postmortem | lines:55-69 | words:45}
 > Post-incident writeup outline
-  Created: 2025-01-20 | Modified: 2026-01-26
-  Hash: 4ab0c91
+  Created: 2025-01-20 | Modified: 2026-01-28
+  Hash: 527a357
 
 
 ===CONTENT===

@@ -681,7 +681,7 @@ func rebuildIndex(filepath string) error {
 	if headerEnd == -1 {
 		// No existing INDEX, insert after header
 		for i, line := range lines {
-			if strings.HasPrefix(strings.TrimSpace(line), ":::IATF/") {
+			if strings.TrimSpace(line) == ":::IATF" {
 				headerEnd = i + 1
 				// Skip metadata lines
 				for i+1 < len(lines) && strings.HasPrefix(lines[i+1], "@") {
@@ -717,7 +717,7 @@ func rebuildIndex(filepath string) error {
 	// Generate new INDEX (two-pass to adjust absolute line numbers)
 	newIndex := generateIndex(sections, contentHash)
 	originalSpan := indexEnd - headerEnd
-	newSpan := 1 + len(newIndex) + 1 // blank + index + blank
+	newSpan := len(newIndex) + 1 // index + blank
 	lineDelta := newSpan - originalSpan
 	if lineDelta != 0 {
 		for i := range sections {
@@ -1382,8 +1382,8 @@ func validateCommand(filepath string) int {
 	warnings := []string{}
 
 	// Check 1: Format declaration
-	if !strings.HasPrefix(lines[0], ":::IATF/") {
-		errors = append(errors, "Missing format declaration (:::IATF/1.0)")
+	if strings.TrimSpace(lines[0]) != ":::IATF" {
+		errors = append(errors, "Missing format declaration (:::IATF)")
 	} else {
 		fmt.Println("[OK] Format declaration found")
 	}

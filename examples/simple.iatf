@@ -1,25 +1,25 @@
-:::IATF/1.0
+:::IATF
 @title: Simple Example
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-01-27T17:54:43Z -->
-<!-- Content-Hash: sha256:462d1c7 -->
+<!-- Generated: 2026-01-28T03:21:55Z -->
+<!-- Content-Hash: sha256:8a87391 -->
 
-# How It Works {#intro | lines:28-46 | words:72}
+# How It Works {#intro | lines:27-45 | words:72}
 > Introduction to iatf format
-  Created: 2025-01-20 | Modified: 2026-01-27
-  Hash: f01d82a
+  Created: 2025-01-20 | Modified: 2026-01-28
+  Hash: fafefda
 
-# Validate {#usage | lines:48-73 | words:39}
+# Validate {#usage | lines:47-72 | words:39}
 > Basic usage examples
-  Created: 2025-01-20 | Modified: 2026-01-27
-  Hash: 6d4fbf4
+  Created: 2025-01-20 | Modified: 2026-01-28
+  Hash: 846db5b
 
-# Next Steps {#next-steps | lines:75-85 | words:29}
+# Next Steps {#next-steps | lines:74-84 | words:29}
 > What to do next
-  Created: 2025-01-20 | Modified: 2026-01-27
-  Hash: 5ec7938
+  Created: 2025-01-20 | Modified: 2026-01-28
+  Hash: 7b293ef
 
 
 ===CONTENT===

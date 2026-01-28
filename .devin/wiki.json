@@ -76,7 +76,7 @@
     },
     {
       "title": "IATF File Format",
-      "purpose": "Comprehensive specification of the IATF/1.0 file format including structure, syntax, and design principles",
+      "purpose": "Comprehensive specification of the IATF file format including structure, syntax, and design principles",
       "page_notes": [
         {
           "content": ""
@@ -85,7 +85,7 @@
     },
     {
       "title": "Format Specification",
-      "purpose": "Detailed specification of IATF/1.0 format including header, INDEX, and CONTENT sections with exact syntax rules",
+      "purpose": "Detailed specification of IATF format including header, INDEX, and CONTENT sections with exact syntax rules",
       "parent": "IATF File Format",
       "page_notes": [
         {

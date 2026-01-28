@@ -1,145 +1,145 @@
-:::IATF/1.0
+:::IATF
 @title: Bandar Admin Portal Requirements (Extract)
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-01-26T14:44:25Z -->
-<!-- Content-Hash: sha256:3060041 -->
+<!-- Generated: 2026-01-28T03:21:47Z -->
+<!-- Content-Hash: sha256:59db9b0 -->
 
-# Admin Portal {#admin-portal-overview | lines:148-153 | words:97}
+# Admin Portal {#admin-portal-overview | lines:147-152 | words:97}
 > Admin portal purpose and scope.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 4eb45a8
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: b293177
 
-# Admin User type & Login {#admin-user-types-login | lines:155-199 | words:261}
+# Admin User type & Login {#admin-user-types-login | lines:154-198 | words:261}
 > Admin user types, profile fields, and login requirements.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 3a991d1
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: b74bde7
 
-# Role Management/ Module Access {#role-management-module-access | lines:201-205 | words:38}
+# Role Management/ Module Access {#role-management-module-access | lines:200-204 | words:38}
 > Role management and module access configuration.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 1273a4d
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: ff1ff3f
 
-# Business Dashboard {#business-dashboard | lines:207-252 | words:298}
+# Business Dashboard {#business-dashboard | lines:206-251 | words:298}
 > Business dashboard KPIs, analytics, and reports.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 94b216c
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: f7ae732
 
-# Customer Management {#customer-management | lines:254-310 | words:231}
+# Customer Management {#customer-management | lines:253-309 | words:231}
 > Customer management, editable fields, and credit handling.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 5ba43cf
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: 5487f45
 
-# Vendors Management {#vendors-management | lines:312-333 | words:270}
+# Vendors Management {#vendors-management | lines:311-332 | words:270}
 > Vendor onboarding, approvals, and vendor records.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: eafbd34
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: 78299dd
 
-# Notifications Management {#notifications-management | lines:335-351 | words:118}
+# Notifications Management {#notifications-management | lines:334-350 | words:118}
 > Notification data, categories, and statuses.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 75d0055
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: 370188e
 
-# Adventure Activity Listings Management {#adventure-activity-listings-management | lines:353-372 | words:304}
+# Adventure Activity Listings Management {#adventure-activity-listings-management | lines:352-371 | words:304}
 > Activity listing management, validation, and cloning.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 2b3d20e
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: 3b87fca
 
-# Activity Tags Management {#activity-tags-management | lines:374-378 | words:94}
+# Activity Tags Management {#activity-tags-management | lines:373-377 | words:94}
 > Activity tags definition and usage.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: e3c8b2c
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: 11852c4
 
-# Bandar Credits (Bananas) Management {#bandar-credits-management | lines:380-390 | words:141}
+# Bandar Credits (Bananas) Management {#bandar-credits-management | lines:379-389 | words:141}
 > Bandar credits (Bananas) administration.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 23e6a38
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: a69e4d6
 
-# Certificates and Badges Management {#certificates-and-badges-management | lines:392-399 | words:89}
+# Certificates and Badges Management {#certificates-and-badges-management | lines:391-398 | words:89}
 > Certificates and badges management and assignment.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: f9a9363
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: 98d808d
 
-# Booking Management {#booking-management | lines:401-408 | words:116}
+# Booking Management {#booking-management | lines:400-407 | words:116}
 > Booking administration and payment handling.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 53f2dec
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: a83a4b5
 
-# Inventory Management {#inventory-management | lines:410-424 | words:237}
+# Inventory Management {#inventory-management | lines:409-423 | words:237}
 > Inventory/time slot management for activities.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 7461c6b
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: 1663652
 
-# Promotions Management {#promotions-management | lines:426-431 | words:40}
+# Promotions Management {#promotions-management | lines:425-430 | words:40}
 > Promotions management for vendor promotions page.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 35e8491
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: 0e26f36
 
-# Banner Management {#banner-management | lines:433-445 | words:93}
+# Banner Management {#banner-management | lines:432-444 | words:93}
 > Home page banner management and targeting.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 0f920d0
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: d1c1579
 
-# Customer Homepage Listing Management {#customer-homepage-listing-management | lines:447-464 | words:113}
+# Customer Homepage Listing Management {#customer-homepage-listing-management | lines:446-463 | words:113}
 > Customer homepage listings configuration.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 439d8ed
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: 4d19b9e
 
-# Inquiry Management {#inquiry-management | lines:466-481 | words:101}
+# Inquiry Management {#inquiry-management | lines:465-480 | words:101}
 > Inquiry management for vendors and customers.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: d5014ca
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: ada6c82
 
-# Website Static Content Management {#website-static-content-management | lines:483-505 | words:154}
+# Website Static Content Management {#website-static-content-management | lines:482-504 | words:154}
 > Static content management for website and vendor apps.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 1d01369
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: b731ebb
 
-# Blogs Management {#blogs-management | lines:507-511 | words:42}
+# Blogs Management {#blogs-management | lines:506-510 | words:42}
 > Blogs management requirements.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 40921bc
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: 00f9113
 
-# Categories Management {#categories-management | lines:513-517 | words:16}
+# Categories Management {#categories-management | lines:512-516 | words:16}
 > Adventure categories management.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: d09d00d
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: a0c96f3
 
-# Discounts, Offers and Coupons Management {#discounts-offers-coupons-management | lines:519-539 | words:303}
+# Discounts, Offers and Coupons Management {#discounts-offers-coupons-management | lines:518-538 | words:303}
 > Discounts, offers, and coupons management requirements.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 8817d35
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: fb7fb30
 
-# Payments Management {#payments-management | lines:541-556 | words:169}
+# Payments Management {#payments-management | lines:540-555 | words:169}
 > Vendor payment management and scheduling.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: d303b4f
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: 9ef4557
 
-# Add-Ons Management {#add-ons-management | lines:558-564 | words:89}
+# Add-Ons Management {#add-ons-management | lines:557-563 | words:89}
 > Central add-ons management.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: f6f9ad0
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: 1fa4626
 
-# Cancellation Policy Management {#cancellation-policy-management | lines:566-572 | words:68}
+# Cancellation Policy Management {#cancellation-policy-management | lines:565-571 | words:68}
 > Cancellation policy management in admin panel.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 5f5b35f
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: c89f8a0
 
-# Logging and Analytics Management {#logging-and-analytics-management | lines:574-580 | words:66}
+# Logging and Analytics Management {#logging-and-analytics-management | lines:573-579 | words:66}
 > Logging and analytics capture requirements.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 98220a0
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: c8f9d7b
 
-# Favorites and Preferences Management {#favorites-and-preferences-management | lines:582-586 | words:38}
+# Favorites and Preferences Management {#favorites-and-preferences-management | lines:581-585 | words:38}
 > Favorites and preferences list management.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 2fb1858
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: 4179e4f
 
-# Future Modules {#future-modules | lines:588-599 | words:85}
+# Future Modules {#future-modules | lines:587-598 | words:85}
 > Future modules listed for the admin portal.
-  Created: 2026-01-26 | Modified: 2026-01-26
-  Hash: 44bdfd2
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: 3b5240f
 
 
 ===CONTENT===

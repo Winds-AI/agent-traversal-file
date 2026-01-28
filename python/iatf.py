@@ -504,7 +504,7 @@ def rebuild_index(filepath: Path) -> bool:
         if header_end is None:
             # No existing INDEX, insert after header
             for i, line in enumerate(lines):
-                if line.strip().startswith(":::IATF/"):
+                if line.strip() == ":::IATF":
                     header_end = i + 1
                     # Skip metadata lines
                     while i + 1 < len(lines) and lines[i + 1].startswith("@"):
@@ -523,7 +523,7 @@ def rebuild_index(filepath: Path) -> bool:
         # Generate new INDEX (two-pass to adjust absolute line numbers)
         new_index = generate_index(sections, content_hash)
         original_span = index_end - header_end
-        new_span = 1 + len(new_index) + 1  # blank + index + blank
+        new_span = len(new_index) + 1  # index + blank
         line_delta = new_span - original_span
         if line_delta:
             for section in sections:
@@ -1023,8 +1023,8 @@ def validate_command(filepath: str) -> int:
         warnings = []
 
         # Check 1: Format declaration
-        if not lines[0].startswith(":::IATF/"):
-            errors.append("Missing format declaration (:::IATF/1.0)")
+        if lines[0].strip() != ":::IATF":
+            errors.append("Missing format declaration (:::IATF)")
         else:
             print("[OK] Format declaration found")
 

@@ -1,133 +1,133 @@
-:::IATF/1.0
+:::IATF
 @title: IATF Format Test Cases
 @purpose: Comprehensive test cases for IATF format validation and CLI commands
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-01-27T17:53:44Z -->
-<!-- Content-Hash: sha256:2ec1983 -->
+<!-- Generated: 2026-01-28T03:21:47Z -->
+<!-- Content-Hash: sha256:c030219 -->
 
-# Overview {#overview | lines:139-156 | words:61}
+# Overview {#overview | lines:138-155 | words:62}
 > Purpose and scope of the test suite.
-  Created: 2026-01-26 | Modified: 2026-01-27
-  Hash: e42f0b9
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: 6627aeb
 
-# Test Case Format {#test-case-format | lines:158-174 | words:54}
+# Test Case Format {#test-case-format | lines:157-173 | words:54}
 > Standard structure for test cases in this document.
-  Created: 2026-01-26 | Modified: 2026-01-27
-  Hash: 6b7a620
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: a8f6c8d
 
-# Header Tests {#header-tests | lines:176-199 | words:95}
+# Header Tests {#header-tests | lines:175-198 | words:89}
 > Header declaration and metadata validation.
-  Created: 2026-01-26 | Modified: 2026-01-27
-  Hash: ab39516
+  Created: 2026-01-26 | Modified: 2026-01-28
+  Hash: 2aea0e3
 
-# Index Delimiter Tests {#index-delimiter-tests | lines:201-229 | words:118}
+# Index Delimiter Tests {#index-delimiter-tests | lines:200-228 | words:118}
 > INDEX section delimiter and auto-generated markers.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: a4def8b
 
-# Index Entry Tests {#index-entry-tests | lines:231-259 | words:130}
+# Index Entry Tests {#index-entry-tests | lines:230-258 | words:130}
 > Index entry syntax, hierarchy, and metadata.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: 24f0a37
 
-# Hierarchy Tests {#hierarchy-tests | lines:261-279 | words:80}
+# Hierarchy Tests {#hierarchy-tests | lines:260-278 | words:80}
 > Hierarchy rules and nesting limits.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: 53d0298
 
-# Content Delimiter Tests {#content-delimiter-tests | lines:281-299 | words:70}
+# Content Delimiter Tests {#content-delimiter-tests | lines:280-298 | words:70}
 > CONTENT delimiter and placement validation.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: c5f64dd
 
-# Content Block Tests {#content-block-tests | lines:301-324 | words:109}
+# Content Block Tests {#content-block-tests | lines:300-323 | words:109}
 > Content block rules and nesting behavior.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: ded7ca9
 
-# Metadata Annotation Tests {#annotation-tests | lines:326-335 | words:28}
+# Metadata Annotation Tests {#annotation-tests | lines:325-334 | words:28}
 > Summary extraction into INDEX.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: 9581ce8
 
-# Modification Tracking Tests {#modification-tracking-tests | lines:337-355 | words:71}
+# Modification Tracking Tests {#modification-tracking-tests | lines:336-354 | words:71}
 > Hashing and Modified date behavior.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: 35ba344
 
-# Line Numbering Tests {#line-number-tests | lines:357-375 | words:72}
+# Line Numbering Tests {#line-number-tests | lines:356-374 | words:72}
 > Absolute line numbering rules.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: b78e7b9
 
-# Identifier Tests {#id-format-tests | lines:377-395 | words:59}
+# Identifier Tests {#id-format-tests | lines:376-394 | words:59}
 > ID format and uniqueness rules.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: 00bfca9
 
-# Escaping Tests {#escaping-tests | lines:397-410 | words:51}
+# Escaping Tests {#escaping-tests | lines:396-409 | words:51}
 > Escaping rules and current limitations.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: 2ce9847
 
-# Whitespace Tests {#whitespace-tests | lines:412-425 | words:45}
+# Whitespace Tests {#whitespace-tests | lines:411-424 | words:45}
 > Whitespace rules and formatting behavior.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: 531d901
 
-# Encoding Tests {#encoding-tests | lines:427-440 | words:39}
+# Encoding Tests {#encoding-tests | lines:426-439 | words:39}
 > UTF-8 and line endings.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: 6fccbd3
 
-# Extension and MIME Tests {#extension-mime-tests | lines:442-455 | words:46}
+# Extension and MIME Tests {#extension-mime-tests | lines:441-454 | words:46}
 > File extension and MIME type guidance.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: a46942c
 
-# Validation Level Tests {#validation-level-tests | lines:457-480 | words:89}
+# Validation Level Tests {#validation-level-tests | lines:456-479 | words:89}
 > Validation level behaviors.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: f2f8df9
 
-# Index Staleness Tests {#staleness-tests | lines:482-495 | words:45}
+# Index Staleness Tests {#staleness-tests | lines:481-494 | words:45}
 > Index staleness detection and warnings.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: 6f8a3f2
 
-# Minimal File Tests {#minimal-file-tests | lines:497-510 | words:48}
+# Minimal File Tests {#minimal-file-tests | lines:496-509 | words:48}
 > Minimal file examples and rebuild behavior.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: b2a2651
 
-# Section Reference Tests {#reference-tests | lines:512-540 | words:134}
+# Section Reference Tests {#reference-tests | lines:511-539 | words:134}
 > Cross-reference syntax and validation.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: b1a5ded
 
-# Graph Command Tests {#graph-command-tests | lines:542-570 | words:120}
+# Graph Command Tests {#graph-command-tests | lines:541-569 | words:120}
 > Graph command behavior and error cases.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: 44b7fc9
 
-# Index Command Tests {#index-command-tests | lines:572-585 | words:47}
+# Index Command Tests {#index-command-tests | lines:571-584 | words:47}
 > Index command output behavior.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: 0bfc2e3
 
-# Rebuild Command Tests {#rebuild-command-tests | lines:587-600 | words:49}
+# Rebuild Command Tests {#rebuild-command-tests | lines:586-599 | words:49}
 > Rebuild command behavior.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: 5f07d7f
 
-# Validate Command Tests {#validate-command-tests | lines:602-615 | words:44}
+# Validate Command Tests {#validate-command-tests | lines:601-614 | words:44}
 > Validate command behavior.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: c9036aa
 
-# Watch Command Tests {#watch-command-tests | lines:617-630 | words:44}
+# Watch Command Tests {#watch-command-tests | lines:616-629 | words:44}
 > Watch and unwatch behavior.
   Created: 2026-01-26 | Modified: 2026-01-27
   Hash: baaeca6
@@ -139,7 +139,7 @@
 @summary: Purpose and scope of the test suite.
 # Overview
 
-This file defines format and CLI test cases for IATF v1.0.
+This file defines format and CLI test cases for current iatf version.
 It is a human-readable checklist intended for both implementations.
 
 Scope:
@@ -169,7 +169,7 @@ Example:
 - ID: HEADER-01
 - Purpose: Validate header format declaration
 - Steps: Open file, verify first line
-- Expected: First line matches :::IATF/1.0
+- Expected: First line matches :::IATF
 {/test-case-format}
 
 {#header-tests}
@@ -179,7 +179,7 @@ Example:
 - ID: HEADER-01
   Purpose: File starts with format declaration
   Steps: Open file, read line 1
-  Expected: Line 1 is exactly :::IATF/1.0
+  Expected: Line 1 is exactly :::IATF
 
 - ID: HEADER-02
   Purpose: Reject missing format declaration
@@ -194,7 +194,7 @@ Example:
 - ID: HEADER-04
   Purpose: Reject or ignore custom metadata fields
   Steps: Add @owner: Team A (non-reserved field)
-  Expected: Validation fails or field is ignored (not preserved)
+  Expected: Validation fails
 {/header-tests}
 
 {#index-delimiter-tests}

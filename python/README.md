@@ -103,7 +103,7 @@ validate_command()       # Validation
 ```bash
 # Create test file
 cat > test.iatf <<'EOF'
-:::IATF/1.0
+:::IATF
 @title: Test
 
 ===CONTENT===

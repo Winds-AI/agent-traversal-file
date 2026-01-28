@@ -967,7 +967,7 @@ benchmarks/
 ### Benchmark IATF file Format
 
 ```IATF
-:::IATF/1.0
+:::IATF
 @title: iatf Benchmark Results
 @date: 2026-01-22
 @benchmark-version: 1.0.0
@@ -1060,7 +1060,7 @@ docs/api.iatf
 ### Instructions IATF file
 
 ```IATF
-:::IATF/1.0
+:::IATF
 @title: IATF format Instructions for AI Models
 @purpose: Guide for AI models on how to navigate IATF files
 @created: 2026-01-22

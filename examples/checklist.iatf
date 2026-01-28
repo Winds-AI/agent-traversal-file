@@ -1,23 +1,23 @@
-:::IATF/1.0
+:::IATF
 @title: Checklist Example
 @purpose: Manual test coverage for lists, code blocks, and metadata
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-01-27T17:54:26Z -->
+<!-- Generated: 2026-01-28T03:21:47Z -->
 <!-- Content-Hash: sha256:fb525df -->
 
-# Setup Checklist {#setup | lines:29-41 | words:48}
+# Setup Checklist {#setup | lines:28-40 | words:48}
 > Setup checklist for local testing
   Created: 2025-01-20 | Modified: 2026-01-26
   Hash: 6064408
 
-# Workflow {#workflow | lines:43-58 | words:38}
+# Workflow {#workflow | lines:42-57 | words:38}
 > Typical workflow with commands
   Created: 2025-01-20 | Modified: 2026-01-26
   Hash: fa8531a
 
-# Acceptance Criteria {#acceptance | lines:60-67 | words:21}
+# Acceptance Criteria {#acceptance | lines:59-66 | words:21}
 > Acceptance criteria for manual testing
   Created: 2025-01-20 | Modified: 2026-01-26
   Hash: 14743a8

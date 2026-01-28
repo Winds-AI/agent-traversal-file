@@ -63,12 +63,11 @@ An IATF file consists of three parts in order:
 The file MUST begin with a format declaration:
 
 ```
-:::IATF/1.0
+:::IATF
 ```
 
 - `:::` is the header marker
 - `IATF` is the format identifier
-- `/1.0` is the version number
 
 ### 2.2 Metadata Fields
 
@@ -264,7 +263,7 @@ def hello():
 
 Line numbers in the INDEX are **absolute file line numbers** (1-indexed from start of file):
 
-1. Line 1 is the first line of the file (`:::IATF/1.0`)
+1. Line 1 is the first line of the file (`:::IATF`)
 2. Line numbers in INDEX refer to absolute positions in the file
 3. Line ranges include section markers `{#id}` and `{/id}`
 4. Blank lines are counted
@@ -275,7 +274,7 @@ Line numbers in the INDEX are **absolute file line numbers** (1-indexed from sta
 ### 5.2 Example
 
 ```
-:::IATF/1.0                          # File line 1
+:::IATF                          # File line 1
 @title: Example                     # File line 2
                                     # File line 3
 ===INDEX===                         # File line 4
@@ -389,7 +388,7 @@ VSCode users can install the official IATF extension for syntax highlighting:
 - **Repository:** [vscode/iatf](https://github.com/Winds-AI/agent-traversal-file/tree/main/vscode/iatf)
 
 **Features:**
-- Syntax highlighting for format declarations (`:::IATF/1.0`)
+- Syntax highlighting for format declarations (`:::IATF`)
 - Section delimiters (`===INDEX===`, `===CONTENT===`)
 - Index entries with headings, IDs, line ranges, and metadata
 - Content blocks (`{#id}`, `{/id}`)
@@ -442,7 +441,7 @@ Tools should verify INDEX matches CONTENT by:
 ### 13.1 Hand-Written (Before Indexing)
 
 ```
-:::IATF/1.0
+:::IATF
 
 ===CONTENT===
 
@@ -455,7 +454,7 @@ Content here.
 ### 13.2 After Auto-Indexing
 
 ```
-:::IATF/1.0
+:::IATF
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
@@ -689,7 +688,7 @@ def parse_graph_output(output: str) -> dict[str, list[str]]:
 ### 14.1 Source File (What You Edit)
 
 ```
-:::IATF/1.0
+:::IATF
 @title: REST API Guide
 
 ===CONTENT===
@@ -784,7 +783,7 @@ Batch operations available at `/resources/batch`.
 ### 14.2 After Running `iatf rebuild`
 
 ```
-:::IATF/1.0
+:::IATF
 @title: REST API Guide
 
 ===INDEX===

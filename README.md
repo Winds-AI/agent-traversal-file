@@ -172,7 +172,7 @@ sudo rm /usr/local/bin/iatf
 **Create an IATF file:**
 
 ```
-:::IATF/1.0
+:::IATF
 @title: My Documentation
 
 ===CONTENT===
@@ -331,7 +331,7 @@ iatf validate document.iatf
 ```
 
 **Checks:**
-- Has format declaration (`:::IATF/1.0`)
+- Has format declaration (`:::IATF`)
 - Has INDEX section (warns if missing)
 - Has CONTENT section
 - INDEX/CONTENT sections are unique and ordered correctly
@@ -412,7 +412,7 @@ See [SPECIFICATION.md](SPECIFICATION.md) for complete details.
 ### Minimal Example
 
 ```
-:::IATF/1.0
+:::IATF
 @title: Document Title
 
 ===INDEX===
