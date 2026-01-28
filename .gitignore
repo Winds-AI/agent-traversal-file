@@ -5,7 +5,9 @@ dist/
 *.so
 *.dylib
 iatf
-iatf-*
+iatf-linux*
+iatf-darwin*
+iatf-windows*
 
 # Go
 go/iatf
