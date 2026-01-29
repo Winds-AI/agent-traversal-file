@@ -210,6 +210,8 @@ Actual content starts here...
 **Reserved annotations**:
 - `@summary:` - Description shown in index (can span multiple lines if continued with indentation)
 
+Only `@summary:` is supported for content block annotations. Custom annotations (e.g., `@created`, `@modified`, `@author`) are not allowed and will be ignored or rejected by implementations.
+
 **Automatic Modification Tracking**:
 When `iatf rebuild` runs, it automatically updates section modification data stored in the INDEX:
 1. Computes a hash of the actual content (excluding metadata annotations)

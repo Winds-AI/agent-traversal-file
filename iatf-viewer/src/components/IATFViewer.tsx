@@ -25,7 +25,7 @@ export function IATFViewer({ doc }: IATFViewerProps) {
         {doc.metadata.title && <h1 className="doc-title">{doc.metadata.title}</h1>}
         <div className="doc-meta">
           <span className="meta-item">
-            <strong>Format:</strong> IATF v{doc.metadata.version || 'unknown'}
+            <strong>Format:</strong> IATF{doc.metadata.version ? ` v${doc.metadata.version}` : ''}
           </span>
           {doc.indexGenerated && (
             <span className="meta-item">
@@ -126,6 +126,7 @@ function simpleMarkdown(text: string): string {
   const lines = text.split('\n');
   const result: string[] = [];
   let inCodeBlock = false;
+  let codeBlockStartLine = -1;
   let codeContent: string[] = [];
   let inList = false;
   let listItems: string[] = [];
@@ -173,10 +174,12 @@ function simpleMarkdown(text: string): string {
         result.push('<pre><code>' + escapeHtml(codeContent.join('\n')) + '</code></pre>');
         codeContent = [];
         inCodeBlock = false;
+        codeBlockStartLine = -1;
       } else {
         flushList();
         flushTable();
         inCodeBlock = true;
+        codeBlockStartLine = i;
       }
       continue;
     }
@@ -220,9 +223,8 @@ function simpleMarkdown(text: string): string {
       flushList();
     }
 
-    // Empty line
+    // Empty line - skip it (spacing handled by paragraph margins)
     if (line.trim() === '') {
-      result.push('<br/>');
       continue;
     }
 
@@ -233,25 +235,39 @@ function simpleMarkdown(text: string): string {
   flushList();
   flushTable();
 
+  // Check for unclosed code block
+  if (inCodeBlock) {
+    result.push(
+      '<div class="warning-box">' +
+      '<strong>⚠️ Warning:</strong> Unclosed code block detected (started at line ' + (codeBlockStartLine + 1) + ')' +
+      '</div>'
+    );
+    result.push('<pre><code>' + escapeHtml(codeContent.join('\n')) + '</code></pre>');
+  }
+
   return result.join('\n');
 }
 
 function formatInline(text: string): string {
   let result = escapeHtml(text);
 
-  // Bold
-  result = result.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-
-  // Italic
-  result = result.replace(/\*(.+?)\*/g, '<em>$1</em>');
-
-  // Inline code
+  // Process in order to avoid nested issues:
+  // 1. Inline code first (to protect code from other formatting)
   result = result.replace(/`([^`]+)`/g, '<code>$1</code>');
 
-  // Links
+  // 2. Bold + Italic (***text***)
+  result = result.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+
+  // 3. Bold (**text**)
+  result = result.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+  // 4. Italic (*text*)
+  result = result.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+  // 5. Links
   result = result.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>');
 
-  // Section references {@section-id}
+  // 6. Section references {@section-id}
   result = result.replace(
     /\{@([\w-]+)\}/g,
     '<a href="#section-$1" class="section-ref">@$1</a>'

@@ -1,0 +1,123 @@
+{
+  "name": "IATF",
+  "scopeName": "source.iatf",
+  "patterns": [
+    {"include": "#headerSection"},
+    {"include": "#indexSection"},
+    {"include": "#contentSection"}
+  ],
+  "repository": {
+    "headerSection": {
+      "begin": "\\A",
+      "end": "(?=^===INDEX===|^===CONTENT===)",
+      "patterns": [
+        {"include": "#formatDeclaration"},
+        {"include": "#headerMetadata"}
+      ]
+    },
+    "formatDeclaration": {
+      "match": "^:::IATF\\/[0-9]+\\.[0-9]+$",
+      "name": "keyword.control.header.iatf"
+    },
+    "headerMetadata": {
+      "match": "^@([A-Za-z0-9_-]+)\\s*:\\s*(.*)$",
+      "name": "keyword.other.metadata.iatf"
+    },
+    "indexSection": {
+      "begin": "^===INDEX===",
+      "beginCaptures": {
+        "0": {"name": "keyword.control.section.iatf"}
+      },
+      "end": "(?=^===CONTENT===)",
+      "patterns": [
+        {"include": "#indexComments"},
+        {"include": "#indexEntry"},
+        {"include": "#indexSummary"},
+        {"include": "#indexTimestamps"},
+        {"include": "#indexHash"}
+      ]
+    },
+    "indexComments": {
+      "match": "^<!--.*-->$",
+      "name": "comment.block.iatf"
+    },
+    "indexEntry": {
+      "match": "^(#{1,6})\\s+([^\\{]+)\\s+(\\{#([A-Za-z][\\w-]{0,63})\\s*\\|\\s*lines:(\\d+-\\d+)\\s*\\|\\s*words:(\\d+)\\s*\\})\\s*$",
+      "captures": {
+        "1": {"name": "markup.heading.marker.iatf"},
+        "2": {"name": "markup.heading.title.iatf"},
+        "3": {"name": "meta.brace.iatf"},
+        "4": {"name": "entity.name.section.iatf"},
+        "5": {"name": "constant.numeric.range.iatf"},
+        "6": {"name": "constant.numeric.iatf"}
+      }
+    },
+    "indexSummary": {
+      "match": "^>\\s+.*$",
+      "name": "markup.quote.iatf"
+    },
+    "indexTimestamps": {
+      "match": "^\\s*(Created|Modified):\\s*([0-9]{4}-[0-9]{2}-[0-9]{2})(.*)$",
+      "captures": {
+        "1": {"name": "keyword.other.timestamp.iatf"},
+        "2": {"name": "constant.numeric.date.iatf"},
+        "3": {"name": "string.unquoted.iatf"}
+      }
+    },
+    "indexHash": {
+      "match": "^\\s*(Hash):\\s*([a-f0-9]+)\\s*$",
+      "captures": {
+        "1": {"name": "keyword.other.hash.iatf"},
+        "2": {"name": "constant.other.hash.iatf"}
+      }
+    },
+    "contentSection": {
+      "begin": "^===CONTENT===",
+      "beginCaptures": {
+        "0": {"name": "keyword.control.section.iatf"}
+      },
+      "end": "\\z",
+      "patterns": [
+        {"include": "#contentBlock"},
+        {"include": "#contentReference"}
+      ]
+    },
+    "contentBlock": {
+      "begin": "^\\{#([A-Za-z][\\w-]{0,63})\\}$",
+      "beginCaptures": {
+        "0": {"name": "meta.section.block.iatf"},
+        "1": {"name": "entity.name.section.iatf"}
+      },
+      "end": "^\\{\\/([A-Za-z][\\w-]{0,63})\\}$",
+      "endCaptures": {
+        "0": {"name": "meta.section.block.iatf"},
+        "1": {"name": "entity.name.section.iatf"}
+      },
+      "patterns": [
+        {"include": "#contentBlock"},
+        {"include": "#fencedCode"},
+        {"include": "#contentAnnotation"},
+        {"include": "#contentReference"}
+      ]
+    },
+    "contentAnnotation": {
+      "match": "^@summary:\\s*.*$",
+      "name": "keyword.other.metadata.iatf"
+    },
+    "contentReference": {
+      "match": "\\{@[A-Za-z][\\w-]{0,63}\\}",
+      "name": "constant.other.reference.iatf"
+    },
+    "fencedCode": {
+      "begin": "^```$",
+      "beginCaptures": {
+        "0": {"name": "markup.fenced_code.block.iatf"}
+      },
+      "end": "^```$",
+      "endCaptures": {
+        "0": {"name": "markup.fenced_code.block.iatf"}
+      },
+      "patterns": []
+    }
+  }
+}

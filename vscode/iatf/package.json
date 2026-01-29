@@ -1,0 +1,192 @@
+{
+  "name": "iatf",
+  "displayName": "IATF",
+  "description": "Syntax highlighting for IATF files",
+  "license": "MIT",
+  "version": "0.0.5",
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:iatf"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Winds-AI/agent-traversal-file.git",
+    "directory": "vscode/iatf"
+  },
+  "files": [
+    "CHANGELOG.md",
+    "extension.js",
+    "LICENSE",
+    "README.md",
+    "language-configuration.json",
+    "package.json",
+    "syntaxes/iatf.tmLanguage.json"
+  ],
+  "publisher": "Winds-AI",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "keywords": [
+    "iatf",
+    "indexed-documentation",
+    "ai-agents",
+    "agent-docs",
+    "agent-navigation",
+    "auto-indexing",
+    "section-index",
+    "knowledge-files"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "iatf",
+        "aliases": [
+          "IATF"
+        ],
+        "extensions": [
+          ".iatf"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "iatf",
+        "scopeName": "source.iatf",
+        "path": "./syntaxes/iatf.tmLanguage.json"
+      }
+    ],
+    "configurationDefaults": {
+      "[iatf]": {
+        "editor.tokenColorCustomizations": {
+          "textMateRules": [
+            {
+              "scope": "keyword.control.header.iatf",
+              "settings": {
+                "foreground": "#C586C0",
+                "fontStyle": "bold"
+              }
+            },
+            {
+              "scope": "keyword.control.section.iatf",
+              "settings": {
+                "foreground": "#C586C0",
+                "fontStyle": "bold"
+              }
+            },
+            {
+              "scope": "keyword.other.metadata.iatf",
+              "settings": {
+                "foreground": "#9CDCFE"
+              }
+            },
+            {
+              "scope": "markup.heading.marker.iatf",
+              "settings": {
+                "foreground": "#569CD6",
+                "fontStyle": "bold"
+              }
+            },
+            {
+              "scope": "markup.heading.title.iatf",
+              "settings": {
+                "foreground": "#DCDCAA",
+                "fontStyle": "bold"
+              }
+            },
+            {
+              "scope": "entity.name.section.iatf",
+              "settings": {
+                "foreground": "#DCDCAA"
+              }
+            },
+            {
+              "scope": "constant.numeric.range.iatf",
+              "settings": {
+                "foreground": "#B5CEA8"
+              }
+            },
+            {
+              "scope": "constant.numeric.iatf",
+              "settings": {
+                "foreground": "#B5CEA8"
+              }
+            },
+            {
+              "scope": "constant.numeric.date.iatf",
+              "settings": {
+                "foreground": "#B5CEA8"
+              }
+            },
+            {
+              "scope": "markup.quote.iatf",
+              "settings": {
+                "foreground": "#6A9955",
+                "fontStyle": "italic"
+              }
+            },
+            {
+              "scope": "keyword.other.timestamp.iatf",
+              "settings": {
+                "foreground": "#C586C0"
+              }
+            },
+            {
+              "scope": "keyword.other.hash.iatf",
+              "settings": {
+                "foreground": "#C586C0"
+              }
+            },
+            {
+              "scope": "constant.other.hash.iatf",
+              "settings": {
+                "foreground": "#4EC9B0"
+              }
+            },
+            {
+              "scope": "meta.section.block.iatf",
+              "settings": {
+                "foreground": "#808080"
+              }
+            },
+            {
+              "scope": "constant.other.reference.iatf",
+              "settings": {
+                "foreground": "#4FC1FF",
+                "fontStyle": "underline"
+              }
+            },
+            {
+              "scope": "markup.fenced_code.block.iatf",
+              "settings": {
+                "foreground": "#CE9178"
+              }
+            },
+            {
+              "scope": "comment.block.iatf",
+              "settings": {
+                "foreground": "#6A9955",
+                "fontStyle": "italic"
+              }
+            },
+            {
+              "scope": "meta.brace.iatf",
+              "settings": {
+                "foreground": "#808080"
+              }
+            },
+            {
+              "scope": "string.unquoted.iatf",
+              "settings": {
+                "foreground": "#CE9178"
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

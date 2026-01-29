@@ -4,7 +4,7 @@ dist/
 *.dll
 *.so
 *.dylib
-iatf
+/iatf
 iatf-linux*
 iatf-darwin*
 iatf-windows*
@@ -15,30 +15,6 @@ go/iatf
 *.out
 go.sum
 !go/go.sum
-
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-*.pyc
 
 # Installer build artifacts
 installers/windows/*.msi
@@ -69,7 +45,6 @@ installers/linux/iatf-tools_*/
 *.swp
 *.swo
 *~
-.DS_Store
 
 # AI Code Tools
 opencode.jsonc
