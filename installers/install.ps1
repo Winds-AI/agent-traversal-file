@@ -10,7 +10,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 # Configuration
-$RepoOwner = if ($env:IATF_REPO_OWNER) { $env:IATF_REPO_OWNER } else { "chadrwalters" }
+$RepoOwner = if ($env:IATF_REPO_OWNER) { $env:IATF_REPO_OWNER } else { "Winds-AI" }
 $RepoName = if ($env:IATF_REPO_NAME) { $env:IATF_REPO_NAME } else { "agent-traversal-file" }
 $GitHubRepo = "$RepoOwner/$RepoName"
 

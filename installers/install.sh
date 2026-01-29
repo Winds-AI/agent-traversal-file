@@ -6,7 +6,7 @@
 set -e
 
 # Configuration
-REPO_OWNER="${IATF_REPO_OWNER:-chadrwalters}"
+REPO_OWNER="${IATF_REPO_OWNER:-Winds-AI}"
 REPO_NAME="${IATF_REPO_NAME:-agent-traversal-file}"
 GITHUB_REPO="${REPO_OWNER}/${REPO_NAME}"
 INSTALL_DIR="${IATF_INSTALL_DIR:-/usr/local/bin}"

@@ -66,17 +66,17 @@ Run this one-line command to download and install automatically:
 
 **Linux / macOS:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chadrwalters/agent-traversal-file/main/installers/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/installers/install.sh | sudo bash
 ```
 
 **Windows (PowerShell as Administrator):**
 ```powershell
-irm https://raw.githubusercontent.com/chadrwalters/agent-traversal-file/main/installers/install.ps1 | iex
+irm https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/installers/install.ps1 | iex
 ```
 
 **Manual Installation:**
 
-Visit [GitHub Releases](https://github.com/chadrwalters/agent-traversal-file/releases/latest) to download the binary for your platform:
+Visit [GitHub Releases](https://github.com/Winds-AI/agent-traversal-file/releases/latest) to download the binary for your platform:
 
 - Windows: `iatf-windows-amd64.exe`
 - macOS Intel: `iatf-darwin-amd64`

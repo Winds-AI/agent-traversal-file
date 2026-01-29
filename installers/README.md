@@ -7,18 +7,18 @@ This directory contains installation scripts for the IATF CLI tool.
 ### Linux/macOS
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chadrwalters/agent-traversal-file/main/installers/install.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/installers/install.sh | sudo bash
 ```
 
 **User-local install (no sudo):**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/chadrwalters/agent-traversal-file/main/installers/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/installers/install.sh | bash
 ```
 
 ### Windows
 
 ```powershell
-irm https://raw.githubusercontent.com/chadrwalters/agent-traversal-file/main/installers/install.ps1 | iex
+irm https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/installers/install.ps1 | iex
 ```
 
 **Note:** Run PowerShell as Administrator for system-wide installation.
@@ -40,12 +40,12 @@ irm https://raw.githubusercontent.com/chadrwalters/agent-traversal-file/main/ins
 **Environment variables:**
 - `IATF_VERSION`: Specify version (default: latest)
 - `IATF_INSTALL_DIR`: Override install directory
-- `IATF_REPO_OWNER`: Override GitHub repo owner (default: chadrwalters)
+- `IATF_REPO_OWNER`: Override GitHub repo owner (default: Winds-AI)
 - `IATF_REPO_NAME`: Override GitHub repo name (default: agent-traversal-file)
 
 **Example with custom version:**
 ```bash
-IATF_VERSION=v1.0.0 curl -fsSL https://raw.githubusercontent.com/chadrwalters/agent-traversal-file/main/installers/install.sh | sudo bash
+IATF_VERSION=v1.0.0 curl -fsSL https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/installers/install.sh | sudo bash
 ```
 
 ### `install.ps1` (Windows)
@@ -64,17 +64,17 @@ IATF_VERSION=v1.0.0 curl -fsSL https://raw.githubusercontent.com/chadrwalters/ag
 - `-Force`: Overwrite existing installation without prompting
 
 **Environment variables:**
-- `IATF_REPO_OWNER`: Override GitHub repo owner (default: chadrwalters)
+- `IATF_REPO_OWNER`: Override GitHub repo owner (default: Winds-AI)
 - `IATF_REPO_NAME`: Override GitHub repo name (default: agent-traversal-file)
 
 **Example with custom version:**
 ```powershell
-irm https://raw.githubusercontent.com/chadrwalters/agent-traversal-file/main/installers/install.ps1 | iex -Args "-Version v1.0.0"
+irm https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/installers/install.ps1 | iex -Args "-Version v1.0.0"
 ```
 
 ## Manual Installation
 
-Download the binary for your platform from [GitHub Releases](https://github.com/chadrwalters/agent-traversal-file/releases):
+Download the binary for your platform from [GitHub Releases](https://github.com/Winds-AI/agent-traversal-file/releases):
 
 - Windows: `iatf-windows-amd64.exe`
 - macOS Intel: `iatf-darwin-amd64`
