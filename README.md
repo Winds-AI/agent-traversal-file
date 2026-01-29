@@ -515,16 +515,7 @@ Team wiki with 100 sections
 
 ## Development
 
-### Python Implementation
-
-```bash
-cd python
-python iatf.py rebuild document.iatf
-```
-
-See [python/README.md](python/README.md) for details.
-
-### Go Implementation
+### Building from Source
 
 ```bash
 cd go
@@ -535,19 +526,23 @@ See [go/README.md](go/README.md) for details.
 
 ### Building from Source
 
+**Prerequisites:** Go 1.21+
+
 ```bash
-# Ensure Go is in your PATH
+# Clone the repository
+git clone https://github.com/Winds-AI/agent-traversal-file.git
+cd agent-traversal-file
 
 # Build for your platform
+cd go
 go build -o iatf main.go
 
 # Run commands
-./iatf rebuild document.iatf
-./iatf validate document.iatf
-
-# Cross-compile for all platforms
-./build.sh
+./iatf rebuild ../examples/simple.iatf
+./iatf validate ../examples/simple.iatf
 ```
+
+**For releases:** We use [GoReleaser](https://goreleaser.com). See [GORELEASER_MIGRATION.md](GORELEASER_MIGRATION.md) for details.
 
 ---
 
