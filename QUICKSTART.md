@@ -40,7 +40,7 @@ For better syntax highlighting when editing IATF files in VSCode:
 ### 1. Create a file: `my-doc.iatf`
 
 ```
-:::IATF/1.0
+:::IATF
 @title: My First IATF Document
 
 ===CONTENT===

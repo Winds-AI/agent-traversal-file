@@ -1,4 +1,4 @@
-﻿package main
+package main
 
 import (
 	"bufio"
@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-const VERSION = "1.0.0"
+var Version = "dev" // Set at build time via ldflags
 
 type Section struct {
 	ID           string
@@ -216,7 +216,7 @@ func main() {
 		printUsage()
 		os.Exit(0)
 	case "--version", "-v", "version":
-		fmt.Printf("IATF Tools v%s\n", VERSION)
+		fmt.Printf("IATF Tools v%s\n", Version)
 		os.Exit(0)
 	case "rebuild":
 		if len(os.Args) < 3 {
@@ -326,7 +326,7 @@ Examples:
     iatf read document.iatf --title "Introduction"
 
 For more information, visit: https://github.com/Winds-AI/agent-traversal-file
-`, VERSION)
+`, Version)
 }
 
 func parseContentSection(lines []string, contentStart int) []Section {
@@ -501,7 +501,6 @@ func updateContentMetadata(lines []string, contentStart int, sections []Section)
 
 	// Track current section being processed
 	var currentSectionID string
-	var metadataEndLine int
 
 	openPattern := regexp.MustCompile(`^\{#([a-zA-Z][a-zA-Z0-9_-]*)\}`)
 	closePattern := regexp.MustCompile(`^\{/([a-zA-Z][a-zA-Z0-9_-]*)\}`)
@@ -513,7 +512,6 @@ func updateContentMetadata(lines []string, contentStart int, sections []Section)
 		// Opening tag
 		if match := openPattern.FindStringSubmatch(line); match != nil {
 			currentSectionID = match[1]
-			metadataEndLine = 0
 			i++
 			continue
 		}
@@ -525,48 +523,14 @@ func updateContentMetadata(lines []string, contentStart int, sections []Section)
 			continue
 		}
 
-		// Process metadata lines
+		// Skip metadata lines in CONTENT blocks
+		// Note: @modified and @hash are not valid in CONTENT, they are only stored in INDEX
+		// Only @summary is valid in CONTENT blocks
 		if currentSectionID != "" {
-			if section, ok := sectionMap[currentSectionID]; ok {
-				// Check if we're still in metadata
-				if strings.HasPrefix(line, "@") {
-					if strings.HasPrefix(line, "@modified:") {
-						// Update @modified
-						lines[i] = fmt.Sprintf("@modified: %s", section.Modified)
-					} else if strings.HasPrefix(line, "@hash:") {
-						// Update @hash
-						lines[i] = fmt.Sprintf("@hash: %s", section.XHash)
-					}
-					i++
-					continue
-				} else if metadataEndLine == 0 {
-					// We've reached the end of metadata, insert missing fields if needed
-					metadataEndLine = i
-
-					// Check if @hash needs to be inserted
-					// Look back to see if we already have @hash
-					hasHash := false
-					for j := i - 1; j > contentStart; j-- {
-						if strings.HasPrefix(lines[j], fmt.Sprintf("{#%s}", currentSectionID)) {
-							break
-						}
-						if strings.HasPrefix(lines[j], "@hash:") {
-							hasHash = true
-							break
-						}
-					}
-
-					// Insert @hash if missing
-					if !hasHash && section.XHash != "" {
-						// Insert at current position
-						newLines := make([]string, len(lines)+1)
-						copy(newLines[:i], lines[:i])
-						newLines[i] = fmt.Sprintf("@hash: %s", section.XHash)
-						copy(newLines[i+1:], lines[i:])
-						lines = newLines
-						i++
-					}
-				}
+			if strings.HasPrefix(line, "@") {
+				// Skip metadata lines
+				i++
+				continue
 			}
 		}
 
@@ -717,7 +681,7 @@ func rebuildIndex(filepath string) error {
 	if headerEnd == -1 {
 		// No existing INDEX, insert after header
 		for i, line := range lines {
-			if strings.HasPrefix(strings.TrimSpace(line), ":::IATF/") {
+			if strings.TrimSpace(line) == ":::IATF" {
 				headerEnd = i + 1
 				// Skip metadata lines
 				for i+1 < len(lines) && strings.HasPrefix(lines[i+1], "@") {
@@ -753,7 +717,7 @@ func rebuildIndex(filepath string) error {
 	// Generate new INDEX (two-pass to adjust absolute line numbers)
 	newIndex := generateIndex(sections, contentHash)
 	originalSpan := indexEnd - headerEnd
-	newSpan := 1 + len(newIndex) + 1 // blank + index + blank
+	newSpan := len(newIndex) + 1 // index + blank
 	lineDelta := newSpan - originalSpan
 	if lineDelta != 0 {
 		for i := range sections {
@@ -1418,8 +1382,8 @@ func validateCommand(filepath string) int {
 	warnings := []string{}
 
 	// Check 1: Format declaration
-	if !strings.HasPrefix(lines[0], ":::IATF/") {
-		errors = append(errors, "Missing format declaration (:::IATF/1.0)")
+	if strings.TrimSpace(lines[0]) != ":::IATF" {
+		errors = append(errors, "Missing format declaration (:::IATF)")
 	} else {
 		fmt.Println("[OK] Format declaration found")
 	}

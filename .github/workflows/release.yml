@@ -1,141 +1,35 @@
-﻿name: Build and Release
+name: Release
 
 on:
   push:
     tags:
-      - 'v*'  # Trigger on version tags like v1.0.0
-  workflow_dispatch:  # Allow manual trigger
+      - 'v*'
+  workflow_dispatch:
 
 permissions:
-  contents: write  # Required to create releases and upload assets
+  contents: write
 
 jobs:
-  build:
-    name: Build Binaries
+  goreleaser:
+    name: Release with GoReleaser
     runs-on: ubuntu-latest
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+        with:
+          fetch-depth: 0  # Full history for changelog
+
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
           go-version: '1.21'
-      
-      - name: Get version
-        id: version
-        run: |
-          if [[ $GITHUB_REF == refs/tags/* ]]; then
-            echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-          else
-            echo "VERSION=dev-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          fi
-      
-      - name: Build for Windows (amd64)
-        run: |
-          cd go
-          mkdir -p ../dist
-          GOOS=windows GOARCH=amd64 go build -o ../dist/iatf-windows-amd64.exe -ldflags="-s -w" .
-      
-      - name: Build for macOS (amd64)
-        run: |
-          cd go
-          GOOS=darwin GOARCH=amd64 go build -o ../dist/iatf-darwin-amd64 -ldflags="-s -w" .
-      
-      - name: Build for macOS (arm64)
-        run: |
-          cd go
-          GOOS=darwin GOARCH=arm64 go build -o ../dist/iatf-darwin-arm64 -ldflags="-s -w" .
-      
-      - name: Build for Linux (amd64)
-        run: |
-          cd go
-          GOOS=linux GOARCH=amd64 go build -o ../dist/iatf-linux-amd64 -ldflags="-s -w" .
-      
-      - name: Build for Linux (arm64)
-        run: |
-          cd go
-          GOOS=linux GOARCH=arm64 go build -o ../dist/iatf-linux-arm64 -ldflags="-s -w" .
-      
-      - name: Generate checksums
-        run: |
-          cd dist
-          sha256sum * > SHA256SUMS
-          cat SHA256SUMS
-      
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v6
         with:
-          name: binaries
-          path: dist/
-  
-  release:
-    name: Create Release
-    needs: build
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
-    
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      
-      - name: Download artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: binaries
-          path: dist/
-      
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            dist/iatf-windows-amd64.exe
-            dist/iatf-darwin-amd64
-            dist/iatf-darwin-arm64
-            dist/iatf-linux-amd64
-            dist/iatf-linux-arm64
-            dist/SHA256SUMS
-          body: |
-            ## IATF Tools ${{ github.ref_name }}
-            
-            ### Installation
-            
-            **Windows:**
-            ```powershell
-            Invoke-WebRequest -Uri "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/iatf-windows-amd64.exe" -OutFile "iatf.exe"
-            ```
-            
-            **macOS (Intel):**
-            ```bash
-            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/iatf-darwin-amd64" -o iatf
-            chmod +x iatf
-            sudo mv iatf /usr/local/bin/
-            ```
-            
-            **macOS (Apple Silicon):**
-            ```bash
-            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/iatf-darwin-arm64" -o iatf
-            chmod +x iatf
-            sudo mv iatf /usr/local/bin/
-            ```
-            
-            **Linux:**
-            ```bash
-            curl -L "https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/iatf-linux-amd64" -o iatf
-            chmod +x iatf
-            sudo mv iatf /usr/local/bin/
-            ```
-            
-            ### What's New
-            
-            See [CHANGELOG.md](https://github.com/${{ github.repository }}/blob/${{ github.ref_name }}/CHANGELOG.md) for details.
-            
-            ### Checksums
-            
-            Download [SHA256SUMS](https://github.com/${{ github.repository }}/releases/download/${{ github.ref_name }}/SHA256SUMS) to verify binary integrity.
-          draft: false
-          prerelease: false
+          distribution: goreleaser
+          version: '~> v2'
+          args: release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-

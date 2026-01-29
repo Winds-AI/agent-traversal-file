@@ -1,6 +1,7 @@
 # IATF - Indexed Agent Traversable File
 
 **A file format designed for AI agents to efficiently navigate large documents.**
+[In Active Development so expect Breaking Changes]
 
 > **Abbreviation:** IATF (Indexed Agent Traversable File)
 
@@ -59,47 +60,35 @@ IATF provides a **self-indexing document format** with two regions:
 
 ### Installation
 
-**Quick Install (Scripts):**
+**Quick Install (Recommended):**
 
 Run this one-line command to download and install automatically:
 
 **Linux / macOS:**
 ```bash
-curl -fsSL https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/install/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/installers/install.sh | sudo bash
 ```
 
-**Windows (PowerShell):**
+**Windows (PowerShell as Administrator):**
 ```powershell
-irm https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/install/install.ps1 | iex
+irm https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/installers/install.ps1 | iex
 ```
 
-**Manual Installers:**
+**Manual Installation:**
 
-Visit [GitHub Releases](https://github.com/Winds-AI/agent-traversal-file/releases/latest) to download:
+Visit [GitHub Releases](https://github.com/Winds-AI/agent-traversal-file/releases/latest) to download the binary for your platform:
 
-**Installers:**
-- Windows: `.msi` file
-- macOS: `.pkg` file
-- Linux: `.deb` or `.rpm` file
-
-**Or download binary directly:**
 - Windows: `iatf-windows-amd64.exe`
 - macOS Intel: `iatf-darwin-amd64`
 - macOS Apple Silicon: `iatf-darwin-arm64`
 - Linux x86_64: `iatf-linux-amd64`
 - Linux ARM64: `iatf-linux-arm64`
 
-**VSCode Extension (Optional):**
-
-For syntax highlighting in VSCode, install the IATF extension:
-- **Marketplace:** [IATF Extension](https://open-vsx.org/extension/Winds-AI/iatf)
-- **Features:** Syntax highlighting for headers, sections, index entries, references, and code blocks
-
 **After downloading the binary:**
 
 **Linux/macOS:**
 ```bash
-# Navigate to download location (usually ~/Downloads)
+# Navigate to download location
 cd ~/Downloads
 
 # Make executable and install
@@ -107,17 +96,23 @@ chmod +x iatf-*
 sudo mv iatf-* /usr/local/bin/iatf
 
 # Verify installation
-iatf --help
+iatf --version
 ```
 
 **Windows:**
 1. Rename `iatf-windows-amd64.exe` to `iatf.exe`
-2. Move to `C:\\Program Files\\IATF Tools\\` (or any folder you prefer)
+2. Move to a folder (e.g., `C:\Program Files\IATF\`)
 3. Add that folder to your system PATH:
    - Search "Environment Variables" in Start menu
    - Edit "Path" under System variables
    - Add the folder path
    - Restart terminal
+
+**VSCode Extension (Optional):**
+
+For syntax highlighting in VSCode, install the IATF extension:
+- **Marketplace:** [IATF Extension](https://open-vsx.org/extension/Winds-AI/iatf)
+- **Features:** Syntax highlighting for headers, sections, index entries, references, and code blocks
 
 ### Usage
 
@@ -141,20 +136,30 @@ iatf validate document.iatf
 iatf graph document.iatf
 ```
 
+### Verify Installation
+
+```bash
+iatf --version
+iatf --help
+```
+
 ### Uninstalling
 
 **If installed via script:**
 
 ```bash
-# Linux/macOS
+# Linux/macOS (system-wide)
 sudo rm /usr/local/bin/iatf
-# Or if installed to ~/.local/bin
+
+# Linux/macOS (user-local)
 rm ~/.local/bin/iatf
 ```
 
 ```powershell
 # Windows (PowerShell as Administrator)
-Remove-Item "$env:LOCALAPPDATA\iatf\iatf.exe"
+Remove-Item "C:\Program Files\IATF\iatf.exe"
+# Or user-local
+Remove-Item "$env:USERPROFILE\bin\iatf.exe"
 ```
 
 **If installed manually:**
@@ -172,7 +177,7 @@ sudo rm /usr/local/bin/iatf
 **Create an IATF file:**
 
 ```
-:::IATF/1.0
+:::IATF
 @title: My Documentation
 
 ===CONTENT===
@@ -331,7 +336,7 @@ iatf validate document.iatf
 ```
 
 **Checks:**
-- Has format declaration (`:::IATF/1.0`)
+- Has format declaration (`:::IATF`)
 - Has INDEX section (warns if missing)
 - Has CONTENT section
 - INDEX/CONTENT sections are unique and ordered correctly
@@ -412,7 +417,7 @@ See [SPECIFICATION.md](SPECIFICATION.md) for complete details.
 ### Minimal Example
 
 ```
-:::IATF/1.0
+:::IATF
 @title: Document Title
 
 ===INDEX===
@@ -510,16 +515,7 @@ Team wiki with 100 sections
 
 ## Development
 
-### Python Implementation
-
-```bash
-cd python
-python iatf.py rebuild document.iatf
-```
-
-See [python/README.md](python/README.md) for details.
-
-### Go Implementation
+### Building from Source
 
 ```bash
 cd go
@@ -530,19 +526,23 @@ See [go/README.md](go/README.md) for details.
 
 ### Building from Source
 
+**Prerequisites:** Go 1.21+
+
 ```bash
-# Ensure Go is in your PATH
+# Clone the repository
+git clone https://github.com/Winds-AI/agent-traversal-file.git
+cd agent-traversal-file
 
 # Build for your platform
+cd go
 go build -o iatf main.go
 
 # Run commands
-./iatf rebuild document.iatf
-./iatf validate document.iatf
-
-# Cross-compile for all platforms
-./build.sh
+./iatf rebuild ../examples/simple.iatf
+./iatf validate ../examples/simple.iatf
 ```
+
+**For releases:** We use [GoReleaser](https://goreleaser.com). See [GORELEASER_MIGRATION.md](GORELEASER_MIGRATION.md) for details.
 
 ---
 

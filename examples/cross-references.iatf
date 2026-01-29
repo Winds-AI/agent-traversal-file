@@ -1,40 +1,40 @@
-:::IATF/1.0
+:::IATF
 @title: API Tutorial with Cross-References
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-01-26T14:44:25Z -->
-<!-- Content-Hash: sha256:ad7d2b8 -->
+<!-- Generated: 2026-01-28T03:21:47Z -->
+<!-- Content-Hash: sha256:179a3f3 -->
 
-# Introduction {#intro | lines:43-57 | words:57}
+# Introduction {#intro | lines:42-56 | words:57}
 > Getting started with the API
-  Created: 2025-01-23 | Modified: 2026-01-26
-  Hash: b4bade1
+  Created: 2025-01-23 | Modified: 2026-01-28
+  Hash: ceef441
 
-# Fundamentals {#fundamentals | lines:59-71 | words:47}
+# Fundamentals {#fundamentals | lines:58-70 | words:47}
 > Basic concepts and terminology
-  Created: 2025-01-23 | Modified: 2026-01-26
-  Hash: a1b6ea5
+  Created: 2025-01-23 | Modified: 2026-01-28
+  Hash: 14c1233
 
-# Quick Start {#quickstart | lines:73-95 | words:80}
+# Quick Start {#quickstart | lines:72-94 | words:80}
 > Your first API request in 5 minutes
-  Created: 2025-01-23 | Modified: 2026-01-26
-  Hash: 9ad2396
+  Created: 2025-01-23 | Modified: 2026-01-28
+  Hash: 87374d2
 
-# Error Handling {#error-handling | lines:97-119 | words:57}
+# Error Handling {#error-handling | lines:96-118 | words:57}
 > Understanding error responses and status codes
-  Created: 2025-01-23 | Modified: 2026-01-26
-  Hash: b75bf08
+  Created: 2025-01-23 | Modified: 2026-01-28
+  Hash: f650792
 
-# Rate Limiting {#rate-limiting | lines:121-140 | words:68}
+# Rate Limiting {#rate-limiting | lines:120-139 | words:68}
 > Understanding API rate limits
-  Created: 2025-01-23 | Modified: 2026-01-26
-  Hash: 702c83b
+  Created: 2025-01-23 | Modified: 2026-01-28
+  Hash: 17398e9
 
-# Troubleshooting Authentication {#troubleshooting-auth | lines:142-166 | words:98}
+# Troubleshooting Authentication {#troubleshooting-auth | lines:141-165 | words:98}
 > Common authentication issues and solutions
-  Created: 2025-01-23 | Modified: 2026-01-26
-  Hash: cd69c93
+  Created: 2025-01-23 | Modified: 2026-01-28
+  Hash: 4ead230
 
 
 ===CONTENT===

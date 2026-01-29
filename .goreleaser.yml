@@ -1,0 +1,94 @@
+# GoReleaser configuration for IATF
+# Documentation: https://goreleaser.com
+
+version: 2
+
+builds:
+  - id: iatf
+    main: .
+    dir: ./go
+    binary: iatf
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.Version={{.Version}}
+    # Exclude invalid combinations
+    ignore:
+      - goos: windows
+        goarch: arm64
+
+archives:
+  - id: iatf-archives
+    format: binary
+    name_template: >-
+      {{ .Binary }}-
+      {{- .Os }}-
+      {{- .Arch }}
+
+checksum:
+  name_template: 'SHA256SUMS'
+  algorithm: sha256
+
+changelog:
+  sort: asc
+  use: github
+  filters:
+    exclude:
+      - '^docs:'
+      - '^test:'
+      - '^chore:'
+      - '^ci:'
+  groups:
+    - title: Features
+      regexp: '^feat:'
+      order: 0
+    - title: Bug Fixes
+      regexp: '^fix:'
+      order: 1
+    - title: Others
+      order: 999
+
+release:
+  github:
+    owner: Winds-AI
+    name: agent-traversal-file
+  name_template: "{{.ProjectName}} {{.Version}}"
+  header: |
+    ## IATF Tools {{ .Tag }}
+
+    ### Quick Install
+
+    **Linux/macOS:**
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/installers/install.sh | sudo bash
+    ```
+
+    **Windows (PowerShell as Administrator):**
+    ```powershell
+    irm https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/installers/install.ps1 | iex
+    ```
+
+    ### Manual Installation
+
+    Download the appropriate binary for your platform below, make it executable, and add it to your PATH.
+
+    ---
+  footer: |
+    ---
+
+    ### Checksums
+
+    Download [SHA256SUMS](https://github.com/Winds-AI/agent-traversal-file/releases/download/{{ .Tag }}/SHA256SUMS) to verify integrity.
+
+    **Made with ❤️ for AI agents and the humans who work with them.**
+  extra_files:
+    - glob: ./installers/install.sh
+    - glob: ./installers/install.ps1

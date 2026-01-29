@@ -23,6 +23,12 @@ go build -o iatf main.go
 
 ### Cross-compile for all platforms
 
+**For releases**, we use GoReleaser (see `.goreleaser.yml`):
+```bash
+goreleaser release --snapshot --clean  # Test build
+```
+
+**For manual cross-compilation**:
 ```bash
 # Windows
 GOOS=windows GOARCH=amd64 go build -o iatf-windows-amd64.exe main.go

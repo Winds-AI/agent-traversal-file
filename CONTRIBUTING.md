@@ -32,16 +32,15 @@ Thank you for your interest in contributing to IATF Tools!
 3. **Make your changes**
 4. **Test your changes**:
    ```bash
-   # Python
-   python python/iatf.py rebuild examples/simple.iatf
-
-   # Go
+   # Build and test
    cd go
    go run main.go rebuild ../examples/simple.iatf
+   go run main.go validate ../examples/simple.iatf
    ```
-5. **Commit your changes**:
+5. **Commit your changes** (use conventional commits):
    ```bash
-   git commit -m "Add feature: description"
+   git commit -m "feat: add awesome feature"
+   git commit -m "fix: resolve validation bug"
    ```
 6. **Push to your fork**:
    ```bash
@@ -51,24 +50,23 @@ Thank you for your interest in contributing to IATF Tools!
 
 ### Code Style
 
-**Python:**
-- Follow PEP 8
-- Use type hints where appropriate
-- Add docstrings for functions
-- Keep functions focused and small
-
 **Go:**
 - Follow Go conventions (`gofmt`)
 - Use descriptive variable names
 - Add comments for exported functions
 - Keep functions focused and small
 
+**Commits:**
+- Use conventional commits: `feat:`, `fix:`, `docs:`, `chore:`, etc.
+- This helps auto-generate changelogs in releases
+
 ### Testing
 
 Before submitting:
-- Test on multiple platforms if possible
-- Test all 5 commands (rebuild, rebuild-all, watch, unwatch, validate)
-- Verify installers work (if modifying installer scripts)
+- Test on multiple platforms if possible (Linux, macOS, Windows)
+- Test all commands (rebuild, rebuild-all, watch, unwatch, validate, index, read)
+- Verify installation scripts work (if modifying `installers/install.sh` or `installers/install.ps1`)
+- Test with example files in `examples/` directory
 
 ### Areas We Need Help
 
