@@ -5,7 +5,8 @@ version: 2
 
 builds:
   - id: iatf
-    main: ./go
+    main: .
+    dir: ./go
     binary: iatf
     env:
       - CGO_ENABLED=0
@@ -26,18 +27,11 @@ builds:
 
 archives:
   - id: iatf-archives
-    format_overrides:
-      - goos: windows
-        format: binary
-      - goos: linux
-        format: binary
-      - goos: darwin
-        format: binary
+    format: binary
     name_template: >-
-      {{ .ProjectName }}-
+      {{ .Binary }}-
       {{- .Os }}-
       {{- .Arch }}
-      {{- if eq .Os "windows" }}.exe{{ end }}
 
 checksum:
   name_template: 'SHA256SUMS'
