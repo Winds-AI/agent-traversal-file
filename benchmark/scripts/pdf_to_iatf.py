@@ -60,9 +60,10 @@ def extract_pdf_text_pymupdf(pdf_path: str) -> list[dict]:
 
     pages = []
     doc = fitz.open(pdf_path)
-    for i, page in enumerate(doc, 1):
+    for i in range(len(doc)):
+        page = doc[i]
         text = page.get_text()
-        pages.append({"page_num": i, "text": text, "char_count": len(text)})
+        pages.append({"page_num": i + 1, "text": text, "char_count": len(text)})
     doc.close()
     return pages
 
@@ -164,52 +165,120 @@ Return ONLY valid JSON array, no other text."""
 
 
 def detect_sections_heuristic(pages: list[dict]) -> list[dict]:
-    """Fallback heuristic section detection without LLM."""
-    sections = []
-    current_section = None
+    """Fallback heuristic section detection without LLM.
 
-    # Common section headers in SEC filings
+    Focuses on finding actual section headers (ITEM 1, PART I, etc.)
+    that appear in SEC financial filings.
+    """
+    sections = []
+    seen_titles = set()  # Track unique section titles
+
+    # SEC filing section patterns - capture full title line
+    # Pattern format: (regex, level, title_extractor)
     major_headers = [
-        r"PART\s+[I]+",
-        r"ITEM\s+\d+",
-        r"TABLE\s+OF\s+CONTENTS",
-        r"BUSINESS",
-        r"RISK\s+FACTORS",
-        r"MANAGEMENT.S\s+DISCUSSION",
-        r"MD&A",
-        r"FINANCIAL\s+STATEMENTS",
-        r"NOTES\s+TO.*FINANCIAL",
-        r"BALANCE\s+SHEET",
-        r"INCOME\s+STATEMENT",
-        r"CASH\s+FLOW",
-        r"STATEMENT\s+OF\s+OPERATIONS",
-        r"CONSOLIDATED",
+        # ITEM patterns - capture full item title
+        (r"^(ITEM\s+\d+[A-Z]?\.?\s*[-–]?\s*[A-Za-z][A-Za-z\s,&']+)", 1),
+        # PART patterns
+        (r"^(PART\s+(?:I|II|III|IV|V|VI)\b[^-–\n]*)", 1),
+        # Financial statement headers
+        (r"^(CONSOLIDATED\s+STATEMENTS?\s+OF\s+[A-Z][A-Za-z\s]+)", 2),
+        (r"^(CONSOLIDATED\s+BALANCE\s+SHEETS?)", 2),
+        (r"^(NOTES\s+TO\s+(?:THE\s+)?CONSOLIDATED\s+FINANCIAL\s+STATEMENTS?)", 2),
+        # MD&A
+        (r"^(MANAGEMENT['']?S?\s+DISCUSSION\s+AND\s+ANALYSIS[^\n]*)", 1),
+        # Risk Factors
+        (r"^(RISK\s+FACTORS)\s*$", 1),
     ]
 
-    pattern = re.compile(
-        r"^[\s]*(" + "|".join(major_headers) + r")[\s:]*", re.IGNORECASE | re.MULTILINE
-    )
-
     for page in pages:
-        matches = pattern.finditer(page["text"])
-        for match in matches:
-            title = match.group(1).strip()
-            sections.append(
-                {
-                    "title": title,
-                    "level": 1,
-                    "start_page": page["page_num"],
-                    "end_page": page["page_num"],
-                    "summary": f"Section: {title}",
-                }
-            )
+        page_text = page["text"]
+        page_num = page["page_num"]
 
-    # Assign end pages
+        # Skip pages that look like TOC (many lines ending with page numbers)
+        lines = page_text.split("\n")
+        toc_indicators = sum(
+            1
+            for line in lines
+            if re.search(r"\.{2,}\s*\d+\s*$", line.strip())  # ....... 45
+            or re.search(r"\s{3,}\d+\s*$", line.strip())  # spaces then number
+        )
+        if toc_indicators > 5:  # Likely a TOC page
+            continue
+
+        for pattern_str, level in major_headers:
+            pattern = re.compile(pattern_str, re.IGNORECASE | re.MULTILINE)
+            matches = pattern.finditer(page_text)
+
+            for match in matches:
+                # Extract and clean the full title
+                title = match.group(1).strip()
+                title = re.sub(r"\s+", " ", title)
+                title = title.rstrip(".")
+
+                # Truncate very long titles
+                if len(title) > 80:
+                    title = title[:77] + "..."
+
+                # Create a normalized key for deduplication
+                title_key = re.sub(r"[^a-zA-Z0-9]", "", title.lower())[:30]
+                if title_key in seen_titles:
+                    continue
+                seen_titles.add(title_key)
+
+                sections.append(
+                    {
+                        "title": title,
+                        "level": level,
+                        "start_page": page_num,
+                        "end_page": page_num,
+                        "summary": f"SEC filing section: {title}",
+                        "_match_pos": match.start(),  # Track position for same-page ordering
+                    }
+                )
+
+    # Sort sections by page, then by position within page
+    sections.sort(key=lambda s: (s["start_page"], s.get("_match_pos", 0)))
+
+    # Remove internal tracking field
+    for sec in sections:
+        sec.pop("_match_pos", None)
+
+    # Assign end pages intelligently
     for i, section in enumerate(sections):
         if i < len(sections) - 1:
-            section["end_page"] = sections[i + 1]["start_page"] - 1
+            next_section = sections[i + 1]
+            if next_section["start_page"] > section["start_page"]:
+                # Next section starts on a later page
+                section["end_page"] = next_section["start_page"] - 1
+            else:
+                # Next section on same page - just use current page
+                section["end_page"] = section["start_page"]
         else:
-            section["end_page"] = pages[-1]["page_num"] if pages else 1
+            # Last section extends to end of document
+            section["end_page"] = (
+                pages[-1]["page_num"] if pages else section["start_page"]
+            )
+
+        # Ensure end_page >= start_page
+        section["end_page"] = max(section["end_page"], section["start_page"])
+
+    # If no sections found, create logical page-based chunks
+    if not sections:
+        total_pages = len(pages)
+        if total_pages > 0:
+            chunk_size = max(10, total_pages // 10)  # ~10 sections
+            for chunk_start in range(0, total_pages, chunk_size):
+                start_page = chunk_start + 1
+                end_page = min(chunk_start + chunk_size, total_pages)
+                sections.append(
+                    {
+                        "title": f"Document Pages {start_page}-{end_page}",
+                        "level": 1,
+                        "start_page": start_page,
+                        "end_page": end_page,
+                        "summary": f"Content from pages {start_page} to {end_page}",
+                    }
+                )
 
     return sections
 
@@ -231,24 +300,18 @@ def compute_content_hash(content: str) -> str:
 def build_iatf(
     title: str, sections: list[dict], pages: list[dict], metadata: dict
 ) -> str:
-    """Build IATF file content from sections."""
-    lines = []
+    """Build IATF file content from sections.
 
-    # Format declaration
-    lines.append(":::IATF/1.0")
-    lines.append("")
-
-    # INDEX section
-    lines.append("===INDEX===")
-    lines.append("")
-
+    The IATF format requires accurate line numbers in the INDEX.
+    We build the file in two passes:
+    1. First pass: Build content and calculate actual line numbers
+    2. Second pass: Build INDEX with correct line numbers
+    """
     # Track section IDs for uniqueness
     section_ids = {}
     section_data = []
 
-    current_line = len(lines) + 1  # Start after INDEX header
-
-    # Pre-calculate all sections
+    # Pre-calculate all section data
     for section in sections:
         base_id = generate_section_id(section["title"])
 
@@ -260,7 +323,7 @@ def build_iatf(
             section_ids[base_id] = 1
             section_id = base_id
 
-        # Get content
+        # Get content for this section
         content = get_content_for_section(
             pages, section["start_page"], section["end_page"]
         )
@@ -279,33 +342,81 @@ def build_iatf(
             }
         )
 
-    # Calculate line numbers for INDEX
-    # First, determine content section line numbers
-    content_start_line = 3  # After :::IATF/1.0, blank, ===INDEX===
-    content_start_line += 2  # Blank line and index entries will be here
+    # Build the file structure to calculate line numbers
+    # Header lines
+    header_lines = [
+        ":::IATF/1.0",
+        "",
+        "===INDEX===",
+        "",
+    ]
 
-    # Add index entries (we'll update line numbers after)
+    # Calculate INDEX section lines (we'll replace with actual later)
+    index_lines = []
     for sec in section_data:
-        content_start_line += 1
+        prefix = "#" * sec["level"]
+        # Placeholder - will be updated
+        index_lines.append(
+            f"{prefix} {sec['title']} {{#{sec['id']} | lines:0-0 | words:{sec['word_count']}}}"
+        )
         if sec["summary"]:
-            content_start_line += 1
+            index_lines.append(f"  @summary: {sec['summary']}")
 
-    content_start_line += 2  # Blank line and ===CONTENT===
+    index_lines.append("")  # Blank line after index entries
 
-    # Now build INDEX with correct line numbers
-    line_cursor = content_start_line + 1  # After ===CONTENT=== and blank line
+    # Metadata lines
+    meta_lines = []
+    if metadata:
+        if "created" in metadata:
+            meta_lines.append(f"@created: {metadata['created']}")
+        if "source" in metadata:
+            meta_lines.append(f"@source: {metadata['source']}")
+        if "doc_type" in metadata:
+            meta_lines.append(f"@doc_type: {metadata['doc_type']}")
+        meta_lines.append("")  # Blank line after metadata
+
+    # Content section header
+    content_header = ["===CONTENT===", ""]
+
+    # Calculate where CONTENT starts (1-indexed line number)
+    content_start = (
+        len(header_lines) + len(index_lines) + len(meta_lines) + len(content_header) + 1
+    )
+
+    # Build content and track line numbers
+    content_lines = []
+    current_line = content_start
 
     for sec in section_data:
-        start_line = line_cursor
-        content_lines = sec["content"].count("\n") + 3  # +3 for {#id}, blank, {/id}
-        end_line = start_line + content_lines
+        # Opening tag line
+        sec["start_line"] = current_line
+        content_lines.append(f"{{#{sec['id']}}}")
+        current_line += 1
 
-        sec["start_line"] = start_line
-        sec["end_line"] = end_line
+        # Blank line after opening tag
+        content_lines.append("")
+        current_line += 1
 
-        line_cursor = end_line + 2  # +2 for blank lines between sections
+        # Content lines
+        content_text_lines = sec["content"].split("\n")
+        content_lines.extend(content_text_lines)
+        current_line += len(content_text_lines)
 
-    # Build INDEX entries
+        # Blank line before closing tag
+        content_lines.append("")
+        current_line += 1
+
+        # Closing tag line
+        content_lines.append(f"{{/{sec['id']}}}")
+        sec["end_line"] = current_line
+        current_line += 1
+
+        # Blank line between sections
+        content_lines.append("")
+        current_line += 1
+
+    # Now rebuild INDEX with correct line numbers
+    index_lines = []
     for sec in section_data:
         prefix = "#" * sec["level"]
         index_line = (
@@ -313,35 +424,16 @@ def build_iatf(
             f"{{#{sec['id']} | lines:{sec['start_line']}-{sec['end_line']} "
             f"| words:{sec['word_count']}}}"
         )
-        lines.append(index_line)
+        index_lines.append(index_line)
         if sec["summary"]:
-            lines.append(f"  @summary: {sec['summary']}")
+            index_lines.append(f"  @summary: {sec['summary']}")
 
-    lines.append("")
+    index_lines.append("")  # Blank line after index entries
 
-    # Metadata
-    if metadata:
-        if "created" in metadata:
-            lines.append(f"@created: {metadata['created']}")
-        if "source" in metadata:
-            lines.append(f"@source: {metadata['source']}")
-        if "doc_type" in metadata:
-            lines.append(f"@doc_type: {metadata['doc_type']}")
-        lines.append("")
+    # Assemble final file
+    all_lines = header_lines + index_lines + meta_lines + content_header + content_lines
 
-    # CONTENT section
-    lines.append("===CONTENT===")
-    lines.append("")
-
-    for sec in section_data:
-        lines.append(f"{{#{sec['id']}}}")
-        lines.append("")
-        lines.append(sec["content"])
-        lines.append("")
-        lines.append(f"{{/{sec['id']}}}")
-        lines.append("")
-
-    return "\n".join(lines)
+    return "\n".join(all_lines)
 
 
 def convert_pdf_to_iatf(
