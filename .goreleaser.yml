@@ -1,8 +1,6 @@
 # GoReleaser configuration for IATF
 # Documentation: https://goreleaser.com
 
-version: 2
-
 before:
   hooks:
     # Ensure dependencies are up to date
@@ -47,7 +45,6 @@ snapshot:
 
 changelog:
   sort: asc
-  use: github
   filters:
     exclude:
       - '^docs:'
