@@ -4,7 +4,7 @@
 Write-Host "Installing IATF Tools..." -ForegroundColor Green
 
 # Get latest version
-$LatestUrl = "https://api.github.com/repos/iatf-tools/iatf/releases/latest"
+$LatestUrl = "https://api.github.com/repos/Winds-AI/agent-traversal-file/releases/latest"
 $Release = Invoke-RestMethod -Uri $LatestUrl
 $Version = $Release.tag_name
 
