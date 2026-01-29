@@ -3,11 +3,6 @@
 
 version: 2
 
-before:
-  hooks:
-    # Ensure dependencies are up to date
-    - go mod tidy
-
 builds:
   - id: iatf
     main: ./go
@@ -31,7 +26,13 @@ builds:
 
 archives:
   - id: iatf-archives
-    format: binary
+    format_overrides:
+      - goos: windows
+        format: binary
+      - goos: linux
+        format: binary
+      - goos: darwin
+        format: binary
     name_template: >-
       {{ .ProjectName }}-
       {{- .Os }}-
@@ -41,9 +42,6 @@ archives:
 checksum:
   name_template: 'SHA256SUMS'
   algorithm: sha256
-
-snapshot:
-  name_template: "{{ incpatch .Version }}-next"
 
 changelog:
   sort: asc
