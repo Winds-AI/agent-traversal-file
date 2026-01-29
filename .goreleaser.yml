@@ -100,13 +100,3 @@ release:
   extra_files:
     - glob: ./installers/install.sh
     - glob: ./installers/install.ps1
-
-# Disable unused features
-dockers:
-  - skip_push: true
-
-brews:
-  - skip_upload: true
-
-nfpms:
-  - skip_upload: true
