@@ -4,23 +4,23 @@
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-01-28T03:21:47Z -->
-<!-- Content-Hash: sha256:e51334e -->
+<!-- Generated: 2026-01-30T09:52:01Z -->
+<!-- Content-Hash: sha256:c761c92 -->
 
-# Incident Timeline {#incident | lines:28-38 | words:38}
+# Incident Timeline {#incident | lines:28-40 | words:50}
 > Incident response timeline template
-  Created: 2025-01-20 | Modified: 2026-01-28
-  Hash: 9bd6e5e
+  Created: 2025-01-20 | Modified: 2026-01-30
+  Hash: e7534f5
 
-# Rollback Steps {#rollback | lines:40-53 | words:37}
+# Rollback Steps {#rollback | lines:42-57 | words:44}
 > Rollback steps with commands
-  Created: 2025-01-20 | Modified: 2026-01-28
-  Hash: d0c16de
+  Created: 2025-01-20 | Modified: 2026-01-30
+  Hash: f95ddb2
 
-# Action Items {#postmortem | lines:55-69 | words:45}
+# Action Items {#postmortem | lines:59-73 | words:45}
 > Post-incident writeup outline
-  Created: 2025-01-20 | Modified: 2026-01-28
-  Hash: 527a357
+  Created: 2025-01-20 | Modified: 2026-01-30
+  Hash: 4ab0c91
 
 
 ===CONTENT===
@@ -35,6 +35,8 @@
 - T+30m: Identify mitigation steps
 
 Keep all timestamps in UTC and link the primary ticket.
+If mitigation requires reversal, follow {@rollback}.
+After stabilization, capture outcomes in {@postmortem}.
 {/incident}
 
 {#rollback}
@@ -50,6 +52,8 @@ Keep all timestamps in UTC and link the primary ticket.
 ./deploy rollback --service api --to release-2025-01-18
 ./deploy status --service api
 ```
+
+After service recovery, complete the {@postmortem} checklist.
 {/rollback}
 
 {#postmortem}
@@ -67,7 +71,6 @@ List primary causes and contributing factors.
 - [ ] Add monitoring
 - [ ] Document the runbook change
 {/postmortem}
-
 
 
 

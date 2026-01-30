@@ -2,13 +2,13 @@
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-01-30T06:09:47Z -->
-<!-- Content-Hash: sha256:2c90e8f -->
+<!-- Generated: 2026-01-30T10:00:50Z -->
+<!-- Content-Hash: sha256:d1e157d -->
 
 # How It Works {#intro | lines:26-44 | words:72}
 > Introduction to iatf format
   Created: 2026-01-30 | Modified: 2026-01-30
-  Hash: fafefda
+  Hash: b3c54e2
 
 # Validate {#usage | lines:46-71 | words:39}
 > Basic usage examples
@@ -27,7 +27,7 @@
 @summary: Introduction to iatf format
 # Introduction
 
-IATF (Indexed Agent Traversable File) is a document format designed for AI agents.
+IATF (Indexed Agent Traversal Format) is a document format designed for AI agents.
 
 ## Why IATF?
 
@@ -81,7 +81,6 @@ Checks if the file structure is valid.
 
 Happy documenting!
 {/next-steps}
-
 
 
 

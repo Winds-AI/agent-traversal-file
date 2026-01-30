@@ -1,6 +1,6 @@
 # IATF VS Code Extension
 
-Syntax highlighting for IATF (Indexed Agent Traversable File) format.
+Syntax highlighting for IATF (Indexed Agent Traversal Format).
 
 ## Installation
 

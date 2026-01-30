@@ -23,6 +23,7 @@ Manual line numbering is impractical:
 
 ### Workflow
 
+**Manual mode:**
 ```
 [Human edits CONTENT]
        v
@@ -34,6 +35,29 @@ Manual line numbering is impractical:
        v
 [Agent reads INDEX for navigation]
 ```
+
+**Watch mode (automatic):**
+```
+[Human edits CONTENT and saves]
+       v
+[File watcher detects change]
+       v
+[Debounce: wait 3 seconds for more edits]
+       v
+[Tool validates file]
+       v
+[If valid: Tool parses CONTENT, generates INDEX]
+       v
+[File updated with new INDEX]
+       v
+[Agent reads INDEX for navigation]
+```
+
+**Daemon mode (continuous):**
+- Configure watched directories in `~/.iatf/daemon.json`
+- Daemon runs in background, monitoring all paths
+- Automatically validates and rebuilds files on changes
+- Per-file debouncing prevents redundant rebuilds
 
 This is similar to:
 - `package.json` -> `package-lock.json` (npm)

@@ -1090,7 +1090,7 @@ docs/api.iatf
 
 # How to Use IATF files
 
-IATF (Indexed Agent Traversable File) is designed for efficient AI agent navigation.
+IATF (Indexed Agent Traversal Format) is designed for efficient AI agent navigation.
 Instead of reading entire documents, agents can:
 
 1. Read the INDEX section to understand structure
@@ -1602,7 +1602,6 @@ Add translations for error messages and CLI output to support non-English users.
 
 - GNU gettext: https://www.gnu.org/software/gettext/
 - Go i18n: https://github.com/nicksnyder/go-i18n
-
 
 
 

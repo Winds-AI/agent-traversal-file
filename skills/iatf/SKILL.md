@@ -9,6 +9,7 @@ IATF enables AI agents to navigate large documents efficiently. Instead of loadi
 
 ## Commands
 
+### Core
 ```bash
 iatf rebuild <file>              # Rebuild INDEX from CONTENT
 iatf rebuild-all [dir]           # Rebuild all .iatf files in directory
@@ -18,9 +19,26 @@ iatf read <file> <id>            # Read section by ID
 iatf read <file> --title "Name"  # Read section by title match
 iatf graph <file>                # Show outgoing references (section -> targets)
 iatf graph <file> --show-incoming  # Show incoming references (section <- sources)
-iatf watch <file>                # Auto-rebuild on save (runs until Ctrl+C)
+```
+
+### Watch (Auto-Rebuild)
+```bash
+iatf watch <file>                # Auto-rebuild on save (silent mode)
+iatf watch <file> --debug        # Auto-rebuild with verbose output
+iatf watch-dir <dir>             # Watch all .iatf files in directory tree (silent)
+iatf watch-dir <dir> --debug     # Watch directory with verbose output
 iatf unwatch <file>              # Stop watching
 iatf watch --list                # List watched files
+```
+
+### Daemon (System-Wide Watching)
+```bash
+iatf daemon start                # Start daemon (watches paths from ~/.iatf/daemon.json)
+iatf daemon start --debug        # Start with verbose logging to ~/.iatf/daemon.log
+iatf daemon stop                 # Stop running daemon
+iatf daemon status               # Show daemon status and configured paths
+iatf daemon install              # Install as OS service (auto-start on boot)
+iatf daemon uninstall            # Remove OS service
 ```
 
 ## File Structure
@@ -57,26 +75,52 @@ Content here... Reference other sections with {@other-id}.
 - Sections can nest (parent contains children)
 - Max nesting depth: 2 levels
 
+## Watch Features
+
+The tool provides three watch modes:
+
+**Single File (`watch`):**
+- 250ms polling with 3-second debounce
+- Validates before rebuilding (skips invalid files)
+- Silent by default, `--debug` for verbose output
+- Perfect for active editing sessions
+
+**Directory (`watch-dir`):**
+- Monitors all `.iatf` files in directory tree
+- Per-file debouncing (independent timers)
+- Auto-detects new files
+- Auto-removes deleted files from watch
+- Useful for multi-file projects
+
+**Daemon (`daemon`):**
+- Background process monitoring multiple paths
+- Configured via `~/.iatf/daemon.json`
+- Logs to `~/.iatf/daemon.log`
+- Install as OS service for auto-start
+- Cross-platform (systemd/launchd/schtasks)
+
+**All watch modes validate before rebuilding** - invalid files are skipped (logged in --debug mode).
+
 ## Agent Patterns
 
 **Topic discovery:**
 ```bash
-iatf index project.iatf | grep -i auth
+iatf index examples/incident-playbook.iatf | rg -i 'incident|rollback|postmortem'
 ```
 
 **Dependency check before implementing:**
 ```bash
-iatf graph project.iatf | grep "^api-auth ->"
+iatf graph examples/incident-playbook.iatf | rg '^incident'
 ```
 
 **Impact analysis before editing:**
 ```bash
-iatf graph project.iatf --show-incoming | grep "^config <-"
+iatf graph examples/incident-playbook.iatf --show-incoming | rg '^postmortem'
 ```
 
 **Find and read in one step:**
 ```bash
-iatf read project.iatf $(iatf index project.iatf | grep -i login | head -1 | grep -oP '#\K[a-z0-9_-]+')
+iatf read examples/incident-playbook.iatf $(iatf index examples/incident-playbook.iatf | rg -i rollback | head -1 | rg -o '#[A-Za-z0-9_-]+' | sed 's/^#//')
 ```
 
 **Search across files:**
@@ -84,9 +128,80 @@ iatf read project.iatf $(iatf index project.iatf | grep -i login | head -1 | gre
 for f in docs/*.iatf; do iatf index "$f" 2>/dev/null | grep -i payment && echo "^ in $f"; done
 ```
 
+**Find a topic and open first match:**
+```bash
+id=$(iatf index examples/incident-playbook.iatf | rg -i rollback | head -1 | rg -o '#[A-Za-z0-9_-]+' | sed 's/^#//')
+iatf read examples/incident-playbook.iatf "$id"
+```
+
+**Open every matching section:**
+```bash
+iatf index examples/incident-playbook.iatf | rg -i 'incident|rollback' | rg -o '#[A-Za-z0-9_-]+' | sed 's/^#//' | xargs -n1 iatf read examples/incident-playbook.iatf
+```
+
+**Show outgoing references for a section:**
+```bash
+iatf graph examples/incident-playbook.iatf | rg '^incident'
+```
+
+**Show incoming references for a section:**
+```bash
+iatf graph examples/incident-playbook.iatf --show-incoming | rg '^postmortem'
+```
+
+**Extract references mentioned inside a section:**
+```bash
+iatf read examples/incident-playbook.iatf incident | rg -o '\\{@[A-Za-z0-9_-]+\\}' | tr -d '{@}' | sort -u
+```
+
+**Fallback without iatf CLI (read by INDEX line numbers):**
+```bash
+rg '^# .*\\{#rollback' examples/incident-playbook.iatf
+# Example output contains: lines:42-57
+sed -n '42,57p' examples/incident-playbook.iatf
+```
+
+**Watch while editing (single file):**
+```bash
+iatf watch examples/incident-playbook.iatf --debug &
+# Edit the file, INDEX auto-rebuilds with validation
+# Kill with: iatf unwatch examples/incident-playbook.iatf
+```
+
+**Watch entire project (multiple files):**
+```bash
+iatf watch-dir docs --debug &
+# All .iatf files auto-rebuild on save
+# New files auto-detected
+```
+
+**Daemon for continuous monitoring:**
+```bash
+# Configure watched paths
+cat > ~/.iatf/daemon.json <<EOF
+{
+    "watch_paths": [
+        "/home/user/projects",
+        "/home/user/docs"
+    ]
+}
+EOF
+
+# Start daemon
+iatf daemon start
+
+# Check status
+iatf daemon status
+
+# View logs
+tail -f ~/.iatf/daemon.log
+```
+
 ## Command Decision Tree
 
-- **Editing a file?** -> `iatf watch` for auto-rebuild
+- **Editing a single file?** -> `iatf watch <file>` for auto-rebuild with debounce
+- **Editing multiple files in a directory?** -> `iatf watch-dir <dir>` for per-file monitoring
+- **Project-wide continuous watching?** -> `iatf daemon start` (configure `~/.iatf/daemon.json` first)
 - **INDEX stale?** -> `iatf rebuild`
 - **Check validity?** -> `iatf validate`
 - **See structure?** -> `iatf index`

@@ -6,196 +6,184 @@ Get started with IATF in 5 minutes!
 
 ## Installation
 
-Download from [GitHub Releases](https://github.com/Winds-AI/agent-traversal-file/releases/latest):
+### Quick Install
 
-**Installers (Recommended):**
-- **Windows:** `.msi` file
-- **macOS:** `.pkg` file
-- **Linux:** `.deb` or `.rpm` file
-
-**Or binary direct download:**
-- Windows: `iatf-windows-amd64.exe`
-- macOS Intel: `iatf-darwin-amd64`
-- macOS Apple Silicon: `iatf-darwin-arm64`
-- Linux x86_64: `iatf-linux-amd64`
-- Linux ARM64: `iatf-linux-arm64`
-
-### Verify Installation
+**Linux / macOS:**
 ```bash
-iatf --version
+curl -fsSL https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/installers/install.sh | sudo bash
 ```
 
-### Editor Setup (Optional)
+**Windows (PowerShell as Administrator):**
+```powershell
+irm https://raw.githubusercontent.com/Winds-AI/agent-traversal-file/main/installers/install.ps1 | iex
+```
 
-For better syntax highlighting when editing IATF files in VSCode:
-
-**Install IATF Extension:**
-- **Marketplace:** [IATF Extension](https://open-vsx.org/extension/Winds-AI/iatf)
-- **Features:** Syntax highlighting for headers, INDEX/CONTENT sections, section IDs, references, and code blocks
+For manual installation, alternative install methods, and uninstalling, see [COMMANDS.md](./COMMANDS.md#installation--setup).
 
 ---
 
 ## Your First IATF File
 
-### 1. Create a file: `my-doc.iatf`
+### 1. Open the example file: `examples/incident-playbook.iatf`
+
+This repo includes a ready-made example we'll use throughout this guide.
 
 ```
-:::IATF
-@title: My First IATF Document
+{#incident}
+@summary: Incident response timeline template
+# Incident Timeline
 
-===CONTENT===
-
-{#intro}
-@summary: Introduction to my document
-@created: 2025-01-20
-@modified: 2025-01-20
-# Introduction
-
-This is my first IATF document!
-
-It has sections that can be auto-indexed.
-{/intro}
-
-{#details}
-@summary: More detailed information
-@created: 2025-01-20
-@modified: 2025-01-20
-# Details
-
-Here's some more content in a separate section.
-
-IATF will auto-generate an index for this!
-{/details}
+- T+00m: Detect alert and declare incident
+- T+05m: Assign incident commander and scribe
+...
+{/incident}
 ```
 
 ### 2. Rebuild the Index
 
 ```bash
-iatf rebuild my-doc.iatf
+iatf rebuild examples/incident-playbook.iatf
 ```
 
 ### 3. See the Result
 
-Open `my-doc.iatf` and you'll see the auto-generated INDEX:
+Open `examples/incident-playbook.iatf` and you'll see the auto-generated INDEX:
 
 ```
 ===INDEX===
-<!-- AUTO-GENERATED - DO NOT EDIT -->
-<!-- Generated: 2025-01-20T10:30:00Z -->
+<!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
+<!-- Generated: 2026-01-30T09:52:01Z -->
+<!-- Content-Hash: sha256:c761c92 -->
 
-# Introduction {#intro | lines:10-17}
-> Introduction to my document
-  Created: 2025-01-20 | Modified: 2025-01-20
+# Incident Timeline {#incident | lines:28-40 | words:50}
+> Incident response timeline template
+  Created: 2025-01-20 | Modified: 2026-01-30
 
-# Details {#details | lines:19-26}
-> More detailed information
-  Created: 2025-01-20 | Modified: 2025-01-20
+# Rollback Steps {#rollback | lines:42-57 | words:44}
+> Rollback steps with commands
+  Created: 2025-01-20 | Modified: 2026-01-30
+
+# Action Items {#postmortem | lines:59-73 | words:45}
+> Post-incident writeup outline
+  Created: 2025-01-20 | Modified: 2026-01-30
 ```
 
----
-
-## Using Watch Mode
-
-While editing, use watch mode to auto-rebuild:
-
-```bash
-iatf watch my-doc.iatf
-```
-
-Now every time you save `my-doc.iatf`, the index rebuilds automatically!
-
-**To stop watching:**
-```bash
-iatf unwatch my-doc.iatf
-```
-
----
-
-## All Commands
-
-```bash
-# Rebuild single file
-iatf rebuild document.iatf
-
-# Rebuild all .iatf files in directory
-iatf rebuild-all ./docs
-
-# Watch and auto-rebuild
-iatf watch document.iatf
-
-# Stop watching
-iatf unwatch document.iatf
-
-# List watched files
-iatf watch --list
-
-# Validate file
-iatf validate document.iatf
-
-# Show help
-iatf --help
-```
+**Agents can now:**
+1. Read the INDEX instead of the full document
+2. See summaries of each section
+3. Load only needed sections by line number
 
 ---
 
 ## How AI Agents Use IATF
 
 **Traditional approach (wasteful):**
-```
+```bash
 # Agent loads entire 5,000-line document
 content = read_file("docs.md")  # 6,000 tokens!
 # Find relevant section by parsing everything
-answer = extract_section(content, "authentication")
+answer = extract_section(content, "rollback")
 ```
 
 **IATF approach (efficient):**
+
+**Step 1: Discover available topics**
+```bash
+iatf index examples/incident-playbook.iatf | rg -i 'incident|rollback|postmortem'
+# Output:
+# # Incident Timeline {#incident | lines:28-40 | words:50}
+# > Incident response timeline template
+# # Rollback Steps {#rollback | lines:42-57 | words:44}
+# > Rollback steps with commands
+# # Action Items {#postmortem | lines:59-73 | words:45}
+# > Post-incident writeup outline
 ```
-# Agent loads only the INDEX (250 lines)
-index = read_file("docs.iatf", lines=1, limit=250)  # 300 tokens
 
-# Find section in INDEX
-section = find_section(index, "authentication")
-# -> "Authentication at lines 120-180"
-
-# Load just that section
-auth_content = read_file("docs.iatf", lines=120, limit=61)  # 600 tokens
-
-# Total: 900 tokens instead of 6,000 = 85% savings!
+**Step 2: Check dependencies before implementing**
+```bash
+iatf graph examples/incident-playbook.iatf | rg '^incident'
+# Output:
+# incident -> postmortem, rollback
 ```
 
-**IATF approach (efficient):**
+**Step 3: Analyze impact before editing**
+```bash
+iatf graph examples/incident-playbook.iatf --show-incoming | rg '^postmortem'
+# Output:
+# postmortem <- incident, rollback
 ```
-# Agent loads only the INDEX (250 lines)
-index = read_file("docs.iatf", lines=1, limit=250)  # 300 tokens
 
-# Find section in INDEX
-section = find_section(index, "authentication")
-# -> "Authentication at lines 120-180"
+**Step 4: Load only the needed section**
+```bash
+iatf read examples/incident-playbook.iatf rollback
+# Returns only lines 42-57 (Rollback section)
+# Contains: rollback steps and commands
+```
 
-# Load just that section
-auth_content = read_file("docs.iatf", lines=120, limit=61)  # 600 tokens
+**Total: far fewer tokens than reading the full file.**
 
-# Total: 900 tokens instead of 6,000 = 85% savings!
+**Plus validation:** All sections are automatically validated on save, so agents know the content is syntactically correct and references are valid.
+
+**Key advantages:**
+- **Fast discovery**: iatf index is ~5% of document size
+- **Precise navigation**: Exact line numbers from INDEX
+- **Reference safety**: {@section-id} references are validated
+- **Automatic updates**: Changes to CONTENT auto-update INDEX
+- **Safe for agents**: Validation prevents broken references
+
+---
+
+## More Agent Command Patterns (Incident Playbook)
+
+**Find a topic and open first match:**
+```bash
+id=$(iatf index examples/incident-playbook.iatf | rg -i rollback | head -1 | rg -o '#[A-Za-z0-9_-]+' | sed 's/^#//')
+iatf read examples/incident-playbook.iatf "$id"
+```
+
+**Open every matching section:**
+```bash
+iatf index examples/incident-playbook.iatf | rg -i 'incident|rollback' | rg -o '#[A-Za-z0-9_-]+' | sed 's/^#//' | xargs -n1 iatf read examples/incident-playbook.iatf
+```
+
+**Show outgoing references for a section:**
+```bash
+iatf graph examples/incident-playbook.iatf | rg '^incident'
+```
+
+**Show incoming references for a section:**
+```bash
+iatf graph examples/incident-playbook.iatf --show-incoming | rg '^postmortem'
+```
+
+**Extract references mentioned inside a section:**
+```bash
+iatf read examples/incident-playbook.iatf incident | rg -o '\\{@[A-Za-z0-9_-]+\\}' | tr -d '{@}' | sort -u
+```
+
+**Fallback without iatf CLI (read by INDEX line numbers):**
+```bash
+rg '^# .*\\{#rollback' examples/incident-playbook.iatf
+# Example output contains: lines:42-57
+sed -n '42,57p' examples/incident-playbook.iatf
 ```
 
 ---
 
 ## Tips
 
-1. **Section IDs**: Use descriptive IDs like `auth-oauth` instead of `section1`
+1. **Section IDs**: Use descriptive IDs like `rollback` instead of `section1`
 2. **Summaries**: Always add `@summary:` - agents rely on these!
 3. **Timestamps**: Update `@modified:` when you change a section
 4. **Section references**: Link between sections with `{@section-id}` syntax
-5. **Watch mode**: Keep it running while writing docs
-6. **Validate often**: Run `iatf validate` to catch errors early
 
 ---
 
 ## What's Next?
 
+- **Command reference**: See [COMMANDS.md](./COMMANDS.md) for all CLI commands
 - **Read the full specification**: [SPECIFICATION.md](./SPECIFICATION.md)
-- **See examples**: Check out [examples/](examples/) folder
-- **Understand the problem**: Read [PROBLEM_STATEMENT.md](./PROBLEM_STATEMENT.md)
+- **See examples**: Check out [examples/](../examples/) folder
 - **Contribute**: See [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ---
@@ -204,14 +192,9 @@ auth_content = read_file("docs.iatf", lines=120, limit=61)  # 600 tokens
 
 - **Documentation**: https://github.com/Winds-AI/agent-traversal-file
 - **Issues**: https://github.com/Winds-AI/agent-traversal-file/issues
-- **Discussions**: https://github.com/Winds-AI/agent-traversal-file/discussions
-
 ---
 
-**You're all set! Start creating efficient, agent-friendly documentation!** ðŸš€
-
-
-
+**You're all set! Start creating efficient, agent-friendly documentation!**
 
 
 

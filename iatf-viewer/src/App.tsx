@@ -60,7 +60,7 @@ const SAMPLE_IATF = `:::IATF
 @summary: Getting started with IATF format
 # Introduction
 
-IATF (Indexed Agent Traversable File) makes large documents navigable for AI agents.
+            IATF (Indexed Agent Traversal Format) makes large documents navigable for AI agents.
 Paste your own IATF content on the left to see it formatted!
 
 Try clicking the links in the Table of Contents to navigate to sections.
