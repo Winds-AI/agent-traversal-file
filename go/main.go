@@ -972,7 +972,7 @@ func watchCommand(filePath string) int {
 	fmt.Println("Press Ctrl+C to stop watching")
 
 	lastMod := info.ModTime()
-	ticker := time.NewTicker(1 * time.Second)
+	ticker := time.NewTicker(250 * time.Millisecond)
 	defer ticker.Stop()
 
 	for {
