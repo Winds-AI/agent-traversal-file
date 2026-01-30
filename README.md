@@ -110,7 +110,15 @@ For syntax highlighting in VSCode, install the IATF extension:
 - **Marketplace:** [IATF Extension](https://open-vsx.org/extension/Winds-AI/iatf)
 - **Features:** Syntax highlighting for headers, sections, index entries, references, and code blocks
 
+
 ---
+
+**How to use with Agents:**
+
+I have defined a skill for iatf file format , though i will recommend not to use skills, just extract the content and use it as a simple md file and include a reference of this file in your main AGENTS.md or CLAUDE.md. This will be more helpful as this is not a specialized skill for one task, it needs to be used when the this format files are involved so you want need all te skill name, description, progressive disclosure because that will distract it more in this case.
+
+---
+
 
 ## License
 
