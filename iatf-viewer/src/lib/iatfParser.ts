@@ -47,7 +47,7 @@ export function parseIATF(input: string): IATFDocument {
     doc.errors.push('Missing IATF header (:::IATF)');
     doc.isValid = false;
   } else {
-    // Optional version after IATF (e.g., :::IATF/1.0)
+    // Optional version after IATF (e.g., :::IATF)
     const versionMatch = lines[0].match(/:::IATF(?:\/(.+))?/);
     if (versionMatch && versionMatch[1]) {
       doc.metadata.version = versionMatch[1].trim();

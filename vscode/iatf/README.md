@@ -11,7 +11,7 @@ Install from the marketplace:
 
 ## Features
 
-- **Format declarations:** `:::IATF/1.0` header syntax
+- **Format declarations:** `:::IATF` header syntax
 - **Section delimiters:** `===INDEX===` and `===CONTENT===` markers
 - **Index entries:** Headings, section IDs, line ranges, word counts, timestamps, and hashes
 - **Content blocks:** `{#section-id}` opening and `{/section-id}` closing tags
