@@ -3,7 +3,7 @@ name: iatf
 description: Work with .iatf files for efficient AI agent navigation. Use when creating, editing, validating, or querying structured documents.
 ---
 
-# IATF - Intelligent Agent Traversal Format
+# IATF - Indexed Agent Traversal Format
 
 IATF enables AI agents to navigate large documents efficiently. Instead of loading entire files, agents read the INDEX to find relevant sections, then load only those sections.
 
