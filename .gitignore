@@ -60,6 +60,7 @@ Thumbs.db
 # Test files
 test.iatf
 temp*.iatf
+tokens.toml
 
 
 # Documentation
