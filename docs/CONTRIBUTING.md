@@ -73,7 +73,7 @@ Before submitting:
 - [x] **Editor Plugins**: VS Code ([Available](https://open-vsx.org/extension/Winds-AI/iatf))
 - [ ] **Editor Plugins**: Vim, Neovim, Emacs, Sublime extensions
 - [ ] **Language Server Protocol (LSP)**: Universal editor support
-- [ ] **Conversion Tools**: Markdown → IATF, HTML → IATF
+- [ ] **Conversion Tools**: Markdown -> IATF, HTML -> IATF
 - [ ] **Documentation**: Examples, tutorials, use cases
 - [ ] **Testing**: More comprehensive test suite
 - [ ] **Localization**: Translations for error messages
@@ -84,12 +84,12 @@ Before submitting:
 When adding features:
 - Update README.md
 - Add examples if applicable
-- Update SPECIFICATION.md if format changes
+- Update docs/SPECIFICATION.md if format changes
 - Add to CHANGELOG.md
 
 ### Ideas & Future Directions
 
-See [IDEAS.md](IDEAS.md) for a list of proposed features and experiments we're interested in, including:
+See [IDEAS.md](./IDEAS.md) for a list of proposed features and experiments we're interested in, including:
 - FUSE/Dokany/macFUSE filesystem mounting for transparent IATF access
 - Editor plugins for auto-rebuilding index on save
 - LSP integration for semantic navigation

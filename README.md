@@ -246,7 +246,7 @@ iatf rebuild my-doc.iatf
 
 ## How Agents Use IATF
 
-```python
+```
 # Agent workflow
 # 1. Load INDEX (small, ~5% of file)
 index = read_file("docs.iatf", lines=1, limit=50)
@@ -412,7 +412,7 @@ troubleshooting
 
 ## File Format Specification
 
-See [SPECIFICATION.md](SPECIFICATION.md) for complete details.
+See [SPECIFICATION.md](docs/SPECIFICATION.md) for complete details.
 
 ### Minimal Example
 
@@ -452,7 +452,7 @@ All are optional but recommended.
 
 ### Section References
 
-Use `{@section-id}` inside section content to cross-reference other sections (for example, "See `{@setup}` for installation details."). References are validated during `iatf rebuild` and `iatf validate`: a reference must point to an existing section, and a section cannot reference itself. The validator ignores references inside fenced code blocks only when the fence line is exactly ``` (no language tag). For full rules and examples, see [SPECIFICATION.md](SPECIFICATION.md#13a-section-references).
+Use `{@section-id}` inside section content to cross-reference other sections (for example, "See `{@setup}` for installation details."). References are validated during `iatf rebuild` and `iatf validate`: a reference must point to an existing section, and a section cannot reference itself. The validator ignores references inside fenced code blocks only when the fence line is exactly ``` (no language tag). For full rules and examples, see [SPECIFICATION.md](docs/SPECIFICATION.md#13a-section-references).
 
 ---
 
@@ -548,7 +548,7 @@ go build -o iatf main.go
 
 ## Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md).
+We welcome contributions! See [CONTRIBUTING.md](docs/CONTRIBUTING.md).
 
 **Areas where we need help:**
 - [x] VS Code extension ([Available](https://open-vsx.org/extension/Winds-AI/iatf))
@@ -578,7 +578,7 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ## Links
 
-- **Specification:** [SPECIFICATION.md](SPECIFICATION.md)
+- **Specification:** [SPECIFICATION.md](docs/SPECIFICATION.md)
 - **Problem Statement:** [docs/PROBLEM_STATEMENT.md](docs/PROBLEM_STATEMENT.md)
 - **Design Decisions:** [docs/DESIGN.md](docs/DESIGN.md)
 - **Usage Guide:** [docs/USAGE.md](docs/USAGE.md)

@@ -57,8 +57,6 @@ Flags:
 
 ## Usage
 
-Same as Python version:
-
 ```bash
 ./iatf rebuild document.iatf
 ./iatf rebuild-all ./docs
@@ -155,16 +153,11 @@ Full list: `go tool dist list`
 ## Why Go?
 
 - **Fast compilation**: Seconds to build
-- **Fast execution**: 10-100x faster than Python
+- **Fast execution**: Native binary performance
 - **Single binary**: No runtime needed
 - **Easy cross-compilation**: Build for all OSes from one machine
 - **Simple deployment**: Just copy the binary
 - **Standard library**: Everything we need built-in
-
-## Alternatives
-
-- **Python version**: Easier to modify, slower, needs Python runtime
-- See `../python/` directory
 
 ## Module
 

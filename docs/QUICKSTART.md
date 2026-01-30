@@ -141,7 +141,7 @@ iatf --help
 ## How AI Agents Use IATF
 
 **Traditional approach (wasteful):**
-```python
+```
 # Agent loads entire 5,000-line document
 content = read_file("docs.md")  # 6,000 tokens!
 # Find relevant section by parsing everything
@@ -149,13 +149,28 @@ answer = extract_section(content, "authentication")
 ```
 
 **IATF approach (efficient):**
-```python
+```
 # Agent loads only the INDEX (250 lines)
 index = read_file("docs.iatf", lines=1, limit=250)  # 300 tokens
 
 # Find section in INDEX
 section = find_section(index, "authentication")
-# â†’ "Authentication at lines 120-180"
+# -> "Authentication at lines 120-180"
+
+# Load just that section
+auth_content = read_file("docs.iatf", lines=120, limit=61)  # 600 tokens
+
+# Total: 900 tokens instead of 6,000 = 85% savings!
+```
+
+**IATF approach (efficient):**
+```
+# Agent loads only the INDEX (250 lines)
+index = read_file("docs.iatf", lines=1, limit=250)  # 300 tokens
+
+# Find section in INDEX
+section = find_section(index, "authentication")
+# -> "Authentication at lines 120-180"
 
 # Load just that section
 auth_content = read_file("docs.iatf", lines=120, limit=61)  # 600 tokens
@@ -178,10 +193,10 @@ auth_content = read_file("docs.iatf", lines=120, limit=61)  # 600 tokens
 
 ## What's Next?
 
-- **Read the full specification**: [SPECIFICATION.md](SPECIFICATION.md)
+- **Read the full specification**: [SPECIFICATION.md](./SPECIFICATION.md)
 - **See examples**: Check out [examples/](examples/) folder
-- **Understand the problem**: Read [docs/PROBLEM_STATEMENT.md](docs/PROBLEM_STATEMENT.md)
-- **Contribute**: See [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Understand the problem**: Read [PROBLEM_STATEMENT.md](./PROBLEM_STATEMENT.md)
+- **Contribute**: See [CONTRIBUTING.md](./CONTRIBUTING.md)
 
 ---
 

@@ -86,12 +86,12 @@ for f in docs/*.iatf; do iatf index "$f" 2>/dev/null | grep -i payment && echo "
 
 ## Command Decision Tree
 
-- **Editing a file?** → `iatf watch` for auto-rebuild
-- **INDEX stale?** → `iatf rebuild`
-- **Check validity?** → `iatf validate`
-- **See structure?** → `iatf index`
-- **Read section?** → `iatf read <id>`
-- **See connections?** → `iatf graph`
+- **Editing a file?** -> `iatf watch` for auto-rebuild
+- **INDEX stale?** -> `iatf rebuild`
+- **Check validity?** -> `iatf validate`
+- **See structure?** -> `iatf index`
+- **Read section?** -> `iatf read <id>`
+- **See connections?** -> `iatf graph`
 
 ## Templates
 

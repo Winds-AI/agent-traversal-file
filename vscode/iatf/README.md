@@ -35,8 +35,8 @@ The extension uses a semantic color scheme designed for dark themes:
 IATF is a file format designed for AI agents to efficiently navigate large documents. Learn more:
 
 - **Repository:** [https://github.com/Winds-AI/agent-traversal-file](https://github.com/Winds-AI/agent-traversal-file)
-- **Specification:** [SPECIFICATION.md](https://github.com/Winds-AI/agent-traversal-file/blob/main/SPECIFICATION.md)
-- **Quick Start:** [QUICKSTART.md](https://github.com/Winds-AI/agent-traversal-file/blob/main/QUICKSTART.md)
+- **Specification:** [SPECIFICATION.md](https://github.com/Winds-AI/agent-traversal-file/blob/main/docs/SPECIFICATION.md)
+- **Quick Start:** [QUICKSTART.md](https://github.com/Winds-AI/agent-traversal-file/blob/main/docs/QUICKSTART.md)
 
 ## License
 

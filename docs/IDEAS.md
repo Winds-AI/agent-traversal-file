@@ -50,15 +50,15 @@ $ wc -l /mnt/IATF/content/*
 
 ```
 /mnt/IATF/
-├── index          # Auto-generated INDEX section (read-only)
-├── content/       # Section content as files
-│   ├── intro
-│   ├── auth-keys
-│   ├── endpoints-users
-│   └── ...
-└── metadata/      # Section metadata
-    ├── intro.json
-    └── auth-keys.json
+|-- index          # Auto-generated INDEX section (read-only)
+|-- content/       # Section content as files
+|   |-- intro
+|   |-- auth-keys
+|   |-- endpoints-users
+|   |-- ...
+|-- metadata/      # Section metadata
+    |-- intro.json
+    |-- auth-keys.json
 ```
 
 ### Benefits
@@ -124,7 +124,7 @@ Editor plugins that provide syntax highlighting and automatically run `iatf rebu
 
 ### Platforms to Support
 
-- **VS Code** ✅ **COMPLETED** - [IATF Extension](https://open-vsx.org/extension/Winds-AI/iatf)
+- **VS Code** [check] **COMPLETED** - [IATF Extension](https://open-vsx.org/extension/Winds-AI/iatf)
   - Syntax highlighting for all IATF elements
   - Color scheme optimized for readability
   - Support for headers, INDEX, CONTENT, references, and code blocks
@@ -211,10 +211,10 @@ Tools to convert between iatf and other formats.
 
 | Tool | Purpose |
 |------|---------|
-| `IATF2md` | IATF â†’ Markdown |
-| `md2iatf` | Markdown â†’ IATF |
-| `iatf2html` | IATF â†’ HTML (with syntax highlighting) |
-| `iatf2json` | IATF â†’ JSON structure |
+| `IATF2md` | IATF -> Markdown |
+| `md2iatf` | Markdown -> IATF |
+| `iatf2html` | IATF -> HTML (with syntax highlighting) |
+| `iatf2json` | IATF -> JSON structure |
 
 ### Example
 
@@ -577,16 +577,16 @@ $ iatf site watch
 
 ```
 site/
-â”œâ”€â”€ index.html          # Landing page
-â”œâ”€â”€ intro/
-â”‚   â””â”€â”€ index.html      # /intro/ section
-â”œâ”€â”€ auth/
-â”‚   â””â”€â”€ index.html      # /auth/ section
-â”œâ”€â”€ search.json         # Full-text search index
-â”œâ”€â”€ sitemap.xml         # SEO sitemap
-â””â”€â”€ assets/
-    â””â”€â”€ css/
-    â””â”€â”€ js/
++--- index.html          # Landing page
++--- intro/
+|   +--- index.html      # /intro/ section
++--- auth/
+|   +--- index.html      # /auth/ section
++--- search.json         # Full-text search index
++--- sitemap.xml         # SEO sitemap
++--- assets/
+    +--- css/
+    +--- js/
 ```
 
 ### Features
@@ -878,19 +878,19 @@ Only rebuild index for sections that changed, with caching for fast access.
 
 ```
 Full Rebuild:              Incremental Rebuild:
-â”œâ”€ Parse all sections      â”œâ”€ Detect changed sections (via x-hash)
-â”œâ”€ Generate index          â”œâ”€ Update only changed entries
-â”œâ”€ Update all metadata     â””â”€ Keep cached metadata for unchanged
-â””â”€ Write file              â””â”€ Write updated sections only
++-- Parse all sections      +-- Detect changed sections (via x-hash)
++-- Generate index          +-- Update only changed entries
++-- Update all metadata     +-- Keep cached metadata for unchanged
++-- Write file              +-- Write updated sections only
 ```
 
 ### Cached Metadata
 
 ```
 .iatf-cache/
-â”œâ”€â”€ doc.iatf.json       # Parsed section metadata
-â”œâ”€â”€ doc.iatf.index      # Generated index
-â””â”€â”€ doc.iatf.hash       # Content hash for change detection
++--- doc.iatf.json       # Parsed section metadata
++--- doc.iatf.index      # Generated index
++--- doc.iatf.hash       # Content hash for change detection
 ```
 
 ### Commands
@@ -946,22 +946,22 @@ Automated benchmarking system to measure IATF's effectiveness for AI agent navig
 
 ```
 benchmarks/
-â”œâ”€â”€ iatf-bench.iatf              # Benchmark configuration and results
-â”œâ”€â”€ instructions.iatf           # How to use IATF format
-â”œâ”€â”€ test-cases/
-â”‚   â”œâ”€â”€ single-pass/
-â”‚   â”‚   â”œâ”€â”€ find-info.iatf
-â”‚   â”‚   â”œâ”€â”€ extract-code.iatf
-â”‚   â”‚   â””â”€â”€ count-sections.iatf
-â”‚   â””â”€â”€ agentic/
-â”‚       â”œâ”€â”€ multi-step.iatf
-â”‚       â”œâ”€â”€ cross-reference.iatf
-â”‚       â””â”€â”€ complex-query.iatf
-â””â”€â”€ providers/
-    â”œâ”€â”€ openai.yaml
-    â”œâ”€â”€ anthropic.yaml
-    â”œâ”€â”€ google.yaml
-    â””â”€â”€ deepseek.yaml
++--- iatf-bench.iatf              # Benchmark configuration and results
++--- instructions.iatf           # How to use IATF format
++--- test-cases/
+|   +--- single-pass/
+|   |   +--- find-info.iatf
+|   |   +--- extract-code.iatf
+|   |   +--- count-sections.iatf
+|   +--- agentic/
+|       +--- multi-step.iatf
+|       +--- cross-reference.iatf
+|       +--- complex-query.iatf
++--- providers/
+    +--- openai.yaml
+    +--- anthropic.yaml
+    +--- google.yaml
+    +--- deepseek.yaml
 ```
 
 ### Benchmark IATF file Format
@@ -1564,12 +1564,12 @@ Add translations for error messages and CLI output to support non-English users.
 2. **Translation Files**
    ```
    locales/
-   â”œâ”€â”€ en_US/
-   â”‚   â””â”€â”€ LC_MESSAGES/IATF.po
-   â”œâ”€â”€ es_ES/
-   â”‚   â””â”€â”€ LC_MESSAGES/IATF.po
-   â””â”€â”€ zh_CN/
-       â””â”€â”€ LC_MESSAGES/IATF.po
+   +--- en_US/
+   |   +--- LC_MESSAGES/IATF.po
+   +--- es_ES/
+   |   +--- LC_MESSAGES/IATF.po
+   +--- zh_CN/
+       +--- LC_MESSAGES/IATF.po
    ```
 
 3. **Tools**

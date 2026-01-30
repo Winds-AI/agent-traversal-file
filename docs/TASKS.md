@@ -1,5 +1,7 @@
 # Task List
 
+> **Note:** This project previously had both Python and Go implementations. As of January 2025, only the Go implementation is maintained. All Python references in this document are historical.
+
 ## Task 1: Add PID-based warning for rebuild on watched files
 
 **Priority:** Medium
@@ -10,14 +12,7 @@ Prevents redundant double rebuilds when manually running `iatf rebuild` on a fil
 
 ### What was implemented
 
-**Python (`python/iatf.py`):**
-- `is_process_running(pid)` - checks if process exists
-- `prompt_user_confirmation()` - interactive yes/no prompt
-- `check_watched_file()` - validates PID and prompts user
-- `watch_command()` - stores PID, cleans up on exit/signals
-- `rebuild_command()` - checks for watched files before rebuild
-
-**Go (`go/main.go` + platform files):**
+**Go (`go/main.go` + platform files):
 - `go/process_unix.go` - Unix PID check using `Signal(0)`
 - `go/process_windows.go` - Windows PID check using `OpenProcess` API
 - `promptUserConfirmation()` - interactive prompt, returns default for non-TTY
@@ -42,12 +37,12 @@ Continue with manual rebuild? [y/N]:
 ```
 
 **Exit codes:**
-- User cancels → exit 1 with "Rebuild cancelled, no changes made."
-- User confirms → proceeds with rebuild
-- Non-interactive (CI/scripts) → returns default (cancel)
+- User cancels -> exit 1 with "Rebuild cancelled, no changes made."
+- User confirms -> proceeds with rebuild
+- Non-interactive (CI/scripts) -> returns default (cancel)
 
 ### Edge cases handled
-- Stale PID (process dead) → proceeds without warning
+- Stale PID (process dead) -> proceeds without warning
 - Corrupt watch state â†’ cleans up and exits watch
 - File deleted during watch â†’ cleans up PID
 - Windows support â†’ uses `OpenProcess` API instead of Unix signals
@@ -115,10 +110,10 @@ Developed and published a VSCode extension providing comprehensive syntax highli
 Updated the following files to mention the VSCode extension:
 
 - ✅ `README.md` - Added to Installation section and marked as completed in Contributing
-- ✅ `QUICKSTART.md` - Added Editor Setup section with extension link
-- ✅ `SPECIFICATION.md` - Added section 11A "Editor Support" with extension details
-- ✅ `IDEAS.md` - Updated Editor Plugins status to "Partially Implemented"
-- ✅ `CONTRIBUTING.md` - Marked VSCode extension as completed
+- ✅ `docs/QUICKSTART.md` - Added Editor Setup section with extension link
+- ✅ `docs/SPECIFICATION.md` - Added section 11A "Editor Support" with extension details
+- ✅ `docs/IDEAS.md` - Updated Editor Plugins status to "Partially Implemented"
+- ✅ `docs/CONTRIBUTING.md` - Marked VSCode extension as completed
 - ✅ `vscode/iatf/README.md` - Comprehensive extension documentation
 
 ### Benefits
@@ -198,7 +193,7 @@ iatf graph <file> [--show-incoming]
 
 **Behavior:**
 1. Parse the CONTENT section to extract all `{@section-id}` references
-2. Build maps of section → [referenced sections] (outgoing) and section → [who references it] (incoming)
+2. Build maps of section -> [referenced sections] (outgoing) and section -> [who references it] (incoming)
 3. Output in compact text format based on flag
 4. Exit code 0 on success, non-zero on error
 
@@ -212,34 +207,7 @@ iatf graph <file> [--show-incoming]
 
 ### Implementation Details
 
-**Both Python and Go implementations required:**
-
-**Python (`python/iatf.py`):**
-```python
-def graph_command(file_path: str):
-    """Display section reference graph."""
-    # 1. Parse file to extract sections
-    sections = parse_content_sections(file_path)
-
-    # 2. Extract references from each section
-    reference_map = {}
-    for section_id, section_content in sections.items():
-        refs = extract_references(section_content)
-        reference_map[section_id] = refs
-
-    # 3. Output in compact format
-    print(f"@graph: {os.path.basename(file_path)}")
-    print()
-
-    for section_id in sections.keys():
-        refs = reference_map.get(section_id, [])
-        if refs:
-            print(f"{section_id} -> {', '.join(refs)}")
-        else:
-            print(section_id)
-```
-
-**Go (`go/main.go`):**
+**Go (`go/main.go):
 ```go
 func graphCommand(filePath string) error {
     // 1. Parse file
@@ -341,13 +309,12 @@ The current implementation covers the most common use cases.
 
 After implementation, update:
 - [ ] `README.md` - Add `graph` to command list with example
-- [ ] `SPECIFICATION.md` - Document graph output format
+- [ ] `docs/SPECIFICATION.md` - Document graph output format
 - [ ] Example output for `examples/cross-references.iatf`
 
 ### Success Criteria
 
-- ✅ Command works in both Python and Go implementations
-- ✅ Output is consistent between implementations
+- ✅ Command works in Go implementation
 - ✅ Handles all edge cases gracefully
 - ✅ Reuses existing validation logic (no code duplication)
 - ✅ Clear, minimal, token-efficient output
@@ -359,6 +326,8 @@ After implementation, update:
 
 **Priority:** High
 **Status:** Pending
+
+> **Note:** This task describes the benchmark approach. Any implementation scripts should be written in Go (the current maintained language) or as language-agnostic pseudocode.
 
 ### Summary
 Validate IATF format effectiveness by benchmarking against PageIndex's 98.7% accuracy on the FinanceBench dataset. This will prove whether IATF's line-level granularity and self-indexing approach can match or exceed existing solutions while maintaining claimed token efficiency (80-95% savings).
@@ -415,7 +384,7 @@ Validate IATF format effectiveness by benchmarking against PageIndex's 98.7% acc
 #### 2. Evaluation Code
 **Repository:** https://github.com/VectifyAI/Mafin2.5-FinanceBench
 
-**Key File:** `eval.py`
+**Key File:** Evaluation module (reference implementation)
 - `check_answer_equivalence()` - validates answers using LLM judge
 - Handles numerical flexibility (1.2 ≈ 1.23, fractions ≈ percentages)
 - Semantic evaluation (meaning/conclusion equivalence)
@@ -423,8 +392,8 @@ Validate IATF format effectiveness by benchmarking against PageIndex's 98.7% acc
 - Returns boolean correctness per question
 
 **Usage:**
-```python
-is_correct = await check_answer_equivalence(
+```
+check_answer_equivalence(
     predicted_answer="$143.1 billion",
     gold_answer="$143.1 billion",
     question="What was Amazon's revenue in Q3 2023?",
@@ -488,7 +457,7 @@ git clone https://github.com/patronus-ai/financebench.git
 git clone https://github.com/VectifyAI/Mafin2.5-FinanceBench.git
 ```
 
-**1.2 Build PDF → IATF Converter**
+**1.2 Build PDF -> IATF Converter**
 
 **Tool Stack:**
 - `pdfplumber` or `PyMuPDF` - text extraction with page info
@@ -496,36 +465,15 @@ git clone https://github.com/VectifyAI/Mafin2.5-FinanceBench.git
 - IATF builder - generate valid `.iatf` files
 
 **Conversion Pipeline:**
-```python
-def pdf_to_iatf(pdf_path, output_path):
-    # 1. Extract text with page numbers
-    pages = extract_pdf_text(pdf_path)
-
-    # 2. Detect sections using LLM
-    sections = detect_sections(pages)
-    # Uses GPT-4 to identify:
-    #   - Headers (bold, larger fonts, TOC entries)
-    #   - Topic changes (semantic breaks)
-    #   - Financial statement boundaries
-
-    # 3. Generate summaries for each section
-    for section in sections:
-        section['summary'] = generate_summary(section['content'])
-
-    # 4. Build IATF structure
-    iatf_content = build_iatf(
-        title=extract_title(pdf_path),
-        sections=sections,
-        metadata={
-            'created': today(),
-            'source': 'financebench',
-            'doc_type': extract_doc_type(pdf_path)
-        }
-    )
-
-    # 5. Write and validate
-    write_iatf(output_path, iatf_content)
-    run_iatf_validate(output_path)
+```
+1. Extract text with page numbers from PDF
+2. Detect sections using LLM
+   - Identify headers (bold, larger fonts, TOC entries)
+   - Find topic changes (semantic breaks)
+   - Locate financial statement boundaries
+3. Generate summaries for each section
+4. Build IATF structure with metadata
+5. Write output and validate with iatf validate
 ```
 
 **Section Detection Strategy:**
@@ -540,10 +488,10 @@ Level 2 (##):
 ```
 
 **Challenges:**
-- Complex tables → may need special handling
-- Multi-column layouts → proper text ordering
-- Footnotes and references → associate with correct sections
-- Charts/graphs → summarize in text form
+- Complex tables -> may need special handling
+- Multi-column layouts -> proper text ordering
+- Footnotes and references -> associate with correct sections
+- Charts/graphs -> summarize in text form
 
 **Quality Assurance:**
 - Manual review of 10 sample conversions
@@ -553,7 +501,8 @@ Level 2 (##):
 
 **1.3 Convert All Documents**
 ```bash
-python scripts/convert_financebench.py \
+# Script to convert PDFs to IATF format
+convert_financebench \
   --input financebench/pdfs/ \
   --output iatf_docs/ \
   --validate
@@ -563,304 +512,75 @@ python scripts/convert_financebench.py \
 
 #### Phase 2: Build IATF Retrieval System (Week 2)
 
-**2.1 Core Retriever Class**
+**2.1 Core Retriever Algorithm**
 
-```python
-class IATFRetriever:
-    """Efficient document navigation using IATF format."""
+The retriever should implement:
 
-    def __init__(self, iatf_file_path: str):
-        self.file_path = iatf_file_path
-        self.index = self._load_index()
-        self.metrics = {
-            'index_tokens': 0,
-            'reasoning_tokens': 0,
-            'content_tokens': 0,
-            'total_tokens': 0,
-            'sections_retrieved': 0,
-            'total_sections': len(self.index)
-        }
+1. **Index Loading**
+   - Read file until `===CONTENT===` delimiter
+   - Parse index entries to extract section metadata (ID, line ranges, summaries)
+   - Track token count of index for metrics
 
-    def _load_index(self) -> dict:
-        """Load only INDEX section (until ===CONTENT===)."""
-        index_lines = []
-        with open(self.file_path, 'r') as f:
-            in_index = False
-            for line in f:
-                if '===INDEX===' in line:
-                    in_index = True
-                elif '===CONTENT===' in line:
-                    break
-                elif in_index:
-                    index_lines.append(line)
+2. **Section Selection**
+   - Format index with summaries for LLM consumption
+   - Send prompt to LLM asking it to identify relevant section IDs
+   - Parse JSON array response containing section IDs
+   - Track reasoning tokens used
 
-        # Parse index entries
-        parsed = parse_index_entries(''.join(index_lines))
-        self.metrics['index_tokens'] = count_tokens(''.join(index_lines))
-        return parsed
+3. **Content Loading**
+   - For each selected section ID:
+     - Look up start/end line numbers from index
+     - Read those specific lines from file
+     - Track content tokens loaded
+   - Concatenate all section content
 
-    def retrieve_relevant_sections(
-        self,
-        question: str,
-        model: str = "gpt-4"
-    ) -> list[str]:
-        """Use LLM reasoning to select relevant sections."""
-
-        # Format index for LLM
-        index_text = format_index_for_llm(self.index)
-
-        prompt = f"""You are analyzing a financial document index to answer a question.
-
-Document Index:
-{index_text}
-
-Question: {question}
-
-Task: Identify which sections would contain information to answer this question.
-Return section IDs in order of relevance (most relevant first).
-
-Rules:
-- Only return section IDs that exist in the index
-- Include parent sections if child sections are relevant
-- Aim for 2-5 sections maximum
-- If uncertain, include rather than exclude
-
-Format: Return JSON array of section IDs
-Example: ["#revenue-q3", "#operating-expenses", "#cash-flow"]
-"""
-
-        response = get_completion(prompt, model)
-        self.metrics['reasoning_tokens'] += count_tokens(prompt + response)
-
-        section_ids = json.loads(response)
-        return section_ids
-
-    def load_sections(self, section_ids: list[str]) -> str:
-        """Load specific sections by line numbers from INDEX."""
-        content_parts = []
-
-        for section_id in section_ids:
-            if section_id not in self.index:
-                continue
-
-            start_line = self.index[section_id]['start_line']
-            end_line = self.index[section_id]['end_line']
-
-            # Read specific line range
-            section_content = read_lines(self.file_path, start_line, end_line)
-            content_parts.append(section_content)
-            self.metrics['sections_retrieved'] += 1
-            self.metrics['content_tokens'] += count_tokens(section_content)
-
-        return '\n\n'.join(content_parts)
-
-    def answer_question(
-        self,
-        question: str,
-        model: str = "gpt-4"
-    ) -> tuple[str, dict]:
-        """Full QA pipeline with metrics tracking."""
-
-        # Step 1: Index-based section selection
-        relevant_sections = self.retrieve_relevant_sections(question, model)
-
-        # Step 2: Load only relevant sections
-        context = self.load_sections(relevant_sections)
-
-        # Step 3: Generate answer
-        answer_prompt = f"""Based on the following document sections, answer the question.
-
-Question: {question}
-
-Context:
-{context}
-
-Instructions:
-- Answer based ONLY on information in the context
-- Be precise with numbers, dates, and financial figures
-- If the context doesn't contain the answer, say "Information not found"
-- Provide direct answers without unnecessary explanation
-
-Answer:"""
-
-        answer = get_completion(answer_prompt, model)
-        self.metrics['total_tokens'] = (
-            self.metrics['index_tokens'] +
-            self.metrics['reasoning_tokens'] +
-            self.metrics['content_tokens'] +
-            count_tokens(answer_prompt + answer)
-        )
-
-        return answer, self.metrics
-
-def read_lines(file_path: str, start: int, end: int) -> str:
-    """Read specific line range from file (1-indexed)."""
-    with open(file_path, 'r') as f:
-        lines = f.readlines()
-        return ''.join(lines[start-1:end])
-```
+4. **Answer Generation**
+   - Build context prompt with loaded sections
+   - Send to LLM with instructions for precise answers
+   - Calculate total tokens used (index + reasoning + content + answer)
+   - Return answer and metrics
 
 **2.2 Utility Functions**
 
-```python
-def count_tokens(text: str, model: str = "gpt-4") -> int:
-    """Count tokens using tiktoken."""
-    import tiktoken
-    encoding = tiktoken.encoding_for_model(model)
-    return len(encoding.encode(text))
+Required utility functions:
 
-def parse_index_entries(index_text: str) -> dict:
-    """Parse IATF index into structured dict."""
-    # Regex pattern: # Title {#id | lines:start-end | words:count}
-    pattern = r'^(#+)\s+(.+?)\s+\{#([a-zA-Z0-9-_]+)\s+\|\s+lines:(\d+)-(\d+)'
-
-    sections = {}
-    for line in index_text.split('\n'):
-        match = re.match(pattern, line)
-        if match:
-            level, title, section_id, start, end = match.groups()
-            sections[f"#{section_id}"] = {
-                'level': len(level),
-                'title': title,
-                'start_line': int(start),
-                'end_line': int(end),
-                'summary': extract_summary(index_text, line)
-            }
-    return sections
-
-def format_index_for_llm(index: dict) -> str:
-    """Format index in readable form for LLM reasoning."""
-    formatted = []
-    for section_id, info in index.items():
-        formatted.append(
-            f"{section_id} | {info['title']} (lines {info['start_line']}-{info['end_line']})\n"
-            f"  Summary: {info.get('summary', 'N/A')}"
-        )
-    return '\n\n'.join(formatted)
-```
+- **Token Counter**: Count tokens in text using appropriate tokenizer for target LLM
+- **Index Parser**: Parse IATF index entries using regex pattern `# Title {#id | lines:start-end | words:count}`
+- **Index Formatter**: Format parsed index entries into readable text for LLM consumption
+- **Line Reader**: Read specific line ranges from file efficiently
 
 #### Phase 3: Run Evaluation (Week 3)
 
 **3.1 Evaluation Script**
 
-```python
-import json
-import asyncio
-from tqdm import tqdm
-import pandas as pd
-from eval import check_answer_equivalence
+Evaluation algorithm:
 
-async def evaluate_iatf_on_financebench():
-    """Run full evaluation on 150 benchmark questions."""
-
-    # Load questions
-    questions = []
-    with open('financebench/questions.jsonl', 'r') as f:
-        questions = [json.loads(line) for line in f]
-
-    results = []
-
-    for q in tqdm(questions, desc="Evaluating"):
-        question_id = q['question_id']
-        question_text = q['question']
-        gold_answer = q['answer']
-        doc_name = q['doc_name']
-
-        # Find IATF file
-        iatf_file = f"iatf_docs/{doc_name}.iatf"
-
-        if not os.path.exists(iatf_file):
-            print(f"Missing IATF file: {iatf_file}")
-            continue
-
-        try:
-            # Initialize retriever
-            retriever = IATFRetriever(iatf_file)
-
-            # Get answer with metrics
-            start_time = time.time()
-            predicted_answer, metrics = retriever.answer_question(
-                question_text,
-                model="gpt-4"
-            )
-            latency = time.time() - start_time
-
-            # Evaluate correctness
-            is_correct = await check_answer_equivalence(
-                predicted_answer,
-                gold_answer,
-                question_text,
-                model="gpt-4o"
-            )
-
-            results.append({
-                'question_id': question_id,
-                'question': question_text,
-                'predicted_answer': predicted_answer,
-                'gold_answer': gold_answer,
-                'correct': is_correct,
-                'latency_seconds': latency,
-                'index_tokens': metrics['index_tokens'],
-                'reasoning_tokens': metrics['reasoning_tokens'],
-                'content_tokens': metrics['content_tokens'],
-                'total_tokens': metrics['total_tokens'],
-                'sections_retrieved': metrics['sections_retrieved'],
-                'total_sections': metrics['total_sections'],
-                'retrieval_ratio': metrics['sections_retrieved'] / metrics['total_sections']
-            })
-
-        except Exception as e:
-            print(f"Error on {question_id}: {e}")
-            results.append({
-                'question_id': question_id,
-                'error': str(e)
-            })
-
-    # Save results
-    df = pd.DataFrame(results)
-    df.to_json('results/iatf_results.jsonl', orient='records', lines=True)
-    df.to_csv('results/iatf_results.csv', index=False)
-
-    # Calculate summary statistics
-    accuracy = df['correct'].mean()
-    avg_tokens = df['total_tokens'].mean()
-    avg_latency = df['latency_seconds'].mean()
-    avg_retrieval_ratio = df['retrieval_ratio'].mean()
-
-    print(f"\n{'='*60}")
-    print(f"IATF FinanceBench Evaluation Results")
-    print(f"{'='*60}")
-    print(f"Accuracy: {accuracy*100:.2f}% ({df['correct'].sum()}/{len(df)} correct)")
-    print(f"Avg Total Tokens: {avg_tokens:.0f}")
-    print(f"Avg Latency: {avg_latency:.2f}s")
-    print(f"Avg Retrieval Ratio: {avg_retrieval_ratio*100:.1f}% of sections loaded")
-    print(f"{'='*60}\n")
-
-    return df
-
-# Run evaluation
-if __name__ == "__main__":
-    asyncio.run(evaluate_iatf_on_financebench())
-```
+1. Load all 150 questions from `financebench/questions.jsonl`
+2. For each question:
+   - Extract question_id, question_text, gold_answer, doc_name
+   - Locate corresponding IATF file: `iatf_docs/{doc_name}.iatf`
+   - Skip if file missing
+   - Initialize retriever with IATF file
+   - Measure time and get predicted_answer with metrics
+   - Check answer correctness using equivalence function
+   - Store result with all metrics (tokens, latency, retrieval ratio)
+3. Handle errors gracefully, storing error info
+4. Save results to JSONL and CSV formats
+5. Calculate and display summary statistics:
+   - Accuracy percentage
+   - Average total tokens
+   - Average latency
+   - Average retrieval ratio
 
 **3.2 Baseline Comparison**
 
 Also measure performance of loading full documents:
 
-```python
-def evaluate_full_document_baseline():
-    """Measure tokens/accuracy without IATF indexing."""
-
-    for q in questions:
-        # Load entire CONTENT section
-        full_content = load_full_content(iatf_file)
-
-        # Answer with full context
-        answer = answer_with_full_context(question, full_content)
-
-        # Track tokens (much higher)
-        baseline_tokens = count_tokens(full_content)
-```
+For each question:
+1. Load entire CONTENT section of IATF file
+2. Answer with full context (no index-based selection)
+3. Track token count (will be much higher than IATF approach)
+4. Calculate accuracy for comparison
 
 **Comparison Metrics:**
 - Token reduction: `(baseline_tokens - iatf_tokens) / baseline_tokens * 100`
@@ -870,56 +590,22 @@ def evaluate_full_document_baseline():
 
 **4.1 Performance Analysis**
 
-Generate visualizations and reports:
+Generate visualizations and reports showing:
 
-```python
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-# Accuracy distribution
-plt.figure(figsize=(10, 6))
-sns.barplot(x=['PageIndex', 'IATF', 'Full Doc Baseline'],
-            y=[98.7, iatf_accuracy, baseline_accuracy])
-plt.title('Accuracy Comparison on FinanceBench')
-plt.ylabel('Accuracy (%)')
-plt.savefig('results/accuracy_comparison.png')
-
-# Token efficiency
-plt.figure(figsize=(10, 6))
-df.plot(x='question_id', y=['index_tokens', 'content_tokens'], kind='bar', stacked=True)
-plt.title('Token Usage Breakdown by Question')
-plt.ylabel('Token Count')
-plt.savefig('results/token_breakdown.png')
-
-# Retrieval precision
-plt.figure(figsize=(10, 6))
-plt.scatter(df['retrieval_ratio'], df['correct'])
-plt.xlabel('Retrieval Ratio (sections loaded / total)')
-plt.ylabel('Correctness')
-plt.title('Does Loading More Sections Improve Accuracy?')
-plt.savefig('results/retrieval_analysis.png')
-```
+1. **Accuracy Comparison**: Bar chart comparing PageIndex (98.7%), IATF, and full document baseline
+2. **Token Efficiency**: Stacked bar chart showing index tokens vs content tokens per question
+3. **Retrieval Precision**: Scatter plot of retrieval ratio vs correctness to analyze correlation
 
 **4.2 Error Analysis**
 
-```python
-# Analyze incorrect answers
-errors = df[df['correct'] == False]
-
-for _, row in errors.iterrows():
-    print(f"\nQuestion: {row['question']}")
-    print(f"Predicted: {row['predicted_answer']}")
-    print(f"Gold: {row['gold_answer']}")
-    print(f"Sections Retrieved: {row['sections_retrieved']}")
-
-    # Identify error type
-    error_type = classify_error(row)
-    # Types:
-    #   - RETRIEVAL: Correct section not loaded
-    #   - REASONING: Section loaded but wrong answer
-    #   - CONVERSION: PDF→IATF conversion issue
-    #   - AMBIGUOUS: Unclear if answer is truly wrong
-```
+Analyze incorrect answers by:
+- Listing failed questions with predicted vs gold answers
+- Counting sections retrieved for each failure
+- Classifying error types:
+  - **RETRIEVAL**: Correct section not loaded
+  - **REASONING**: Section loaded but wrong answer extracted
+  - **CONVERSION**: PDF->IATF conversion lost information
+  - **AMBIGUOUS**: Unclear if answer is truly wrong
 
 **4.3 Iteration Strategy**
 
@@ -945,10 +631,10 @@ Based on error analysis, improve:
 ### Deliverables
 
 **Code:**
-- [ ] `scripts/pdf_to_iatf.py` - PDF conversion tool
-- [ ] `scripts/iatf_retriever.py` - Retrieval system
-- [ ] `scripts/evaluate.py` - Evaluation pipeline
-- [ ] `scripts/analyze.py` - Result analysis and visualization
+- [ ] `cmd/pdf-convert` - PDF to IATF conversion tool
+- [ ] `cmd/retriever` - IATF retrieval system
+- [ ] `cmd/evaluate` - Evaluation pipeline
+- [ ] `cmd/analyze` - Result analysis and visualization
 
 **Data:**
 - [ ] `iatf_docs/` - 150 converted IATF files
@@ -992,10 +678,11 @@ Based on error analysis, improve:
 
 ### Dependencies
 
-**Python Packages:**
-```bash
-pip install pdfplumber PyMuPDF tiktoken openai pandas matplotlib seaborn tqdm
-```
+**Required Tools:**
+- PDF text extraction library
+- LLM API client (OpenAI or compatible)
+- Token counting library
+- Data analysis and visualization tools
 
 **External Repos:**
 ```bash

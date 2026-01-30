@@ -78,7 +78,7 @@ Checks if the file structure is valid.
 1. Create your own iatf file
 2. Try the rebuild command
 3. Use watch mode while editing
-4. Read the full specification at [SPECIFICATION.md](../SPECIFICATION.md)
+4. Read the full specification at [SPECIFICATION.md](../docs/SPECIFICATION.md)
 
 Happy documenting!
 {/next-steps}
