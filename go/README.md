@@ -8,7 +8,10 @@ High-performance Go implementation that compiles to standalone binaries.
 - ✅ Cross-compiles to all platforms
 - ✅ Fast (~10-50ms rebuild time)
 - ✅ Small binary size (~2-5MB)
-- ✅ All 5 commands implemented
+- ✅ All 15 commands implemented
+- ✅ Watch mode with debouncing and validation
+- ✅ Directory watching with auto-detection
+- ✅ System-wide daemon with OS service integration
 
 ## Building
 
@@ -57,12 +60,30 @@ Flags:
 
 ## Usage
 
+### Core Commands
 ```bash
-./iatf rebuild document.iatf
-./iatf rebuild-all ./docs
-./iatf watch document.iatf
-./iatf unwatch document.iatf
-./iatf validate document.iatf
+./iatf rebuild document.iatf       # Rebuild single file
+./iatf rebuild-all ./docs          # Rebuild all .iatf files
+./iatf validate document.iatf      # Validate file structure
+```
+
+### Watch Commands
+```bash
+./iatf watch document.iatf         # Watch single file (silent)
+./iatf watch document.iatf --debug # Watch with verbose output
+./iatf watch-dir ./docs            # Watch directory tree
+./iatf unwatch document.iatf       # Stop watching
+./iatf watch --list                # List watched files
+```
+
+### Daemon Commands
+```bash
+./iatf daemon start                # Start system-wide daemon
+./iatf daemon start --debug        # Start with verbose logging
+./iatf daemon stop                 # Stop daemon
+./iatf daemon status               # Show daemon status
+./iatf daemon install              # Install as OS service
+./iatf daemon uninstall            # Remove OS service
 ```
 
 ## Code Structure
@@ -72,30 +93,56 @@ Flags:
 type Section struct { ... }       // Represents a section
 type WatchState map[string]WatchInfo
 type WatchInfo struct { ... }
+type DaemonConfig struct { ... }  // Daemon configuration
+type fileState struct { ... }     // Per-file watch state
 
 // Core Functions
 parseContentSection()  // Parse CONTENT section
-generateIndex()        // Generate INDEX from sections  
+generateIndex()        // Generate INDEX from sections
 rebuildIndex()         // Main rebuild logic
+validateFileQuiet()    // Validate without output (returns errors)
 
-// Commands
-rebuildCommand()       // Rebuild single file
-rebuildAllCommand()    // Rebuild directory
-watchCommand()         // Watch mode
+// Watch Commands
+watchCommand()         // Watch single file with debounce
+watchDirCommand()      // Watch directory tree
 unwatchCommand()       // Stop watching
-validateCommand()      // Validation
+processFileForWatch()  // Internal: validate and rebuild
+
+// Daemon Commands
+daemonStartCommand()      // Start daemon process
+daemonStopCommand()       // Stop running daemon
+daemonStatusCommand()     // Show daemon status
+daemonRunCommand()        // Internal: daemon main loop
+watchMultipleDirs()       // Watch multiple paths simultaneously
+
+// Platform-specific (daemon_unix.go / daemon_windows.go)
+daemonInstallCommand()    // Install OS service
+daemonUninstallCommand()  // Remove OS service
+daemonSysProcAttr()       // Process attributes for detaching
+isServiceInstalled()      // Check if service is installed
 ```
 
 ## Dependencies
 
-**None!** Pure Go standard library:
-- `encoding/json` - Watch state
+**Minimal!** Nearly pure Go standard library:
+
+### Standard Library
+- `encoding/json` - Config and watch state
 - `fmt` - Output
-- `os` - File operations
+- `io/fs` - Directory walking
+- `os` - File operations and signals
+- `os/exec` - Daemon process control
+- `os/signal` - Signal handling
 - `path/filepath` - Path handling
 - `regexp` - Pattern matching
+- `sort` - Sorting
 - `strings` - String operations
-- `time` - Timestamps
+- `sync` - Synchronization (mutexes for file state)
+- `syscall` - Process signals and attributes
+- `time` - Timestamps and debouncing
+
+### External (Windows only)
+- `golang.org/x/sys/windows` - Windows process API (daemon service)
 
 ## Performance
 

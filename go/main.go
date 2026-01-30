@@ -6,17 +6,27 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 )
 
 var Version = "dev" // Set at build time via ldflags
+
+// Pre-compiled regex patterns for section parsing
+var (
+	sectionOpenPattern  = regexp.MustCompile(`^\{#([a-zA-Z][a-zA-Z0-9_-]*)\}`)
+	sectionClosePattern = regexp.MustCompile(`^\{/([a-zA-Z][a-zA-Z0-9_-]*)\}`)
+	referencePattern    = regexp.MustCompile(`\{@([a-zA-Z][a-zA-Z0-9_-]*)\}`)
+)
 
 type Section struct {
 	ID           string
@@ -41,14 +51,12 @@ type WatchInfo struct {
 }
 
 func validateNesting(lines []string, contentStart int) error {
-	openPattern := regexp.MustCompile(`^\{#([a-zA-Z][a-zA-Z0-9_-]*)\}`)
-	closePattern := regexp.MustCompile(`^\{/([a-zA-Z][a-zA-Z0-9_-]*)\}`)
 	openSections := []string{}
 
 	for _, line := range lines[contentStart:] {
-		if match := openPattern.FindStringSubmatch(line); match != nil {
+		if match := sectionOpenPattern.FindStringSubmatch(line); match != nil {
 			openSections = append(openSections, match[1])
-		} else if match := closePattern.FindStringSubmatch(line); match != nil {
+		} else if match := sectionClosePattern.FindStringSubmatch(line); match != nil {
 			id := match[1]
 			if len(openSections) > 0 && openSections[len(openSections)-1] == id {
 				openSections = openSections[:len(openSections)-1]
@@ -66,12 +74,7 @@ func validateNesting(lines []string, contentStart int) error {
 }
 
 func isCodeFenceLine(line string) bool {
-	trimmed := strings.TrimSpace(line)
-	return trimmed == "```"
-}
-
-func stripInlineCode(line string) string {
-	return line
+	return strings.TrimSpace(line) == "```"
 }
 
 // ReferenceLocation stores information about where a reference was found
@@ -81,20 +84,15 @@ type ReferenceLocation struct {
 }
 
 // extractReferences extracts all {@section-id} references from content, ignoring fenced code blocks.
-// Only lines that are exactly ``` open/close a fence.
 // Returns a map of section_id -> list of ReferenceLocation where it's referenced.
 func extractReferences(lines []string, contentStart int) map[string][]ReferenceLocation {
 	references := make(map[string][]ReferenceLocation)
-
-	openPattern := regexp.MustCompile(`^\{#([a-zA-Z][a-zA-Z0-9_-]*)\}`)
-	closePattern := regexp.MustCompile(`^\{/([a-zA-Z][a-zA-Z0-9_-]*)\}`)
-	refPattern := regexp.MustCompile(`\{@([a-zA-Z][a-zA-Z0-9_-]*)\}`)
-
 	openSections := []string{}
 	inCodeFence := false
+
 	for i := contentStart; i < len(lines); i++ {
 		line := lines[i]
-		lineNum := i + 1 // 1-indexed
+		lineNum := i + 1
 
 		if inCodeFence {
 			if isCodeFenceLine(line) {
@@ -106,12 +104,12 @@ func extractReferences(lines []string, contentStart int) map[string][]ReferenceL
 			inCodeFence = true
 			continue
 		}
-		// Track current section
-		if match := openPattern.FindStringSubmatch(line); match != nil {
+
+		if match := sectionOpenPattern.FindStringSubmatch(line); match != nil {
 			openSections = append(openSections, match[1])
 			continue
 		}
-		if match := closePattern.FindStringSubmatch(line); match != nil {
+		if match := sectionClosePattern.FindStringSubmatch(line); match != nil {
 			if len(openSections) > 0 && openSections[len(openSections)-1] == match[1] {
 				openSections = openSections[:len(openSections)-1]
 			} else {
@@ -120,8 +118,7 @@ func extractReferences(lines []string, contentStart int) map[string][]ReferenceL
 			continue
 		}
 
-		// Find all references in this line
-		matches := refPattern.FindAllStringSubmatch(stripInlineCode(line), -1)
+		matches := referencePattern.FindAllStringSubmatch(line, -1)
 		for _, match := range matches {
 			target := match[1]
 			containingSection := ""
@@ -237,10 +234,19 @@ func main() {
 		}
 		if len(os.Args) < 3 {
 			fmt.Fprintln(os.Stderr, "Error: Missing file argument")
-			fmt.Fprintln(os.Stderr, "Usage: iatf watch <file>")
+			fmt.Fprintln(os.Stderr, "Usage: iatf watch <file> [--debug]")
 			os.Exit(1)
 		}
-		os.Exit(watchCommand(os.Args[2]))
+		debug := len(os.Args) >= 4 && os.Args[3] == "--debug"
+		os.Exit(watchCommand(os.Args[2], debug))
+	case "watch-dir":
+		if len(os.Args) < 3 {
+			fmt.Fprintln(os.Stderr, "Error: Missing directory argument")
+			fmt.Fprintln(os.Stderr, "Usage: iatf watch-dir <dir> [--debug]")
+			os.Exit(1)
+		}
+		debug := len(os.Args) >= 4 && os.Args[3] == "--debug"
+		os.Exit(watchDirCommand(os.Args[2], debug))
 	case "unwatch":
 		if len(os.Args) < 3 {
 			fmt.Fprintln(os.Stderr, "Error: Missing file argument")
@@ -291,6 +297,33 @@ func main() {
 			showIncoming = true
 		}
 		os.Exit(graphCommand(os.Args[2], showIncoming))
+	case "daemon":
+		if len(os.Args) < 3 {
+			fmt.Fprintln(os.Stderr, "Error: Missing daemon subcommand")
+			fmt.Fprintln(os.Stderr, "Usage: iatf daemon <start|stop|status|run|install|uninstall>")
+			os.Exit(1)
+		}
+		subCmd := os.Args[2]
+		switch subCmd {
+		case "start":
+			debug := len(os.Args) >= 4 && os.Args[3] == "--debug"
+			os.Exit(daemonStartCommand(debug))
+		case "stop":
+			os.Exit(daemonStopCommand())
+		case "status":
+			os.Exit(daemonStatusCommand())
+		case "run":
+			debug := len(os.Args) >= 4 && os.Args[3] == "--debug"
+			os.Exit(daemonRunCommand(debug))
+		case "install":
+			os.Exit(daemonInstallCommand())
+		case "uninstall":
+			os.Exit(daemonUninstallCommand())
+		default:
+			fmt.Fprintf(os.Stderr, "Error: Unknown daemon subcommand: %s\n", subCmd)
+			fmt.Fprintln(os.Stderr, "Usage: iatf daemon <start|stop|status|run|install|uninstall>")
+			os.Exit(1)
+		}
 	default:
 		fmt.Fprintf(os.Stderr, "Error: Unknown command: %s\n", command)
 		fmt.Fprintln(os.Stderr, "Run 'iatf --help' for usage information")
@@ -304,7 +337,8 @@ func printUsage() {
 Usage:
     iatf rebuild <file>              Rebuild index for a single file
     iatf rebuild-all [directory]     Rebuild all .iatf files in directory
-    iatf watch <file>                Watch file and auto-rebuild on changes
+    iatf watch <file> [--debug]      Watch file and auto-rebuild on changes
+    iatf watch-dir <dir> [--debug]   Watch directory tree for .iatf files
     iatf unwatch <file>              Stop watching a file
     iatf watch --list                List all watched files
     iatf validate <file>             Validate iatf file structure
@@ -316,14 +350,25 @@ Usage:
     iatf --help                      Show this help message
     iatf --version                   Show version
 
+Daemon Commands:
+    iatf daemon start [--debug]      Start system-wide daemon
+    iatf daemon stop                 Stop running daemon
+    iatf daemon status               Show daemon status and watched paths
+    iatf daemon install              Install as OS service (auto-start on boot)
+    iatf daemon uninstall            Remove OS service
+
 Examples:
     iatf rebuild document.iatf
     iatf rebuild-all ./docs
     iatf watch api-reference.iatf
+    iatf watch api-reference.iatf --debug
+    iatf watch-dir ./docs
     iatf validate my-doc.iatf
     iatf index document.iatf
     iatf read document.iatf intro
     iatf read document.iatf --title "Introduction"
+    iatf daemon start
+    iatf daemon status
 
 For more information, visit: https://github.com/Winds-AI/agent-traversal-file
 `, Version)
@@ -335,14 +380,10 @@ func parseContentSection(lines []string, contentStart int) []Section {
 	inHeader := []bool{}
 	summaryContinuation := []bool{}
 
-	openPattern := regexp.MustCompile(`^\{#([a-zA-Z][a-zA-Z0-9_-]*)\}`)
-	closePattern := regexp.MustCompile(`^\{/([a-zA-Z][a-zA-Z0-9_-]*)\}`)
-
 	for i := contentStart; i < len(lines); i++ {
 		line := lines[i]
 
-		// Opening tag
-		if match := openPattern.FindStringSubmatch(line); match != nil {
+		if match := sectionOpenPattern.FindStringSubmatch(line); match != nil {
 			section := Section{
 				ID:    match[1],
 				Title: match[1],
@@ -379,8 +420,7 @@ func parseContentSection(lines []string, contentStart int) []Section {
 			summaryContinuation[len(summaryContinuation)-1] = false
 		}
 
-		// Closing tag: {/id}
-		if match := closePattern.FindStringSubmatch(line); match != nil {
+		if match := sectionClosePattern.FindStringSubmatch(line); match != nil {
 			if len(stack) > 0 && sections[stack[len(stack)-1]].ID == match[1] {
 				idx := stack[len(stack)-1]
 				sections[idx].End = i + 1 // 1-indexed
@@ -391,13 +431,10 @@ func parseContentSection(lines []string, contentStart int) []Section {
 			continue
 		}
 
-		// Collect actual content lines (excluding opening/closing tags and metadata)
 		if len(stack) > 0 && !inHeader[len(inHeader)-1] {
-			// Extract title from first heading
 			if strings.HasPrefix(line, "#") && !strings.HasPrefix(sections[stack[len(stack)-1]].Title, "#") {
 				sections[stack[len(stack)-1]].Title = strings.TrimSpace(strings.TrimLeft(line, "#"))
 			}
-			// Add to ContentLines
 			sections[stack[len(stack)-1]].ContentLines = append(sections[stack[len(stack)-1]].ContentLines, line)
 		}
 	}
@@ -406,19 +443,14 @@ func parseContentSection(lines []string, contentStart int) []Section {
 }
 
 func computeContentHash(contentLines []string) string {
-	// Compute truncated SHA256 hash of content (Git-style 7 chars)
 	contentText := strings.Join(contentLines, "\n")
 	sum := sha256.Sum256([]byte(contentText))
-	fullHash := hex.EncodeToString(sum[:])
-	return fullHash[:7] // Git-style truncated hash
+	return hex.EncodeToString(sum[:])[:7]
 }
 
 func countWords(contentLines []string) int {
-	// Count words in content lines
 	text := strings.Join(contentLines, " ")
-	// Split on whitespace and count non-empty strings
-	words := strings.Fields(text)
-	return len(words)
+	return len(strings.Fields(text))
 }
 
 type indexMeta struct {
@@ -492,54 +524,6 @@ func parseIndexMetadata(lines []string) map[string]indexMeta {
 	return metadata
 }
 
-func updateContentMetadata(lines []string, contentStart int, sections []Section) []string {
-	// Create a map of section_id -> section for quick lookup
-	sectionMap := make(map[string]*Section)
-	for i := range sections {
-		sectionMap[sections[i].ID] = &sections[i]
-	}
-
-	// Track current section being processed
-	var currentSectionID string
-
-	openPattern := regexp.MustCompile(`^\{#([a-zA-Z][a-zA-Z0-9_-]*)\}`)
-	closePattern := regexp.MustCompile(`^\{/([a-zA-Z][a-zA-Z0-9_-]*)\}`)
-
-	i := contentStart
-	for i < len(lines) {
-		line := lines[i]
-
-		// Opening tag
-		if match := openPattern.FindStringSubmatch(line); match != nil {
-			currentSectionID = match[1]
-			i++
-			continue
-		}
-
-		// Closing tag
-		if match := closePattern.FindStringSubmatch(line); match != nil {
-			currentSectionID = ""
-			i++
-			continue
-		}
-
-		// Skip metadata lines in CONTENT blocks
-		// Note: @modified and @hash are not valid in CONTENT, they are only stored in INDEX
-		// Only @summary is valid in CONTENT blocks
-		if currentSectionID != "" {
-			if strings.HasPrefix(line, "@") {
-				// Skip metadata lines
-				i++
-				continue
-			}
-		}
-
-		i++
-	}
-
-	return lines
-}
-
 func generateIndex(sections []Section, contentHash string) []string {
 	indexLines := []string{
 		"===INDEX===",
@@ -580,8 +564,8 @@ func generateIndex(sections []Section, contentHash string) []string {
 	return indexLines
 }
 
-func rebuildIndex(filepath string) error {
-	content, err := os.ReadFile(filepath)
+func rebuildIndex(filePath string) error {
+	content, err := os.ReadFile(filePath)
 	if err != nil {
 		return err
 	}
@@ -747,24 +731,23 @@ func rebuildIndex(filepath string) error {
 
 	newContent := strings.Join(newLines, "\n")
 
-	return os.WriteFile(filepath, []byte(newContent), 0644)
+	return os.WriteFile(filePath, []byte(newContent), 0644)
 }
 
-func rebuildCommand(filepath string) int {
-	if _, err := os.Stat(filepath); os.IsNotExist(err) {
-		fmt.Fprintf(os.Stderr, "Error: File not found: %s\n", filepath)
+func rebuildCommand(filePath string) int {
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		fmt.Fprintf(os.Stderr, "Error: File not found: %s\n", filePath)
 		return 1
 	}
 
-	// Check if file is being watched by another process
-	if !checkWatchedFile(filepath) {
+	if !checkWatchedFile(filePath) {
 		fmt.Println("Rebuild cancelled, no changes made.")
 		return 1
 	}
 
-	fmt.Printf("Rebuilding index: %s\n", filepath)
+	fmt.Printf("Rebuilding index: %s\n", filePath)
 
-	if err := rebuildIndex(filepath); err != nil {
+	if err := rebuildIndex(filePath); err != nil {
 		fmt.Fprintf(os.Stderr, "[ERROR] Failed to rebuild index: %v\n", err)
 		return 1
 	}
@@ -916,7 +899,7 @@ func checkWatchedFile(filePath string) bool {
 	return promptUserConfirmation("Continue with manual rebuild", false)
 }
 
-func watchCommand(filePath string) int {
+func watchCommand(filePath string, debug bool) int {
 	absPath, err := filepath.Abs(filePath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
@@ -966,28 +949,35 @@ func watchCommand(filePath string) int {
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
-	fmt.Printf("Started watching: %s\n", filePath)
-	fmt.Println("File will auto-rebuild on save")
-	fmt.Printf("To stop: iatf unwatch %s\n\n", filePath)
-	fmt.Println("Press Ctrl+C to stop watching")
+	fmt.Printf("Watching: %s\n", filePath)
 
 	lastMod := info.ModTime()
 	ticker := time.NewTicker(250 * time.Millisecond)
 	defer ticker.Stop()
 
+	var debounceTimer *time.Timer
+	var timerMu sync.Mutex
+
 	for {
 		select {
 		case <-sigChan:
+			timerMu.Lock()
+			if debounceTimer != nil {
+				debounceTimer.Stop()
+			}
+			timerMu.Unlock()
 			cleanupPID()
-			fmt.Println("\n\nWatch stopped")
-			fmt.Printf("To resume: iatf watch %s\n", filePath)
-			fmt.Printf("To stop permanently: iatf unwatch %s\n", filePath)
+			if debug {
+				fmt.Println("\nWatch stopped")
+			}
 			return 0
 		case <-ticker.C:
 			state, err := loadWatchState()
 			if err == nil {
 				if _, exists := state[absPath]; !exists {
-					fmt.Printf("\nWatch stopped via unwatch: %s\n", filePath)
+					if debug {
+						fmt.Printf("\nWatch stopped via unwatch: %s\n", filePath)
+					}
 					return 0
 				}
 			}
@@ -995,20 +985,51 @@ func watchCommand(filePath string) int {
 			currentInfo, err := os.Stat(absPath)
 			if err != nil {
 				cleanupPID()
-				fmt.Printf("\nWarning: File no longer exists: %s\n", filePath)
+				if debug {
+					fmt.Printf("\nWarning: File no longer exists: %s\n", filePath)
+				}
 				return 0
 			}
 
 			if currentInfo.ModTime().After(lastMod) {
-				fmt.Printf("\n[%s] File changed, rebuilding...\n", time.Now().Format("15:04:05"))
-				if err := rebuildIndex(absPath); err != nil {
-					fmt.Printf("  [ERROR] Rebuild failed: %v\n", err)
-				} else {
-					fmt.Println("  [OK] Index rebuilt")
-				}
 				lastMod = currentInfo.ModTime()
+				if debug {
+					fmt.Printf("[%s] Change detected, waiting 3s...\n", filepath.Base(absPath))
+				}
+
+				timerMu.Lock()
+				if debounceTimer != nil {
+					debounceTimer.Stop()
+				}
+				debounceTimer = time.AfterFunc(3*time.Second, func() {
+					processFileForWatch(absPath, debug)
+				})
+				timerMu.Unlock()
 			}
 		}
+	}
+}
+
+// processFileForWatch validates and rebuilds a single file
+func processFileForWatch(filePath string, debug bool) {
+	valid, errors := validateFileQuiet(filePath)
+	if !valid {
+		if debug {
+			fmt.Printf("[%s] Validation failed:\n", filepath.Base(filePath))
+			for _, e := range errors {
+				fmt.Printf("  - %s\n", e)
+			}
+		}
+		return
+	}
+	if err := rebuildIndex(filePath); err != nil {
+		if debug {
+			fmt.Printf("[%s] Rebuild failed: %v\n", filepath.Base(filePath), err)
+		}
+		return
+	}
+	if debug {
+		fmt.Printf("[%s] Index rebuilt\n", filepath.Base(filePath))
 	}
 }
 
@@ -1056,13 +1077,440 @@ func listWatched() int {
 	return 0
 }
 
-func indexCommand(filepath string) int {
-	if _, err := os.Stat(filepath); os.IsNotExist(err) {
-		fmt.Fprintf(os.Stderr, "Error: File not found: %s\n", filepath)
+// fileState tracks per-file debounce state for directory watching
+type fileState struct {
+	lastModTime time.Time
+	timer       *time.Timer
+}
+
+func watchDirCommand(dirPath string, debug bool) int {
+	absDir, err := filepath.Abs(dirPath)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
 		return 1
 	}
 
-	content, err := os.ReadFile(filepath)
+	info, err := os.Stat(absDir)
+	if os.IsNotExist(err) {
+		fmt.Fprintf(os.Stderr, "Error: Directory not found: %s\n", dirPath)
+		return 1
+	}
+	if !info.IsDir() {
+		fmt.Fprintf(os.Stderr, "Error: Not a directory: %s\n", dirPath)
+		return 1
+	}
+
+	files := make(map[string]*fileState)
+	var filesMu sync.Mutex
+
+	// Initial scan to find all .iatf files
+	var watchedFiles []string
+	filepath.WalkDir(absDir, func(path string, d fs.DirEntry, err error) error {
+		if err == nil && !d.IsDir() && strings.HasSuffix(path, ".iatf") {
+			watchedFiles = append(watchedFiles, path)
+			stat, _ := os.Stat(path)
+			files[path] = &fileState{lastModTime: stat.ModTime()}
+		}
+		return nil
+	})
+
+	if len(watchedFiles) == 0 {
+		fmt.Println("No .iatf files found in directory")
+		return 0
+	}
+
+	fmt.Println("Watching:")
+	for _, f := range watchedFiles {
+		fmt.Printf("  %s\n", f)
+	}
+
+	// Setup signal handling
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	ticker := time.NewTicker(250 * time.Millisecond)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-sigChan:
+			filesMu.Lock()
+			for _, state := range files {
+				if state.timer != nil {
+					state.timer.Stop()
+				}
+			}
+			filesMu.Unlock()
+			if debug {
+				fmt.Println("\nWatch stopped")
+			}
+			return 0
+		case <-ticker.C:
+			filepath.WalkDir(absDir, func(path string, d fs.DirEntry, err error) error {
+				if err != nil || d.IsDir() || !strings.HasSuffix(path, ".iatf") {
+					return nil
+				}
+
+				stat, statErr := os.Stat(path)
+				if statErr != nil {
+					return nil
+				}
+
+				filesMu.Lock()
+				state, exists := files[path]
+
+				if !exists {
+					// New file detected
+					files[path] = &fileState{lastModTime: stat.ModTime()}
+					filesMu.Unlock()
+					if debug {
+						fmt.Printf("New file detected: %s\n", path)
+					}
+					return nil
+				}
+
+				if stat.ModTime().After(state.lastModTime) {
+					state.lastModTime = stat.ModTime()
+					if debug {
+						fmt.Printf("[%s] Change detected, waiting 3s...\n", filepath.Base(path))
+					}
+
+					if state.timer != nil {
+						state.timer.Stop()
+					}
+					pathCopy := path // Capture for closure
+					state.timer = time.AfterFunc(3*time.Second, func() {
+						processFileForWatch(pathCopy, debug)
+					})
+				}
+				filesMu.Unlock()
+				return nil
+			})
+
+			// Check for deleted files
+			filesMu.Lock()
+			for path, state := range files {
+				if _, err := os.Stat(path); os.IsNotExist(err) {
+					if state.timer != nil {
+						state.timer.Stop()
+					}
+					delete(files, path)
+					if debug {
+						fmt.Printf("Stopped watching (deleted): %s\n", path)
+					}
+				}
+			}
+			filesMu.Unlock()
+		}
+	}
+}
+
+// DaemonConfig holds the daemon configuration
+type DaemonConfig struct {
+	WatchPaths []string `json:"watch_paths"`
+}
+
+func getDaemonConfigPath() string {
+	home, _ := os.UserHomeDir()
+	return filepath.Join(home, ".iatf", "daemon.json")
+}
+
+func getDaemonPIDPath() string {
+	home, _ := os.UserHomeDir()
+	return filepath.Join(home, ".iatf", "daemon.pid")
+}
+
+func getDaemonLogPath() string {
+	home, _ := os.UserHomeDir()
+	return filepath.Join(home, ".iatf", "daemon.log")
+}
+
+func loadDaemonConfig() DaemonConfig {
+	configPath := getDaemonConfigPath()
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		return DaemonConfig{}
+	}
+
+	var config DaemonConfig
+	json.Unmarshal(data, &config)
+	return config
+}
+
+func saveDaemonPID(pid int) error {
+	pidPath := getDaemonPIDPath()
+	os.MkdirAll(filepath.Dir(pidPath), 0755)
+	return os.WriteFile(pidPath, []byte(fmt.Sprintf("%d", pid)), 0644)
+}
+
+func loadDaemonPID() (int, error) {
+	pidPath := getDaemonPIDPath()
+	data, err := os.ReadFile(pidPath)
+	if err != nil {
+		return 0, err
+	}
+
+	var pid int
+	_, err = fmt.Sscanf(string(data), "%d", &pid)
+	return pid, err
+}
+
+func removeDaemonPIDFile() {
+	os.Remove(getDaemonPIDPath())
+}
+
+func checkDaemonRunning() (bool, int) {
+	pid, err := loadDaemonPID()
+	if err != nil {
+		return false, 0
+	}
+
+	if isProcessRunning(pid) {
+		return true, pid
+	}
+
+	// Clean up stale PID file
+	removeDaemonPIDFile()
+	return false, 0
+}
+
+func daemonStartCommand(debug bool) int {
+	config := loadDaemonConfig()
+	if len(config.WatchPaths) == 0 {
+		fmt.Println("No watch paths configured.")
+		fmt.Printf("Add paths to %s\n", getDaemonConfigPath())
+		fmt.Println("\nExample config:")
+		fmt.Println(`{
+    "watch_paths": [
+        "/path/to/your/projects",
+        "/another/path"
+    ]
+}`)
+		return 1
+	}
+
+	if isRunning, pid := checkDaemonRunning(); isRunning {
+		fmt.Printf("Daemon already running (PID %d)\n", pid)
+		return 1
+	}
+
+	// Start detached process
+	args := []string{"daemon", "run"}
+	if debug {
+		args = append(args, "--debug")
+	}
+
+	cmd := exec.Command(os.Args[0], args...)
+	cmd.SysProcAttr = daemonSysProcAttr()
+
+	if err := cmd.Start(); err != nil {
+		fmt.Fprintf(os.Stderr, "Error starting daemon: %v\n", err)
+		return 1
+	}
+
+	saveDaemonPID(cmd.Process.Pid)
+	fmt.Printf("Daemon started (PID %d)\n", cmd.Process.Pid)
+	fmt.Printf("Watching %d path(s)\n", len(config.WatchPaths))
+	return 0
+}
+
+func daemonStopCommand() int {
+	pid, err := loadDaemonPID()
+	if err != nil {
+		fmt.Println("Daemon not running")
+		return 1
+	}
+
+	if !isProcessRunning(pid) {
+		removeDaemonPIDFile()
+		fmt.Println("Daemon not running (stale PID file removed)")
+		return 1
+	}
+
+	process, err := os.FindProcess(pid)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error finding process: %v\n", err)
+		return 1
+	}
+
+	if err := process.Signal(syscall.SIGTERM); err != nil {
+		fmt.Fprintf(os.Stderr, "Error stopping daemon: %v\n", err)
+		return 1
+	}
+
+	removeDaemonPIDFile()
+	fmt.Println("Daemon stopped")
+	return 0
+}
+
+func daemonStatusCommand() int {
+	config := loadDaemonConfig()
+
+	if isRunning, pid := checkDaemonRunning(); isRunning {
+		fmt.Printf("Daemon: running (PID %d)\n", pid)
+	} else {
+		fmt.Println("Daemon: stopped")
+	}
+
+	fmt.Printf("\nWatch paths (%d):\n", len(config.WatchPaths))
+	if len(config.WatchPaths) == 0 {
+		fmt.Printf("  (none configured)\n")
+		fmt.Printf("\nAdd paths to %s\n", getDaemonConfigPath())
+	} else {
+		for _, p := range config.WatchPaths {
+			fmt.Printf("  %s\n", p)
+		}
+	}
+
+	installed, service := isServiceInstalled()
+	if installed {
+		fmt.Printf("\nOS Service: installed (%s)\n", service)
+	} else {
+		fmt.Println("\nOS Service: not installed")
+	}
+	return 0
+}
+
+func daemonRunCommand(debug bool) int {
+	config := loadDaemonConfig()
+	if len(config.WatchPaths) == 0 {
+		return 1
+	}
+
+	// Redirect output to log file
+	logPath := getDaemonLogPath()
+	os.MkdirAll(filepath.Dir(logPath), 0755)
+	logFile, err := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err == nil {
+		os.Stdout = logFile
+		os.Stderr = logFile
+	}
+
+	fmt.Printf("[%s] Daemon started\n", time.Now().Format(time.RFC3339))
+	for _, p := range config.WatchPaths {
+		fmt.Printf("  Watching: %s\n", p)
+	}
+
+	// Watch all configured paths
+	watchMultipleDirs(config.WatchPaths, debug)
+	return 0
+}
+
+// watchMultipleDirs watches multiple directories simultaneously
+func watchMultipleDirs(paths []string, debug bool) {
+	files := make(map[string]*fileState)
+	var filesMu sync.Mutex
+
+	// Initial scan of all paths
+	for _, dirPath := range paths {
+		filepath.WalkDir(dirPath, func(path string, d fs.DirEntry, err error) error {
+			if err == nil && !d.IsDir() && strings.HasSuffix(path, ".iatf") {
+				stat, _ := os.Stat(path)
+				files[path] = &fileState{lastModTime: stat.ModTime()}
+			}
+			return nil
+		})
+	}
+
+	// Setup signal handling
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+
+	ticker := time.NewTicker(250 * time.Millisecond)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-sigChan:
+			filesMu.Lock()
+			for _, state := range files {
+				if state.timer != nil {
+					state.timer.Stop()
+				}
+			}
+			filesMu.Unlock()
+			fmt.Printf("[%s] Daemon stopped\n", time.Now().Format(time.RFC3339))
+			return
+		case <-ticker.C:
+			for _, dirPath := range paths {
+				filepath.WalkDir(dirPath, func(path string, d fs.DirEntry, err error) error {
+					if err != nil || d.IsDir() || !strings.HasSuffix(path, ".iatf") {
+						return nil
+					}
+
+					stat, statErr := os.Stat(path)
+					if statErr != nil {
+						return nil
+					}
+
+					filesMu.Lock()
+					state, exists := files[path]
+
+					if !exists {
+						files[path] = &fileState{lastModTime: stat.ModTime()}
+						filesMu.Unlock()
+						if debug {
+							fmt.Printf("[%s] New file: %s\n", time.Now().Format(time.RFC3339), path)
+						}
+						return nil
+					}
+
+					if stat.ModTime().After(state.lastModTime) {
+						state.lastModTime = stat.ModTime()
+						if debug {
+							fmt.Printf("[%s] Change: %s\n", time.Now().Format(time.RFC3339), path)
+						}
+
+						if state.timer != nil {
+							state.timer.Stop()
+						}
+						pathCopy := path
+						state.timer = time.AfterFunc(3*time.Second, func() {
+							valid, errors := validateFileQuiet(pathCopy)
+							if !valid {
+								fmt.Printf("[%s] Validation failed: %s\n", time.Now().Format(time.RFC3339), pathCopy)
+								for _, e := range errors {
+									fmt.Printf("  - %s\n", e)
+								}
+								return
+							}
+							if err := rebuildIndex(pathCopy); err != nil {
+								fmt.Printf("[%s] Rebuild failed: %s - %v\n", time.Now().Format(time.RFC3339), pathCopy, err)
+								return
+							}
+							fmt.Printf("[%s] Rebuilt: %s\n", time.Now().Format(time.RFC3339), pathCopy)
+						})
+					}
+					filesMu.Unlock()
+					return nil
+				})
+			}
+
+			// Check for deleted files
+			filesMu.Lock()
+			for path, state := range files {
+				if _, err := os.Stat(path); os.IsNotExist(err) {
+					if state.timer != nil {
+						state.timer.Stop()
+					}
+					delete(files, path)
+					if debug {
+						fmt.Printf("[%s] Deleted: %s\n", time.Now().Format(time.RFC3339), path)
+					}
+				}
+			}
+			filesMu.Unlock()
+		}
+	}
+}
+
+func indexCommand(filePath string) int {
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		fmt.Fprintf(os.Stderr, "Error: File not found: %s\n", filePath)
+		return 1
+	}
+
+	content, err := os.ReadFile(filePath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading file: %v\n", err)
 		return 1
@@ -1070,10 +1518,8 @@ func indexCommand(filepath string) int {
 
 	lines := strings.Split(string(content), "\n")
 
-	// Find INDEX section boundaries
 	indexStart := -1
 	indexEnd := -1
-
 	for i, line := range lines {
 		if strings.TrimSpace(line) == "===INDEX===" {
 			indexStart = i
@@ -1094,7 +1540,6 @@ func indexCommand(filepath string) int {
 		return 1
 	}
 
-	// Output INDEX section (lines between markers, excluding the markers)
 	for _, line := range lines[indexStart+1 : indexEnd] {
 		fmt.Println(line)
 	}
@@ -1102,13 +1547,13 @@ func indexCommand(filepath string) int {
 	return 0
 }
 
-func readCommand(filepath string, sectionID string) int {
-	if _, err := os.Stat(filepath); os.IsNotExist(err) {
-		fmt.Fprintf(os.Stderr, "Error: File not found: %s\n", filepath)
+func readCommand(filePath string, sectionID string) int {
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		fmt.Fprintf(os.Stderr, "Error: File not found: %s\n", filePath)
 		return 1
 	}
 
-	content, err := os.ReadFile(filepath)
+	content, err := os.ReadFile(filePath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading file: %v\n", err)
 		return 1
@@ -1116,7 +1561,6 @@ func readCommand(filepath string, sectionID string) int {
 
 	lines := strings.Split(string(content), "\n")
 
-	// Find INDEX and CONTENT section start
 	indexStart := -1
 	contentStart := -1
 	for i, line := range lines {
@@ -1139,10 +1583,8 @@ func readCommand(filepath string, sectionID string) int {
 		return 1
 	}
 
-	// Parse sections
 	sections := parseContentSection(lines, contentStart)
 
-	// Find matching section by ID
 	var targetSection *Section
 	for i := range sections {
 		if sections[i].ID == sectionID {
@@ -1156,7 +1598,6 @@ func readCommand(filepath string, sectionID string) int {
 		return 1
 	}
 
-	// Extract and output section lines (convert from 1-indexed to 0-indexed)
 	sectionLines := lines[targetSection.Start-1 : targetSection.End]
 	for _, line := range sectionLines {
 		fmt.Println(line)
@@ -1165,13 +1606,13 @@ func readCommand(filepath string, sectionID string) int {
 	return 0
 }
 
-func readByTitleCommand(filepath string, title string) int {
-	if _, err := os.Stat(filepath); os.IsNotExist(err) {
-		fmt.Fprintf(os.Stderr, "Error: File not found: %s\n", filepath)
+func readByTitleCommand(filePath string, title string) int {
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		fmt.Fprintf(os.Stderr, "Error: File not found: %s\n", filePath)
 		return 1
 	}
 
-	content, err := os.ReadFile(filepath)
+	content, err := os.ReadFile(filePath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading file: %v\n", err)
 		return 1
@@ -1179,10 +1620,8 @@ func readByTitleCommand(filepath string, title string) int {
 
 	lines := strings.Split(string(content), "\n")
 
-	// Find INDEX section
 	indexStart := -1
 	indexEnd := -1
-
 	for i, line := range lines {
 		if strings.TrimSpace(line) == "===INDEX===" {
 			indexStart = i
@@ -1197,7 +1636,6 @@ func readByTitleCommand(filepath string, title string) int {
 		return 1
 	}
 
-	// Parse INDEX entries to extract title->ID mappings (preserve order)
 	indexEntryPattern := regexp.MustCompile(`^#{1,6}\s+(.+)\s*\{#([a-zA-Z][a-zA-Z0-9_-]*)\s*\|.*\}$`)
 
 	type indexEntry struct {
@@ -1213,10 +1651,8 @@ func readByTitleCommand(filepath string, title string) int {
 		}
 	}
 
-	// Find best title match (deterministic order)
 	var matchedID string
 
-	// 1. Exact match (case-insensitive)
 	for _, entry := range entries {
 		if strings.EqualFold(entry.title, title) {
 			matchedID = entry.id
@@ -1224,7 +1660,6 @@ func readByTitleCommand(filepath string, title string) int {
 		}
 	}
 
-	// 2. Contains match (case-insensitive)
 	if matchedID == "" {
 		titleLower := strings.ToLower(title)
 		for _, entry := range entries {
@@ -1240,8 +1675,7 @@ func readByTitleCommand(filepath string, title string) int {
 		return 1
 	}
 
-	// Delegate to readCommand
-	return readCommand(filepath, matchedID)
+	return readCommand(filePath, matchedID)
 }
 
 func graphCommand(filePath string, showIncoming bool) int {
@@ -1353,7 +1787,6 @@ func graphCommand(filePath string, showIncoming bool) int {
 	return 0
 }
 
-// Helper function to check if a string slice contains a value
 func contains(slice []string, value string) bool {
 	for _, item := range slice {
 		if item == value {
@@ -1363,15 +1796,111 @@ func contains(slice []string, value string) bool {
 	return false
 }
 
-func validateCommand(filepath string) int {
-	if _, err := os.Stat(filepath); os.IsNotExist(err) {
-		fmt.Fprintf(os.Stderr, "Error: File not found: %s\n", filepath)
+// validateFileQuiet performs validation without printing, returns errors
+func validateFileQuiet(filePath string) (bool, []string) {
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return false, []string{fmt.Sprintf("Cannot read file: %v", err)}
+	}
+
+	lines := strings.Split(string(content), "\n")
+	errors := []string{}
+
+	// Check format declaration
+	if len(lines) == 0 || strings.TrimSpace(lines[0]) != ":::IATF" {
+		errors = append(errors, "Missing format declaration (:::IATF)")
+	}
+
+	// Check INDEX and CONTENT sections exist
+	indexPositions := []int{}
+	contentPositions := []int{}
+	for i, line := range lines {
+		if strings.TrimSpace(line) == "===INDEX===" {
+			indexPositions = append(indexPositions, i)
+		} else if strings.TrimSpace(line) == "===CONTENT===" {
+			contentPositions = append(contentPositions, i)
+		}
+	}
+
+	hasContent := len(contentPositions) > 0
+	if !hasContent {
+		errors = append(errors, "Missing CONTENT section")
+	}
+
+	if len(indexPositions) > 1 {
+		errors = append(errors, "Multiple INDEX sections found")
+	}
+	if len(contentPositions) > 1 {
+		errors = append(errors, "Multiple CONTENT sections found")
+	}
+	if len(indexPositions) > 0 && hasContent && indexPositions[0] > contentPositions[0] {
+		errors = append(errors, "INDEX section appears after CONTENT")
+	}
+
+	// Validate nesting
+	contentStart := -1
+	for i, line := range lines {
+		if strings.TrimSpace(line) == "===CONTENT===" {
+			contentStart = i + 1
+			break
+		}
+	}
+
+	if contentStart != -1 {
+		if err := validateNesting(lines, contentStart); err != nil {
+			errors = append(errors, fmt.Sprintf("Invalid section nesting: %v", err))
+		}
+	}
+
+	// Check for unclosed/mismatched sections
+	openSections := []string{}
+	for _, line := range lines {
+		if match := sectionOpenPattern.FindStringSubmatch(line); match != nil {
+			openSections = append(openSections, match[1])
+		} else if match := sectionClosePattern.FindStringSubmatch(line); match != nil {
+			id := match[1]
+			if len(openSections) > 0 && openSections[len(openSections)-1] == id {
+				openSections = openSections[:len(openSections)-1]
+			} else {
+				errors = append(errors, fmt.Sprintf("Closing tag without matching opening: %s", id))
+			}
+		}
+	}
+	for _, id := range openSections {
+		errors = append(errors, fmt.Sprintf("Unclosed section: %s", id))
+	}
+
+	// Check for duplicate section IDs
+	sectionIDs := make(map[string]bool)
+	for _, line := range lines {
+		if match := sectionOpenPattern.FindStringSubmatch(line); match != nil {
+			id := match[1]
+			if sectionIDs[id] {
+				errors = append(errors, fmt.Sprintf("Duplicate section ID: %s", id))
+			}
+			sectionIDs[id] = true
+		}
+	}
+
+	// Validate references
+	if contentStart != -1 && len(openSections) == 0 {
+		parsedSections := parseContentSection(lines, contentStart)
+		refErrors := validateReferences(lines, contentStart, parsedSections)
+		errors = append(errors, refErrors...)
+	}
+
+	return len(errors) == 0, errors
+}
+
+func validateCommand(filePath string) int {
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		fmt.Fprintf(os.Stderr, "Error: File not found: %s\n", filePath)
 		return 1
 	}
 
-	fmt.Printf("Validating: %s\n\n", filepath)
+	fmt.Printf("Validating: %s\n\n", filePath)
 
-	content, err := os.ReadFile(filepath)
+	content, err := os.ReadFile(filePath)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error reading file: %v\n", err)
 		return 1
@@ -1381,14 +1910,11 @@ func validateCommand(filepath string) int {
 	errors := []string{}
 	warnings := []string{}
 
-	// Check 1: Format declaration
 	if strings.TrimSpace(lines[0]) != ":::IATF" {
 		errors = append(errors, "Missing format declaration (:::IATF)")
 	} else {
 		fmt.Println("[OK] Format declaration found")
 	}
-
-	// Check 2: INDEX/CONTENT sections and order
 	indexPositions := []int{}
 	contentPositions := []int{}
 	for i, line := range lines {
@@ -1423,7 +1949,6 @@ func validateCommand(filepath string) int {
 		errors = append(errors, "INDEX section appears after CONTENT")
 	}
 
-	// Check 4: Content hash matches (if present)
 	indexStart := -1
 	contentStart := -1
 	for i, line := range lines {
@@ -1481,15 +2006,12 @@ func validateCommand(filepath string) int {
 		}
 	}
 
-	// Check 5: All sections are properly closed and nested
 	openSections := []string{}
 	invalidNesting := false
-	openPattern := regexp.MustCompile(`^\{#([a-zA-Z][a-zA-Z0-9_-]*)\}`)
-	closePattern := regexp.MustCompile(`^\{/([a-zA-Z][a-zA-Z0-9_-]*)\}`)
 	for _, line := range lines {
-		if match := openPattern.FindStringSubmatch(line); match != nil {
+		if match := sectionOpenPattern.FindStringSubmatch(line); match != nil {
 			openSections = append(openSections, match[1])
-		} else if match := closePattern.FindStringSubmatch(line); match != nil {
+		} else if match := sectionClosePattern.FindStringSubmatch(line); match != nil {
 			id := match[1]
 			if len(openSections) > 0 && openSections[len(openSections)-1] == id {
 				openSections = openSections[:len(openSections)-1]
@@ -1509,16 +2031,15 @@ func validateCommand(filepath string) int {
 		fmt.Println("[OK] All sections properly closed")
 	}
 
-	// Check 6: No content outside section blocks
 	if !invalidNesting && contentStart != -1 {
 		contentOpen := []string{}
 		for i := contentStart; i < len(lines); i++ {
 			line := lines[i]
-			if match := openPattern.FindStringSubmatch(line); match != nil {
+			if match := sectionOpenPattern.FindStringSubmatch(line); match != nil {
 				contentOpen = append(contentOpen, match[1])
 				continue
 			}
-			if match := closePattern.FindStringSubmatch(line); match != nil {
+			if match := sectionClosePattern.FindStringSubmatch(line); match != nil {
 				if len(contentOpen) > 0 && contentOpen[len(contentOpen)-1] == match[1] {
 					contentOpen = contentOpen[:len(contentOpen)-1]
 				}
@@ -1531,7 +2052,6 @@ func validateCommand(filepath string) int {
 		}
 	}
 
-	// Check 7: INDEX entries match CONTENT
 	if !invalidNesting && hasIndex && contentStart != -1 && indexStart != -1 {
 		indexEntryRe := regexp.MustCompile(`^#{1,6}\s+.*\{#([a-zA-Z][a-zA-Z0-9_-]*)\s*\|\s*lines:(\d+)-(\d+)[^}]*\}$`)
 		indexRanges := map[string][2]int{}
@@ -1585,10 +2105,9 @@ func validateCommand(filepath string) int {
 		}
 	}
 
-	// Check 8: Section IDs unique
 	sectionIDs := make(map[string]bool)
 	for _, line := range lines {
-		if match := openPattern.FindStringSubmatch(line); match != nil {
+		if match := sectionOpenPattern.FindStringSubmatch(line); match != nil {
 			id := match[1]
 			if sectionIDs[id] {
 				errors = append(errors, fmt.Sprintf("Duplicate section ID: %s", id))
@@ -1603,7 +2122,6 @@ func validateCommand(filepath string) int {
 		warnings = append(warnings, "No sections found in CONTENT")
 	}
 
-	// Check 9: References valid
 	if !invalidNesting && contentStart != -1 {
 		parsedSectionsForRefs := parseContentSection(lines, contentStart)
 		refErrors := validateReferences(lines, contentStart, parsedSectionsForRefs)
@@ -1616,7 +2134,6 @@ func validateCommand(filepath string) int {
 		}
 	}
 
-	// Summary
 	fmt.Println()
 	if len(errors) > 0 {
 		fmt.Printf("[ERROR] %d error(s) found:\n", len(errors))
