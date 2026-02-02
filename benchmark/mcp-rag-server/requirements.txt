@@ -9,6 +9,9 @@ qdrant-client>=1.7.0
 # OpenAI for embeddings
 openai>=1.0.0
 
+# Token counting for chunk sizing
+tiktoken>=0.5.0
+
 # Configuration
 pyyaml>=6.0
 

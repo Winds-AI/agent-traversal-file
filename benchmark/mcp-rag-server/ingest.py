@@ -5,11 +5,15 @@ Document ingestion script for RAG benchmark.
 Chunks documents and uploads embeddings to Qdrant Cloud.
 """
 
-import re
 import argparse
 from pathlib import Path
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any
 from dataclasses import dataclass
+
+try:
+    import tiktoken
+except ImportError:
+    tiktoken = None
 
 from embeddings import embed_texts, EMBEDDING_DIMENSION
 from qdrant_client import (
@@ -29,19 +33,19 @@ class Chunk:
     metadata: Dict[str, Any]
 
 
-def chunk_plain_text(
+def chunk_text_by_tokens(
     text: str,
-    chunk_size: int = 500,
-    chunk_overlap: int = 50,
+    chunk_size: int = 2048,
+    overlap: int = 100,
     source: str = "document"
 ) -> List[Chunk]:
     """
-    Chunk plain text into overlapping segments.
+    Chunk text into segments based on token count with overlap.
 
     Args:
         text: Full document text
-        chunk_size: Target size of each chunk in characters
-        chunk_overlap: Number of characters to overlap between chunks
+        chunk_size: Target size of each chunk in tokens
+        overlap: Number of tokens to overlap between chunks
         source: Source identifier for metadata
 
     Returns:
@@ -49,100 +53,36 @@ def chunk_plain_text(
     """
     chunks = []
 
-    # Split into paragraphs first
-    paragraphs = text.split("\n\n")
+    # Use tiktoken for accurate token counting
+    if tiktoken is None:
+        raise ImportError("tiktoken is required for token-based chunking. Install it with: pip install tiktoken")
 
-    current_chunk = ""
+    encoding = tiktoken.get_encoding("cl100k_base")
+    tokens = encoding.encode(text)
+
     chunk_idx = 0
+    stride = chunk_size - overlap
 
-    for para in paragraphs:
-        para = para.strip()
-        if not para:
-            continue
+    for i in range(0, len(tokens), stride):
+        # Don't create a chunk that's too small at the end
+        if i + chunk_size > len(tokens) and i > 0:
+            break
 
-        # If adding this paragraph would exceed chunk size
-        if len(current_chunk) + len(para) > chunk_size and current_chunk:
-            # Save current chunk
+        chunk_tokens = tokens[i:i + chunk_size]
+        chunk_text = encoding.decode(chunk_tokens)
+
+        if chunk_text.strip():
             chunks.append(Chunk(
                 id=f"{source}_chunk_{chunk_idx}",
-                text=current_chunk.strip(),
+                text=chunk_text.strip(),
                 metadata={
                     "source": source,
                     "chunk_index": chunk_idx,
-                    "char_count": len(current_chunk)
+                    "token_count": len(chunk_tokens),
+                    "char_count": len(chunk_text)
                 }
             ))
             chunk_idx += 1
-
-            # Start new chunk with overlap
-            overlap_start = max(0, len(current_chunk) - chunk_overlap)
-            current_chunk = current_chunk[overlap_start:] + "\n\n" + para
-        else:
-            current_chunk += "\n\n" + para if current_chunk else para
-
-    # Don't forget the last chunk
-    if current_chunk.strip():
-        chunks.append(Chunk(
-            id=f"{source}_chunk_{chunk_idx}",
-            text=current_chunk.strip(),
-            metadata={
-                "source": source,
-                "chunk_index": chunk_idx,
-                "char_count": len(current_chunk)
-            }
-        ))
-
-    return chunks
-
-
-def chunk_iatf_document(file_path: Path) -> List[Chunk]:
-    """
-    Chunk an IATF document by sections.
-
-    Each IATF section becomes a separate chunk, preserving structure.
-
-    Args:
-        file_path: Path to IATF file
-
-    Returns:
-        List of Chunk objects, one per IATF section
-    """
-    with open(file_path) as f:
-        content = f.read()
-
-    chunks = []
-    source = file_path.stem
-
-    # Find all sections using regex
-    # IATF sections are delimited by {#section-id} ... {/section-id}
-    section_pattern = r'\{#([^}|]+)(?:\|[^}]*)?\}(.*?)\{/\1\}'
-
-    for match in re.finditer(section_pattern, content, re.DOTALL):
-        section_id = match.group(1).strip()
-        section_content = match.group(2).strip()
-
-        # Clean up the content
-        # Remove @summary lines for cleaner text
-        lines = section_content.split("\n")
-        cleaned_lines = [l for l in lines if not l.strip().startswith("@summary:")]
-        cleaned_content = "\n".join(cleaned_lines).strip()
-
-        if cleaned_content:
-            chunks.append(Chunk(
-                id=f"{source}_{section_id}",
-                text=cleaned_content,
-                metadata={
-                    "source": source,
-                    "section_id": section_id,
-                    "char_count": len(cleaned_content),
-                    "format": "iatf"
-                }
-            ))
-
-    # If no sections found, fall back to plain text chunking
-    if not chunks:
-        print("Warning: No IATF sections found, using plain text chunking")
-        return chunk_plain_text(content, source=source)
 
     return chunks
 
@@ -156,7 +96,7 @@ def ingest_document(
     Ingest a document into Qdrant.
 
     Args:
-        file_path: Path to document (txt or iatf)
+        file_path: Path to text document
         collection_name: Qdrant collection name
         recreate: If True, delete and recreate collection
 
@@ -165,21 +105,26 @@ def ingest_document(
     """
     print(f"Ingesting: {file_path}")
 
-    # Chunk document
-    if file_path.suffix == ".iatf":
-        chunks = chunk_iatf_document(file_path)
-    else:
-        with open(file_path) as f:
-            text = f.read()
-        chunks = chunk_plain_text(text, source=file_path.stem)
+    # Read and chunk document
+    with open(file_path) as f:
+        text = f.read()
+    chunks = chunk_text_by_tokens(text, chunk_size=2048, overlap=100, source=file_path.stem)
 
     print(f"Created {len(chunks)} chunks")
 
-    # Generate embeddings
+    # Generate embeddings in batches of 10 chunks
     print("Generating embeddings...")
     texts = [c.text for c in chunks]
-    embeddings = embed_texts(texts)
-    print(f"Generated {len(embeddings)} embeddings")
+    batch_size = 10
+    all_embeddings = []
+
+    for i in range(0, len(texts), batch_size):
+        batch = texts[i:i + batch_size]
+        batch_embeddings = embed_texts(batch)
+        all_embeddings.extend(batch_embeddings)
+        print(f"  Processed {min(i + batch_size, len(texts))}/{len(texts)} chunks")
+
+    print(f"Generated {len(all_embeddings)} embeddings")
 
     # Connect to Qdrant
     print("Connecting to Qdrant...")
@@ -196,7 +141,7 @@ def ingest_document(
     print("Uploading vectors...")
     ids = [c.id for c in chunks]
     metadata = [c.metadata for c in chunks]
-    count = upsert_vectors(client, collection_name, ids, embeddings, texts, metadata)
+    count = upsert_vectors(client, collection_name, ids, all_embeddings, texts, metadata)
 
     # Get collection info
     info = get_collection_info(client, collection_name)
@@ -219,7 +164,7 @@ def main():
     parser.add_argument(
         "file",
         type=Path,
-        help="Document file to ingest (.txt or .iatf)"
+        help="Text document file to ingest (.txt)"
     )
     parser.add_argument(
         "--collection", "-c",

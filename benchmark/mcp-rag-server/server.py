@@ -8,8 +8,6 @@ Connects to Qdrant Cloud for vector similarity search.
 
 import os
 import asyncio
-import json
-from typing import Optional
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
@@ -34,15 +32,8 @@ def format_results(results: list[SearchResult]) -> str:
 
     formatted = []
     for i, r in enumerate(results, 1):
-        # Include metadata if present
-        meta_info = ""
-        if r.metadata:
-            section_id = r.metadata.get("section_id", "")
-            if section_id:
-                meta_info = f" [Section: {section_id}]"
-
         formatted.append(
-            f"## Result {i} (Score: {r.score:.3f}){meta_info}\n\n{r.text}\n"
+            f"## Result {i} (Score: {r.score:.3f})\n\n{r.text}\n"
         )
 
     return "\n---\n".join(formatted)
@@ -76,14 +67,6 @@ async def list_tools() -> list[Tool]:
                 },
                 "required": ["query"]
             }
-        ),
-        Tool(
-            name="rag_info",
-            description="Get information about the document collection (number of chunks, etc.)",
-            inputSchema={
-                "type": "object",
-                "properties": {}
-            }
         )
     ]
 
@@ -101,41 +84,51 @@ async def call_tool(name: str, arguments: dict) -> list[TextContent]:
 
         try:
             # Generate embedding for query
-            query_embedding = embed_text(query)
+            try:
+                query_embedding = embed_text(query)
+            except Exception as e:
+                error_msg = str(e)
+                if "OPENAI_API_KEY" in error_msg:
+                    return [TextContent(type="text", text=f"Error: OpenAI API key not set. {error_msg}")]
+                return [TextContent(type="text", text=f"Error: Failed to generate embedding: {error_msg}")]
 
-            # Search Qdrant
-            client = get_qdrant_client()
-            results = search(
-                client,
-                COLLECTION_NAME,
-                query_embedding,
-                top_k=top_k
-            )
+            # Connect to Qdrant
+            try:
+                client = get_qdrant_client()
+            except ValueError as e:
+                return [TextContent(type="text", text=f"Error: Qdrant connection failed: {str(e)}")]
+            except Exception as e:
+                return [TextContent(type="text", text=f"Error: Failed to connect to Qdrant: {str(e)}")]
+
+            # Check if collection exists
+            try:
+                collections = client.get_collections().collections
+                collection_exists = any(c.name == COLLECTION_NAME for c in collections)
+                if not collection_exists:
+                    return [TextContent(type="text", text=f"Error: Collection '{COLLECTION_NAME}' not found. Available collections: {[c.name for c in collections]}")]
+            except Exception as e:
+                return [TextContent(type="text", text=f"Error: Failed to check collection: {str(e)}")]
+
+            # Perform search
+            try:
+                results = search(
+                    client,
+                    COLLECTION_NAME,
+                    query_embedding,
+                    top_k=top_k
+                )
+            except Exception as e:
+                return [TextContent(type="text", text=f"Error: Search failed: {str(e)}")]
 
             # Format results
             formatted = format_results(results)
-
             return [TextContent(type="text", text=formatted)]
 
         except Exception as e:
-            return [TextContent(type="text", text=f"Search error: {str(e)}")]
-
-    elif name == "rag_info":
-        try:
-            from qdrant_client import get_collection_info
-            client = get_qdrant_client()
-            info = get_collection_info(client, COLLECTION_NAME)
-
-            return [TextContent(
-                type="text",
-                text=f"Collection: {COLLECTION_NAME}\n" + json.dumps(info, indent=2)
-            )]
-
-        except Exception as e:
-            return [TextContent(type="text", text=f"Error: {str(e)}")]
+            return [TextContent(type="text", text=f"Error: Unexpected error during search: {str(e)}")]
 
     else:
-        return [TextContent(type="text", text=f"Unknown tool: {name}")]
+        return [TextContent(type="text", text=f"Error: Unknown tool '{name}'")]
 
 
 async def main():

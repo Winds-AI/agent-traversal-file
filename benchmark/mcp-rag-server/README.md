@@ -28,16 +28,13 @@ export OPENAI_API_KEY="your-openai-key"  # For generating embeddings
 Before running benchmarks, ingest the test documents:
 
 ```bash
-# Ingest the plain text document
+# Ingest the text document
 python ingest.py ../datasets/bandar_frd/document.txt --collection bandar_frd
-
-# Or ingest from IATF (preserves section structure)
-python ingest.py ../datasets/bandar_frd/document.iatf --collection bandar_frd
 ```
 
 To recreate the collection (delete existing data):
 ```bash
-python ingest.py document.txt --collection bandar_frd --recreate
+python ingest.py ../datasets/bandar_frd/document.txt --collection bandar_frd --recreate
 ```
 
 ### 4. Configure OpenCode
@@ -82,11 +79,9 @@ Search the document for relevant content using semantic similarity.
 }
 ```
 
-### `rag_info`
+## Chunking Strategy
 
-Get information about the document collection.
-
-**Parameters:** None
+Documents are chunked into 2048-token segments with 100-token overlap on both sides using OpenAI's `cl100k_base` tokenizer (via tiktoken). This overlap ensures context continuity between chunks. Embeddings are generated in batches of 10 chunks to optimize API usage.
 
 ## Architecture
 
@@ -124,6 +119,9 @@ python embeddings.py
 # Test Qdrant connection
 python qdrant_client.py
 
+# Test ingestion
+python ingest.py ../datasets/bandar_frd/document.txt --collection test_collection
+
 # Test full search
 python -c "
 from embeddings import embed_text
@@ -135,6 +133,7 @@ embedding = embed_text(query)
 results = search(client, 'bandar_frd', embedding, top_k=3)
 for r in results:
     print(f'Score: {r.score:.3f}')
+    print(f'Chunk: {r.metadata.get(\"chunk_index\", \"N/A\")} | Tokens: {r.metadata.get(\"token_count\", \"N/A\")}')
     print(f'Text: {r.text[:200]}...')
     print('---')
 "
@@ -142,17 +141,23 @@ for r in results:
 
 ## Troubleshooting
 
-**"QDRANT_URL not set"**
-- Ensure environment variables are exported or set in MCP config
+**"Qdrant connection failed: QDRANT_URL not set"**
+- Ensure `QDRANT_URL` environment variable is set with Qdrant Cloud URL
 
-**"No relevant content found"**
-- Check that documents have been ingested: `python qdrant_client.py`
-- Verify collection name matches
+**"OpenAI API key not set"**
+- Ensure `OPENAI_API_KEY` environment variable is set
+- Verify the key is valid and has API access
 
-**Connection timeout**
+**"Collection '{name}' not found"**
+- Ingest documents first: `python ingest.py ../datasets/bandar_frd/document.txt --collection bandar_frd`
+- Verify `RAG_COLLECTION` environment variable matches the ingested collection name
+
+**"Failed to connect to Qdrant"**
 - Check Qdrant Cloud cluster is running
-- Verify URL includes `https://`
+- Verify URL is correct and includes `https://`
+- Check API key is valid
 
-**Empty embeddings**
-- Ensure OPENAI_API_KEY is valid
-- Check OpenAI API status
+**"Search failed"**
+- Verify collection has been populated with vectors
+- Check Qdrant Cloud connection status
+- Ensure query is not empty
