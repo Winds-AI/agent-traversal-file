@@ -1,0 +1,16 @@
+# MCP RAG Server Dependencies
+
+# MCP SDK for building the server
+mcp>=1.0.0
+
+# Qdrant vector database client
+qdrant-client>=1.7.0
+
+# OpenAI for embeddings
+openai>=1.0.0
+
+# Configuration
+pyyaml>=6.0
+
+# Async support
+aiohttp>=3.9.0

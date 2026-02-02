@@ -1,0 +1,355 @@
+# IATF Benchmark Test Questions
+# Dataset: Bandar Admin Portal FRD
+
+metadata:
+  dataset: bandar_frd
+  document: Bandar Admin Portal Requirements
+  total_questions: 30
+  description: >
+    Test questions for benchmarking IATF navigation efficiency.
+    Covers needle-in-haystack, multi-hop reasoning, and aggregation tasks.
+
+questions:
+  # ============================================================
+  # NEEDLE-IN-HAYSTACK (10 questions)
+  # Single fact retrieval from specific locations
+  # ============================================================
+
+  - id: needle-001
+    type: needle
+    question: "What are the two types of admin users in the system?"
+    answer: "Super Admin and Portal User"
+    location_hint: "Admin User type & Login section"
+    difficulty: easy
+
+  - id: needle-002
+    type: needle
+    question: "What happens to logged-in users when role access is changed?"
+    answer: "All logged-in users are logged out"
+    location_hint: "Admin User type & Login section"
+    difficulty: medium
+
+  - id: needle-003
+    type: needle
+    question: "What are the three tabs shown on the Business Dashboard?"
+    answer: "Customer, Business, and Vendor"
+    location_hint: "Business Dashboard section"
+    difficulty: easy
+
+  - id: needle-004
+    type: needle
+    question: "How can customers search for other customers in the admin panel?"
+    answer: "By Name, email address, or phone"
+    location_hint: "Customer Management section"
+    difficulty: easy
+
+  - id: needle-005
+    type: needle
+    question: "What two views of vendors are available in the Vendors Management section?"
+    answer: "Active Vendors and Request Pending"
+    location_hint: "Vendors Management section"
+    difficulty: easy
+
+  - id: needle-006
+    type: needle
+    question: "What are the four notification categories in the system?"
+    answer: "Vendor, Activity, User, System"
+    location_hint: "Notifications Management section"
+    difficulty: medium
+
+  - id: needle-007
+    type: needle
+    question: "What happens when an activity is cloned?"
+    answer: "All details are copied to a new adventure activity with inactive status and a new ID"
+    location_hint: "Adventure Activity Listings Management section"
+    difficulty: medium
+
+  - id: needle-008
+    type: needle
+    question: "What are the two types of activity tags that can be created?"
+    answer: "All tags (usable by vendors) and Admin-Only tags"
+    location_hint: "Activity Tags Management section"
+    difficulty: medium
+
+  - id: needle-009
+    type: needle
+    question: "What are the initial homepage listing sections for customers?"
+    answer: "Promoted Listings, Most booked adventures, Hot Destinations, Hot Activities"
+    location_hint: "Customer Homepage Listing Management section"
+    difficulty: medium
+
+  - id: needle-010
+    type: needle
+    question: "What three types of coupons can be offered according to their source?"
+    answer: "Bandar offered, Vendor offered, or Partner offered"
+    location_hint: "Discounts, Offers and Coupons Management section"
+    difficulty: hard
+
+  # ============================================================
+  # MULTI-HOP (10 questions)
+  # Require information from multiple sections
+  # ============================================================
+
+  - id: multihop-001
+    type: multihop
+    question: "What profile fields does an admin user have, and which of these can also be modified in customer management?"
+    answer: "Admin profile has First Name, Last Name, Designation, Role, Email Address, Address, Phone Number, Password fields, Remarks, and Module access. For customers, admin can modify Certificates, Badges, and Bandar Credits (Bananas), but customer profile fields differ from admin profile fields."
+    requires_sections:
+      - admin-user-types-login
+      - customer-management
+    difficulty: hard
+
+  - id: multihop-002
+    type: multihop
+    question: "How do Bandar Credits (Bananas) work across both customer management and the dedicated credits management module?"
+    answer: "In Customer Management, admin can add credits to wallet, set expiration dates, set max credit usage per booking, and set minimum wallet amount. In Credits Management, admin sets the value of each Banana point, and credits can be assigned manually or automatically during cancellations when user accepts credits as bananas."
+    requires_sections:
+      - customer-management
+      - bandar-credits-management
+    difficulty: hard
+
+  - id: multihop-003
+    type: multihop
+    question: "What notifications are generated when admin modifies customer information, and what details do these notifications contain?"
+    answer: "Changes made by admin are logged in database and a notification is created in the notification log. Notifications contain: Category, Type, Text, Activity, Short Description, Modified by, and Modified time. Status can be new, resolved, pending, or unresolved."
+    requires_sections:
+      - customer-management
+      - notifications-management
+    difficulty: medium
+
+  - id: multihop-004
+    type: multihop
+    question: "How can admin set commission for activities, and where does this appear in vendor payments?"
+    answer: "In Activity Listings Management, admin can set commission as amount or percentage, applied on top of or included in vendor price. In Payments Management, the booking breakdown shows cost with tax details, and admin can modify final payment amount before marking for payment."
+    requires_sections:
+      - adventure-activity-listings-management
+      - payments-management
+    difficulty: hard
+
+  - id: multihop-005
+    type: multihop
+    question: "What reports are available in the Business Dashboard, and what formats can they be exported in?"
+    answer: "Reports include Bookings, Payment to vendors, Revenue summary reports, and Rating Reports. Graph data can be exported to Excel, and the report section can export in PDF and Excel formats."
+    requires_sections:
+      - business-dashboard
+    difficulty: medium
+
+  - id: multihop-006
+    type: multihop
+    question: "How do certificates and badges relate to activities, and how are they tracked in customer management?"
+    answer: "Admin can assign certificates/badges to activities - when completed by customer, they're automatically assigned. Admin can also manually assign them. In Customer Management, Certificates and Badges are listed as fields admin can change, linked to customer profile."
+    requires_sections:
+      - certificates-and-badges-management
+      - customer-management
+    difficulty: medium
+
+  - id: multihop-007
+    type: multihop
+    question: "What is the workflow for a vendor from registration to having bookings visible?"
+    answer: "Vendor registration goes to Request Pending queue. Admin views vendor details and documents, approves or declines after manual verification. System sends approval email. Vendor moves to Active Vendors list. Associated activities and bookings then become visible for the active vendor."
+    requires_sections:
+      - vendors-management
+    difficulty: medium
+
+  - id: multihop-008
+    type: multihop
+    question: "How do discounts and coupons interact with activity pricing and Bandar fees?"
+    answer: "Coupons can be applied 'On Activity Price' (discount on price before taxes/fees) or 'On Bandar Fees' (discount on platform fees only). Types include percentage discount, flat discount, or cashback as bananas. Can apply to full cart, specific activities, or Bandar fees."
+    requires_sections:
+      - discounts-offers-coupons-management
+    difficulty: hard
+
+  - id: multihop-009
+    type: multihop
+    question: "What booking capabilities do admins have across Booking Management and Inventory Management?"
+    answer: "In Booking Management: view, modify, cancel bookings, search by ID/date/name/contact, book like a customer, send payment links. In Inventory Management: reserve time slots directly without booking process, view scheduled/past appointments, add/remove time slots dynamically."
+    requires_sections:
+      - booking-management
+      - inventory-management
+    difficulty: hard
+
+  - id: multihop-010
+    type: multihop
+    question: "How do promotions connect to banners and homepage listings for customer visibility?"
+    answer: "Promotions Management handles vendor promotions details. Banner Management allows targeting specific activities with banners that link to activity lists. Homepage Listing Management controls sections like Promoted Listings, Hot Activities etc. that display to customers in horizontally scrollable format."
+    requires_sections:
+      - promotions-management
+      - banner-management
+      - customer-homepage-listing-management
+    difficulty: hard
+
+  # ============================================================
+  # AGGREGATION (10 questions)
+  # Require gathering and synthesizing information across document
+  # ============================================================
+
+  - id: aggregation-001
+    type: aggregation
+    question: "List all the admin portal modules mentioned in the document."
+    answer:
+      - "Admin Portal Overview"
+      - "Admin User type & Login"
+      - "Role Management/Module Access"
+      - "Business Dashboard"
+      - "Customer Management"
+      - "Vendors Management"
+      - "Notifications Management"
+      - "Adventure Activity Listings Management"
+      - "Activity Tags Management"
+      - "Bandar Credits (Bananas) Management"
+      - "Certificates and Badges Management"
+      - "Booking Management"
+      - "Inventory Management"
+      - "Promotions Management"
+      - "Banner Management"
+      - "Customer Homepage Listing Management"
+      - "Inquiry Management"
+      - "Website Static Content Management"
+      - "Blogs Management"
+      - "Categories Management"
+      - "Discounts, Offers and Coupons Management"
+      - "Payments Management"
+      - "Add-Ons Management"
+      - "Cancellation Policy Management"
+      - "Logging and Analytics Management"
+      - "Favorites and Preferences Management"
+      - "Future Modules"
+    requires_sections:
+      - multiple
+    difficulty: hard
+
+  - id: aggregation-002
+    type: aggregation
+    question: "What are all the search capabilities mentioned across different modules?"
+    answer:
+      - "Customer: by Name, email address, or phone"
+      - "Vendors: by name, email, phone, business name"
+      - "Booking: by ID, date, customer name, vendor name, activity name, customer contact details"
+      - "Activity/Inventory: search for any activity (active or inactive)"
+    requires_sections:
+      - customer-management
+      - vendors-management
+      - booking-management
+      - inventory-management
+    difficulty: hard
+
+  - id: aggregation-003
+    type: aggregation
+    question: "What static content types can be managed through Website Static Content Management?"
+    answer:
+      - "Social media Links"
+      - "Terms and conditions"
+      - "Privacy policy"
+      - "About Us"
+      - "Contact us"
+      - "Other Policies"
+      - "Blogs"
+    requires_sections:
+      - website-static-content-management
+    difficulty: medium
+
+  - id: aggregation-004
+    type: aggregation
+    question: "What are all the fields in an Admin Portal User Profile?"
+    answer:
+      - "First Name"
+      - "Last Name"
+      - "Designation"
+      - "Role (Text Field)"
+      - "Email Address"
+      - "Address"
+      - "Phone Number"
+      - "Password Change fields"
+      - "Remarks"
+      - "Modules the user has access to"
+    requires_sections:
+      - admin-user-types-login
+    difficulty: easy
+
+  - id: aggregation-005
+    type: aggregation
+    question: "What are all the future modules planned for the admin portal?"
+    answer:
+      - "Bandar Special Customer Experiences (privileges, badges, welcome drinks)"
+      - "Microsoft Account integration for Admin credentials"
+      - "Forums"
+      - "Coupons Automation"
+      - "Badges and Certificate set automation"
+      - "Bananas offer Automation"
+      - "Fine-grained access with database-level RBAC"
+      - "Gen AI search and Filter modules"
+    requires_sections:
+      - future-modules
+    difficulty: medium
+
+  - id: aggregation-006
+    type: aggregation
+    question: "List all the notification attributes and possible values mentioned."
+    answer:
+      - "Category: Vendor, Activity, User, System"
+      - "Type: New user Added, User profile Changed, New Activity added, Activity Approved, etc."
+      - "Text: notification text"
+      - "Activity: related activity"
+      - "Short Description: event details with IDs"
+      - "Modified by: customer, vendor, system, or Admin portal users"
+      - "Modified time"
+      - "Status: new, resolved, pending, unresolved"
+      - "Read/Unread state"
+    requires_sections:
+      - notifications-management
+    difficulty: medium
+
+  - id: aggregation-007
+    type: aggregation
+    question: "What payment-related filters are available in the Payments Management module?"
+    answer:
+      - "vendor (id, name)"
+      - "activity (id, name)"
+      - "activity status (Cancelled, completed, refunded)"
+      - "date range"
+    requires_sections:
+      - payments-management
+    difficulty: easy
+
+  - id: aggregation-008
+    type: aggregation
+    question: "What are all the KPIs and metrics shown in the Business Dashboard's Business tab?"
+    answer:
+      - "Total Customers (registered, guests)"
+      - "Total Vendors Registered"
+      - "Total Activities Listed/waiting to be listed"
+      - "Inquiries by type (vendor/customer) by date"
+      - "Booking Graph by date"
+      - "Total Customers and revenue by region, Activity Type (Tags)"
+      - "Overall CSAT with breakdown (Positive 4-5 star, Neutral 3 star, Negative 1-2 star)"
+      - "Revenue Breakdown (Tax, Vendor Paid, Platform fees)"
+    requires_sections:
+      - business-dashboard
+    difficulty: hard
+
+  - id: aggregation-009
+    type: aggregation
+    question: "What are all the login and authentication methods mentioned in the document?"
+    answer:
+      - "ID and Password"
+      - "OTP verification"
+      - "Authenticator apps"
+      - "Password reset via email link"
+    requires_sections:
+      - admin-user-types-login
+    difficulty: easy
+
+  - id: aggregation-010
+    type: aggregation
+    question: "What customer profile fields can admin modify in Customer Management?"
+    answer:
+      - "JoinedOn"
+      - "Number of activities taken"
+      - "Certificates"
+      - "Badges"
+      - "Login activity (Device, login location, login time and date, website or app)"
+      - "Past and Future Bookings with payment details"
+      - "Bandar Credits (Bananas) including: add credits, set expiration, max usage limit, minimum wallet amount"
+    requires_sections:
+      - customer-management
+    difficulty: medium
