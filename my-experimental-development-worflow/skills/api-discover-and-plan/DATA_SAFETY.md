@@ -10,10 +10,6 @@ When validating APIs, you will call endpoints with test data. These rules preven
 
 🔴 **NEVER modify or delete data without `[AGENT-TEST]` or `agent-test-` markers.**
 
----
-
-## Test Data Naming Convention
-
 All test data created by the agent MUST be clearly identifiable so it can be safely deleted later.
 
 | Field Type | Naming Convention | Example |
@@ -26,82 +22,12 @@ All test data created by the agent MUST be clearly identifiable so it can be saf
 
 ---
 
-## POST (Create) Rules
-
-When creating test data:
-
-1. **Always use naming convention above**
-2. **Set inactive flags** - If `isActive`, `status`, `enabled` fields exist, set to `false` to avoid affecting live systems
-3. **Note the created ID** - You'll need it for cleanup
-
-**Example:**
-```json
-{
-  "discountName": "[AGENT-TEST] CLI Demo Discount",
-  "description": "Agent testing - safe to delete",
-  "couponCode": "AGENT-TEST-DEMO50",
-  "isActive": false,
-  "status": "draft"
-}
-```
-
----
-
-## PUT/PATCH (Update) Rules
-
-**CRITICAL RESTRICTION:**
-
-⛔ **ONLY update data that the agent itself created**
-
-Before updating ANY record:
-
-1. Call GET to retrieve the record
-2. Check response for agent markers: `[AGENT-TEST]` or `agent-test-`
-3. **Only proceed if markers are present**
-4. **If markers NOT present, DO NOT UPDATE. Ask user first.**
-
-**Example Safe Update:**
-```bash
-# First, GET the record
-.agent/api.sh GET /endpoint/abc123
-
-# Check response:
-# ✓ SAFE if it contains: "[AGENT-TEST]" or "agent-test-"
-# ✗ UNSAFE if markers NOT present
-
-# Only if markers exist, proceed with update:
-.agent/api.sh PUT /endpoint/abc123 -j '{"status": "active"}'
-```
-
----
 
 ## DELETE Rules
 
 **CRITICAL RESTRICTION:**
 
 ⛔ **ONLY delete data that the agent itself created**
-
-Before deleting ANY record:
-
-1. Call GET to retrieve the record
-2. Check response has agent-test markers
-3. **Only delete if markers are present**
-4. **If markers NOT present, DO NOT DELETE. Ask user first.**
-
-**Example Safe Delete:**
-```bash
-# Verify before delete
-.agent/api.sh GET /endpoint/abc123
-
-# Check for markers in response
-# Response should contain "[AGENT-TEST]" or "agent-test-"
-
-# Only then:
-.agent/api.sh DELETE /endpoint/abc123
-
-# Verify deletion
-.agent/api.sh GET /endpoint/abc123  # Should return 404
-```
 
 ---
 
