@@ -8,9 +8,13 @@ All plans must follow this 6-section structure. Developer should be able to scan
 
 ### 1. Overview
 
+Each API listed must include a short description: what the proposed change is for (if modifying existing integration) or what the API does (if newly integrated).
+
 ```markdown
 ## Overview
-- APIs being integrated: GET /users/:id, PUT /users/:id
+- APIs being integrated:
+  - GET /users/:id — Fetch user profile to populate the settings form (new integration)
+  - PUT /users/:id — Submit edited profile fields back to server (new integration)
 - Files: 3 new, 2 modified, 1 deleted
 - Out of scope: User deletion, avatar upload (separate tickets)
 ```
@@ -38,7 +42,7 @@ All plans must follow this 6-section structure. Developer should be able to scan
   → Question: Where fits your architecture?
 
 [DECISION 2] State management?
-  Codebase uses Redux for global state
+  Codebase uses react Query for global state
   → Question: Redux or React Query for this feature?
 
 [DECISION 3] Legacy code cleanup?
@@ -98,6 +102,7 @@ Pseudocode per file - no actual code yet.
 - Assuming Bearer token is already configured
 - Assuming Redux is available in project
 - Need clarification: Should avatar upload be included?
+- Risk/Tradeoffs: Extra API latency may affect initial load
 ```
 
 ---
@@ -108,7 +113,9 @@ Pseudocode per file - no actual code yet.
 # API Integration Plan: User Profile Management
 
 ## Overview
-- APIs: GET /users/:id, PUT /users/:id
+- APIs being integrated:
+  - GET /users/:id — Fetch user profile to display on settings page (new integration)
+  - PUT /users/:id — Save edited profile fields (new integration)
 - Files: 3 new, 2 modified, 1 deleted
 - Out of scope: Avatar upload, user deletion (separate tickets)
 
@@ -164,4 +171,5 @@ Pseudocode per file - no actual code yet.
 - Bearer token configured
 - Redux available
 - Question: Include avatar upload or separate?
+- Risk/Tradeoffs: Initial load might be slower due to profile fetch
 ```

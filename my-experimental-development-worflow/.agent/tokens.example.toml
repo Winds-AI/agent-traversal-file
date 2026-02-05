@@ -1,6 +1,0 @@
-# Agent API Tokens
-# Copy this file to tokens.toml and add your actual tokens
-
-bandar-dev = "your-dev-token-here"
-bandar-staging = "your-staging-token-here"
-other-project = "your-other-project-token-here"
