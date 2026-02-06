@@ -128,6 +128,9 @@ The index section begins with:
 - `<!-- Generated: TIMESTAMP -->` ISO 8601 timestamp of generation in format `YYYY-MM-DDTHH:MM:SSZ`
 - `<!-- Content-Hash: ALGORITHM:HASH -->` truncated hash (7 chars, Git-style) of CONTENT section for staleness detection
 
+**Hash Normalization**:
+- Implementations MUST normalize line endings before hashing. `CRLF` and `LF` are treated as equivalent.
+
 ### 3.2 Index Entry Syntax
 
 Each index entry follows this format:
@@ -923,5 +926,4 @@ Batch operations available at `/resources/batch`.
 {/endpoints-resources}
 {/endpoints}
 ```
-
 

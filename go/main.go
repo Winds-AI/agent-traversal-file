@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -20,6 +21,28 @@ import (
 )
 
 var Version = "dev" // Set at build time via ldflags
+
+func detectPreferredEOL(content []byte) string {
+	// Preserve CRLF if the file contains any CRLF sequences. This avoids introducing mixed line endings
+	// and keeps diffs smaller when users are on Windows.
+	if bytes.Contains(content, []byte("\r\n")) {
+		return "\r\n"
+	}
+	return "\n"
+}
+
+func normalizeNewlines(s string) string {
+	// Make parsing/hashing stable across CRLF/LF, and avoid "\r" breaking hashes.
+	s = strings.ReplaceAll(s, "\r\n", "\n")
+	s = strings.ReplaceAll(s, "\r", "\n")
+	return s
+}
+
+func splitNormalizedLines(content []byte) ([]string, string) {
+	eol := detectPreferredEOL(content)
+	text := normalizeNewlines(string(content))
+	return strings.Split(text, "\n"), eol
+}
 
 // Pre-compiled regex patterns for section parsing
 var (
@@ -565,12 +588,12 @@ func generateIndex(sections []Section, contentHash string) []string {
 }
 
 func rebuildIndex(filePath string) error {
-	content, err := os.ReadFile(filePath)
+	raw, err := os.ReadFile(filePath)
 	if err != nil {
 		return err
 	}
 
-	lines := strings.Split(string(content), "\n")
+	lines, preferredEOL := splitNormalizedLines(raw)
 
 	// Find CONTENT section
 	contentStart := -1
@@ -730,6 +753,9 @@ func rebuildIndex(filePath string) error {
 	newLines = append(newLines, postLines...)
 
 	newContent := strings.Join(newLines, "\n")
+	if preferredEOL == "\r\n" {
+		newContent = strings.ReplaceAll(newContent, "\n", "\r\n")
+	}
 
 	return os.WriteFile(filePath, []byte(newContent), 0644)
 }
@@ -1516,7 +1542,7 @@ func indexCommand(filePath string) int {
 		return 1
 	}
 
-	lines := strings.Split(string(content), "\n")
+	lines, _ := splitNormalizedLines(content)
 
 	indexStart := -1
 	indexEnd := -1
@@ -1559,7 +1585,7 @@ func readCommand(filePath string, sectionID string) int {
 		return 1
 	}
 
-	lines := strings.Split(string(content), "\n")
+	lines, _ := splitNormalizedLines(content)
 
 	indexStart := -1
 	contentStart := -1
@@ -1618,7 +1644,7 @@ func readByTitleCommand(filePath string, title string) int {
 		return 1
 	}
 
-	lines := strings.Split(string(content), "\n")
+	lines, _ := splitNormalizedLines(content)
 
 	indexStart := -1
 	indexEnd := -1
@@ -1693,7 +1719,7 @@ func graphCommand(filePath string, showIncoming bool) int {
 		return 1
 	}
 
-	lines := strings.Split(string(content), "\n")
+	lines, _ := splitNormalizedLines(content)
 
 	// Find CONTENT section start
 	contentStart := -1
@@ -1803,7 +1829,7 @@ func validateFileQuiet(filePath string) (bool, []string) {
 		return false, []string{fmt.Sprintf("Cannot read file: %v", err)}
 	}
 
-	lines := strings.Split(string(content), "\n")
+	lines, _ := splitNormalizedLines(content)
 	errors := []string{}
 
 	// Check format declaration
@@ -1906,7 +1932,7 @@ func validateCommand(filePath string) int {
 		return 1
 	}
 
-	lines := strings.Split(string(content), "\n")
+	lines, _ := splitNormalizedLines(content)
 	errors := []string{}
 	warnings := []string{}
 
