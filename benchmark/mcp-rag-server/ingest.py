@@ -7,6 +7,9 @@ Chunks documents and uploads embeddings to Qdrant Cloud.
 
 import argparse
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 from typing import List, Dict, Any
 from dataclasses import dataclass
 
@@ -16,7 +19,7 @@ except ImportError:
     tiktoken = None
 
 from embeddings import embed_texts, EMBEDDING_DIMENSION
-from qdrant_client import (
+from qdrant_store import (
     get_qdrant_client,
     create_collection,
     upsert_vectors,
@@ -108,7 +111,7 @@ def ingest_document(
     # Read and chunk document
     with open(file_path) as f:
         text = f.read()
-    chunks = chunk_text_by_tokens(text, chunk_size=2048, overlap=100, source=file_path.stem)
+    chunks = chunk_text_by_tokens(text, chunk_size=512, overlap=50, source=file_path.stem)
 
     print(f"Created {len(chunks)} chunks")
 

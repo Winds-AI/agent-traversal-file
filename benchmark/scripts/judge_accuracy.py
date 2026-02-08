@@ -123,12 +123,9 @@ def judge_answer(
         )
 
     except Exception as e:
-        return JudgmentResult(
-            correct=False,
-            score=0.0,
-            reasoning=f"Judgment failed: {str(e)}",
-            partial_credit=False
-        )
+        # Re-raise so the caller knows judging failed rather than
+        # silently marking the answer as incorrect
+        raise RuntimeError(f"Judge API call failed: {e}") from e
 
 
 def judge_batch(

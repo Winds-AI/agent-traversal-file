@@ -6,33 +6,33 @@ opencode:
   db_path: "~/.opencode/opencode.db"  # SQLite database location
 
 model:
-  provider: "openai"
-  name: "gpt-4o-mini"  # Configurable: gpt-4o-mini, gpt-4-turbo, claude-3-sonnet, etc.
-  # Format for -m flag: "provider/model" e.g., "openai/gpt-4o-mini"
+  provider: "opencode"
+  name: "trinity-large-preview-free"
+  # Format for -m flag: "provider/model" e.g., "opencode/trinity-large-preview-free"
 
 approaches:
   baseline:
     enabled: true
-    prompt: "prompts/baseline.md"
+    prompt: "baseline.md"
     document: "document.txt"
     description: "Standard grep/read file navigation"
 
   iatf:
     enabled: true
-    prompt: "prompts/iatf.md"
+    prompt: "iatf.md"
     document: "document.iatf"
     description: "IATF index-guided navigation"
 
   rag_mcp:
     enabled: true
-    prompt: "prompts/rag_mcp.md"
+    prompt: "rag_mcp.md"
     mcp_tool: "rag_search"
     description: "Vector retrieval via MCP server"
     # Requires user to configure MCP server in ~/.opencode/mcp.json
 
 evaluation:
-  judge_model: "gpt-4o-mini"  # Model for LLM-based accuracy judging
-  judge_temperature: 0.0  # Deterministic judging
+  judge_model: "gpt-5-mini"  # Model for LLM-based accuracy judging
+  judge_temperature: 1.0  # Deterministic judging
 
 output:
   format: "iatf"  # Output results in IATF format (dogfooding)

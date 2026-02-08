@@ -13,7 +13,7 @@ from qdrant_client.http.models import Distance, VectorParams, PointStruct
 
 # Default settings
 DEFAULT_COLLECTION = "bandar_frd"
-VECTOR_SIZE = 1536  # text-embedding-3-small dimension
+VECTOR_SIZE = 384  # all-MiniLM-L6-v2 dimension
 
 
 @dataclass
@@ -162,11 +162,12 @@ def search(
     Returns:
         List of SearchResult objects
     """
-    results = client.search(
+    response = client.query_points(
         collection_name=collection_name,
-        query_vector=query_vector,
+        query=query_vector,
         limit=top_k,
-        score_threshold=score_threshold
+        score_threshold=score_threshold,
+        with_payload=True
     )
 
     return [
@@ -176,7 +177,7 @@ def search(
             text=hit.payload.get("text", ""),
             metadata={k: v for k, v in hit.payload.items() if k not in ("id", "text")}
         )
-        for hit in results
+        for hit in response.points
     ]
 
 

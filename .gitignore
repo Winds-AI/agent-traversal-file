@@ -50,6 +50,14 @@ installers/linux/iatf-tools_*/
 opencode.jsonc
 .claude/*
 
+# Python
+.venv/
+__pycache__/
+*.pyc
+.env*
+# Benchmark session exports
+benchmark/results/sessions/
+
 # OS
 Thumbs.db
 .DS_Store
