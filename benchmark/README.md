@@ -38,23 +38,12 @@ export QDRANT_API_KEY="your-qdrant-key"
 
 ### 3. Configure RAG MCP Server (Optional)
 
-Add to `~/.opencode/mcp.json`:
+The benchmark harness isolates OpenCode config per run. To enable the `rag_mcp` approach,
+it writes a temporary `opencode.json` (based on `benchmark/opencode.json`) so you do not
+need to modify any user-global OpenCode configuration.
 
-```json
-{
-  "servers": {
-    "rag": {
-      "command": "python",
-      "args": ["/path/to/benchmark/mcp-rag-server/server.py"],
-      "env": {
-        "QDRANT_URL": "https://your-cluster.qdrant.io",
-        "QDRANT_API_KEY": "your-api-key",
-        "OPENAI_API_KEY": "your-openai-key"
-      }
-    }
-  }
-}
-```
+The only requirement is that the RAG MCP server is running (the benchmark runner can
+start it automatically when `rag_mcp` is selected).
 
 ### 4. Ingest Documents (for RAG)
 

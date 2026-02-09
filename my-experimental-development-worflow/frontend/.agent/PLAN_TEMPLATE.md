@@ -31,10 +31,10 @@ Each API listed must include a short description: what the proposed change is fo
 ? Question: Is the null avatar a backend bug or expected?
 ```
 
-### 3. Design Decisions
+### 3. Decisions
 
 ```markdown
-## Design Decisions
+## Decisions
 
 [DECISION 1] Component location?
   Option A: New module at src/modules/users/UserProfile.tsx

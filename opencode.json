@@ -4,7 +4,7 @@
     "rag-server": {
       "type": "remote",
       "url": "http://localhost:8808/mcp",
-      "enabled": true
+      "enabled": false
     }
   }
 }

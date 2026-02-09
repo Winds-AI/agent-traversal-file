@@ -7,7 +7,7 @@ opencode:
 
 model:
   provider: "opencode"
-  name: "trinity-large-preview-free"
+  name: "kimi-k2.5-free"
   # Format for -m flag: "provider/model" e.g., "opencode/trinity-large-preview-free"
 
 approaches:
@@ -16,19 +16,25 @@ approaches:
     prompt: "baseline.md"
     document: "document.txt"
     description: "Standard grep/read file navigation"
+    mcp_enabled: false
+    skills_enabled: false
 
   iatf:
     enabled: true
     prompt: "iatf.md"
     document: "document.iatf"
     description: "IATF index-guided navigation"
+    mcp_enabled: false
+    skills_enabled: true
 
   rag_mcp:
     enabled: true
     prompt: "rag_mcp.md"
     mcp_tool: "rag_search"
     description: "Vector retrieval via MCP server"
-    # Requires user to configure MCP server in ~/.opencode/mcp.json
+    # MCP enablement is controlled by the benchmark harness per-run (see benchmark/opencode.json)
+    mcp_enabled: true
+    skills_enabled: false
 
 evaluation:
   judge_model: "gpt-5-mini"  # Model for LLM-based accuracy judging

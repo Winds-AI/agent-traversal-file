@@ -1,0 +1,129 @@
+{
+  "schema": "opencode.raw_events.v1",
+  "source": {
+    "session_export_path": "benchmark/results/sessions/multihop-001_baseline_20260209_123641.json",
+    "session_id": "ses_3bec6db0effeRqOgfbbSnURRq3",
+    "model": "opencode/trinity-large-preview-free",
+    "approach": "baseline",
+    "question_id": "multihop-001",
+    "timestamp": "2026-02-09T12:36:41.193178"
+  },
+  "events": [
+    {
+      "type": "step_start",
+      "timestamp": 1770620792563,
+      "sessionID": "ses_3bec6db0effeRqOgfbbSnURRq3",
+      "part": {
+        "id": "prt_c41392ef1001Izg5D8fbDHnL2E",
+        "sessionID": "ses_3bec6db0effeRqOgfbbSnURRq3",
+        "messageID": "msg_c4139253e001ZOTXDU4DcK3ZVr",
+        "type": "step-start",
+        "snapshot": "98a677276f27398ab8843b65eea2e04e6e349079"
+      }
+    },
+    {
+      "type": "tool_use",
+      "timestamp": 1770620793864,
+      "sessionID": "ses_3bec6db0effeRqOgfbbSnURRq3",
+      "part": {
+        "id": "prt_c41392ef2001qt3FVin5Zp3dcE",
+        "sessionID": "ses_3bec6db0effeRqOgfbbSnURRq3",
+        "messageID": "msg_c4139253e001ZOTXDU4DcK3ZVr",
+        "type": "tool",
+        "callID": "call-aa3fd06a-a283-4e45-9f00-9caf9279644d",
+        "tool": "rag-server_rag_search",
+        "state": {
+          "status": "completed",
+          "input": {
+            "query": "When a customer cancels a booking and receives Bandar Credits, what is the complete lifecycle of these credits from earning to usage?",
+            "top_k": 5
+          },
+          "output": "## Result 1 (Score: 0.635)\n\njust paying the booking fees, it says that the \"rest of the payment will be provided to the vendor at the time of activity\". So, that will be happening outside of our system, right?\n5) Can you explain a bit about your understanding of the \"No question asked return add-on\" which is under the cancellation policy?\n6) As per one of your images, there was a blue note in the image saying that once there is a change in user access from Role Management, then all the admin users who are logged in are to be logged out to make sure their new session starts with updated rights(access). This can have a couple of drawbacks, so what about providing updated access to each user in the admin panel whenever any page refreshes?\n7) It says in the document that there will be an expiration date for the Bandar credits. How is this possible? Credits are points and they are not like coupons or offers, usually, applications and such don't have any expiration for any kind of currency(points) they provide to their users.\n8) In the \"Adventure Activity Listings\" in Admin Portal it was mentioned that the \"Admin can validate a section of activities by checkboxes\", but then it also says \"For each section, there will be a field to approve or reject it\". So which will it be? Checkboxes or an approve/decline button or a field?\n9) Continuing on the above question, it also says \"Finally, there will be a checkbox ability for the entire activity which will (make it go live)\". So instead of a checkbox, a button would be better, so clicking the button would validate each field and if any is remaining then it won't go live, but along with each field validation, there will be a button to approve all fields at once, which will then make it go live too.\n10) In the case of \"Tags\", it was said that \"The Tags as explained earlier will have the name, thumbnail, and brief description\", but in all explanations, there is no thumbnail or description of the Tag. It is just like the normal tags they have on \"Instagram\". So, will there still be a thumbnail, or will it just be a tag like: \"Kids friendly\", \"Adult only\", \"Thrilling\" or \"Awesome\"?\n11) In case of badge and certificate assigning, how will the Admin Panel know to assign the badge or certificate to a specific user? For example Badge has to be assigned in case of completing an activity, then how will the Admin Panel know\n\n---\n## Result 2 (Score: 0.621)\n\nthe customers.\nCancelation policy\nNo question asked return add-on: This add-on will be a percentage of the total cost or fixed cost and we will decide that in the Admin portal for each activity.\nCancelation policy can vary from activity to activity based on the vendor\u2019s terms.\nAdmin can create cancellation policies and apply them to each activity. These policies will be created and defined under the Vendor module.\nExample of policies:\n1. 7 days before the activity: Full refund, no questions asked\n2. Less than 7, more than 24 hours before the activity: Full Refund as Bandar Credit only\n3. Less than 24 hours before the activity: No refund/Cancellation.\n4. No Show: Full amount charged, no refund\nIn the case of 7 days before cancellation, provide the customer the option to take the refund back as money or Bandar Credits. (As per cancellation policy)\nIn case of unforeseen circumstances, any activity is cancelled then the amount will be refunded with the option to send back as Original source or Bandar Credits.\n\n\nCustomer Registration and Customer Profile\nCustomer Registration is the register page with these options:\nFirst Name, Last Name, Email, Phone Number\nThe fields above will be mandatory and any other field added will be optional.\n A paper with writing on it\n\nDescription automatically generated \n\nThe above image is of the Customer's Profile A screenshot of a computer\n\nDescription automatically generated \nPersonal Details Section:\n1. Name and Contact information (Mobile & Email)\n2. DOB\n3. Gender\n4. Emergency Contact Information (Name, Email, Phone number & relationship with user)\n5. Photograph (Profile Pic) (If a user does not update their profile picture, a default avatar will be shown as their profile picture). These avatars can be added as an image bank from the  Bandar Admin Portal.\n6. Social Media Handles. (As the user can integrate with their social media handle, that way they can share their achievement easily on social media)\n7. Address (City where they live)\n8. About Me: Open the text box section which allows people to write something about themselves.\n9. Preferences: allows users to describe their preferences regarding adventure activities. Image Buttons (like Spotify) that will allow users to select from: (These options can be added/modified from the admin portal) \n1) I am a pro-adventurer; love to undertake difficult adventures\n2) I am a novice adventurer; prefer average difficulty of adventures\n3) Aquaman\n\n---\n## Result 3 (Score: 0.544)\n\nto pick from a list of locations and activities that are already listed there. Note: They will not be able to change or add to that list. This list will entirely be managed from the Admin Panel. (There will only be one list)\nThis will be used to show custom recommendations of activities to customers on their home page.\nMy Booking Inquires\nThis section has the Contact Us inquiries and responses from the Bandar admin panel. Similar to the Vendor inquiry page and workflow, but on the customer end. \nMy Bandar Credits\nBandar Credits = Bananas\nIn this section, the user will be able to manage their Bandar Credits also known as Bananas. It will have logs of when and how the users earned the credits, or where they used them (so like transaction logs).\nThe value of each Banana can be set from the Admin Panel.\nBananas can be managed from the Admin Panel too and can be assigned to any user.\nCurrently, the bananas will be credited manually or when a cancellation or modification happens, and the user accepts to take the credits in the form of bananas.\n The cancellation credits will be an automatic operation.  (Bananas can also be automatically assigned based on promotion \u2013 e.g. if we are running a 2-week promotion of 20% cashback on all bookings made during this period \u2013 such Bandar credits (Bananas) will automatically get assigned to the user account on successful completion of such booked activity).\nHence in assumption: Pay the full amount then if 20% cashback is applicable provide 20% back in the form of Bananas.\nBandar Forums (Phase-2 Module)\nThis can be accessed from the Home Page.\nIn this section, the user will be able to see the Search Bar and Create your Forum Button, below will be a list of Forums and a Show More button.\nWhen any user clicks on any of the Forum, then he/she will be redirected to the Forum page, where the list of topics is there along with the number of replies.\n\n\n\n\nReference image for Forum (Not from Client), The Second Image is what opens when you click on any from the first image. The third image is what opens when you click on any from the second image.\n  \n  \n  \n\nCreate your Forum:\nClicking on the Create your Forum Button will open a popup with Form Fields:\nForum Name, Brief Description and Create Button.\nForum Search Results:\nOn search, a list of forums related to the search query should be displayed. The Search listing will have 4 columns. (\n\n---\n## Result 4 (Score: 0.524)\n\nActivity Price\u201d or \u201cOn Bandar Fees\u201d.\nIf it is On the Activity Price, The discount is applicable on the activity price before taxes and fees. Else the discount is applicable to the Bandar fees only. \nNote: This module will also host the offers section, the details of which are not yet defined. \n A screenshot of a computer\n\nDescription automatically generated \n\nPayments Management\nIn this section, the payments to vendors can be managed.\nThe admin can choose a vendor, and it will list all bookings and financial details of all bookings for that vendor.\nA breakdown of the cost of each booking will be shown along with tax details applicable as invoiced to the customer. The listing will also show the booking details for each line item.\nFurther admin can filter the pending payment bookings:\nFilters can be applied to:\n      1. vendor (id, name)\n      2. activity (id, name)\n      3. activity status (Cancelled, completed, refunded)\n      4. date range\nAdmin will check line by line item and can modify the final amount of payment to the vendor, enter a description field, and then mark it for payment. \nThe payment will be sent in bulk to the vendor for all the marked line items and the line items will be moved into the paid category and cannot be modified any further. \nThe payment can be scheduled for a later date as well. \nAdd-Ons Management\nThis section will be used to manage add-ons centrally. They can be added, updated, and deleted from here.\nEach addon will have calculations on where they will be applicable (per person on the booking or per activity irrespective of the persons on the booking), along with the name, brief description, and thumbnail icon option and cost. \nNote: Admin can pick the activities to which a particular add-on is applicable along with an option for \u201cAll\u201d, in which case that Add-on will appear on all the activities.\nCancellation Policy Management\nCancellation policies as defined earlier in the Vendor module can be managed from this module in the Admin panel. \nAdmin users will have the ability to change or delete existing policies or add new policies and will be able to associate or disassociate policies for the listed activities from here. \nNote: (We will manage them from the Text Editor we will provide them to)\nLogging and Analytics Management\nWe should capture logging of the page by visits and workflow logging and customer presence and drop-off for customers on the website. \nAlso log sessions/activity by various metrics like region, source, etc\n\n---\n## Result 5 (Score: 0.486)\n\nlisted value.  \nActivity Tags Management\nThe admin users can pick tags that can be applied to the activity. The Tags as explained earlier will have the name, thumbnail, and brief description. Multiple tags can be applied to the activity. The Tags can also be added live from this panel if needed. The added tags can be \u201cAll\u201d or \u201cAdmin-Only\u201d. \u201cAll\u201d tags can be used by Vendors to tag their activities when listing them. \u201cAdmin-only\u201d tags can be used by Admin portal users. From the Manage Activities page, tags can be applied in bulk to activities.\nBandar Credits (Bananas) Management\nThis page will allow the admin to check credits for each customer and manage the credits.\nAs said earlier, the value of each Banana point will be set by the Admin Panel.\n      1. Admin will be able to add the credits to the user\u2019s wallet. \n      2. These credits will have an expiration date i.e., Admin will be able to set the expiration date for each credit.\n      3. The admin will be able to set the maximum usage limit for Credits for a booking \n      4. The admin will be able to set a minimum amount that a user can add to the wallet\nAdmin can assign Bananas to any user. Currently, the bananas will be credited manually or when a cancellation or modification happens, and the user accepts to take the credits in the form of bananas.\nCertificates and Badges Management\nAdmin can manage certificates and badges for all activities. He/she can also define criteria for achieving the badge and certificate against each adventure.\nThe Admin can also categorize adventures and achievements to create different badges.\nFor adding, the Admin can upload a certificate/badge image. certificate/badge name and brief description.\nThe admin can assign a certificate or badge to an activity, which if completed by a customer will be automatically assigned to the customer. Also, the admin can assign a badge/certificate to any user manually.\n\n\n\n\n  \n  \n\n  \n  \n\n\n\n\n\n\n\nBooking Management\nThe admin will be able to view, modify, and cancel any booking. They can search any booking via: ID, date, customer name, vendor name, activity name, and customer contact details.\nAdmin can also book any activity just like a customer. (Show the same form as customer activity booking).\nAdmins can also manage payment for bookings and for new bookings, they can send a link of payment to customers for payment and confirm the payment. (Mostly in the case of admin booking for someone else).\n",
+          "title": "",
+          "metadata": {
+            "truncated": false
+          },
+          "time": {
+            "start": 1770620792563,
+            "end": 1770620793860
+          },
+          "attachments": []
+        }
+      }
+    },
+    {
+      "type": "step_finish",
+      "timestamp": 1770620793869,
+      "sessionID": "ses_3bec6db0effeRqOgfbbSnURRq3",
+      "part": {
+        "id": "prt_c41393407001KW4qUJ6LJDWMW0",
+        "sessionID": "ses_3bec6db0effeRqOgfbbSnURRq3",
+        "messageID": "msg_c4139253e001ZOTXDU4DcK3ZVr",
+        "type": "step-finish",
+        "reason": "tool-calls",
+        "snapshot": "98a677276f27398ab8843b65eea2e04e6e349079",
+        "cost": 0,
+        "tokens": {
+          "input": 12167,
+          "output": 52,
+          "reasoning": 0,
+          "cache": {
+            "read": 0,
+            "write": 0
+          }
+        }
+      }
+    },
+    {
+      "type": "step_start",
+      "timestamp": 1770620795133,
+      "sessionID": "ses_3bec6db0effeRqOgfbbSnURRq3",
+      "part": {
+        "id": "prt_c413938fc00120LjsjQ2wnXVnA",
+        "sessionID": "ses_3bec6db0effeRqOgfbbSnURRq3",
+        "messageID": "msg_c41393415001gD2qUjFYLiSzGV",
+        "type": "step-start",
+        "snapshot": "98a677276f27398ab8843b65eea2e04e6e349079"
+      }
+    },
+    {
+      "type": "text",
+      "timestamp": 1770620801142,
+      "sessionID": "ses_3bec6db0effeRqOgfbbSnURRq3",
+      "part": {
+        "id": "prt_c413938fd001cV3YQ84tAB7IhO",
+        "sessionID": "ses_3bec6db0effeRqOgfbbSnURRq3",
+        "messageID": "msg_c41393415001gD2qUjFYLiSzGV",
+        "type": "text",
+        "text": "**Bandar Credits Lifecycle:**\n\n1. **Earning**: Credits are automatically awarded when customers cancel bookings and choose to receive credits instead of refunds (typically 100% refund as credits for cancellations 7+ days before activity, or partial credits for shorter notice cancellations).\n\n2. **Storage**: Credits are stored in the user's \"My Bandar Credits\" section with transaction logs showing when and how they were earned.\n\n3. **Usage**: Credits can be used for future bookings, with their value set by Admin Panel. Users can apply credits during checkout.\n\n4. **Management**: Admin can manually assign credits, set expiration dates, maximum usage limits per booking, and minimum wallet amounts.\n\n5. **Expiration**: Credits have expiration dates that can be set by Admin for each credit batch.\n\n6. **Transaction Logging**: All credit transactions (earning and usage) are logged for user reference.",
+        "time": {
+          "start": 1770620801138,
+          "end": 1770620801138
+        }
+      }
+    },
+    {
+      "type": "step_finish",
+      "timestamp": 1770620801159,
+      "sessionID": "ses_3bec6db0effeRqOgfbbSnURRq3",
+      "part": {
+        "id": "prt_c41395075001PYrkGWVyvOHUTR",
+        "sessionID": "ses_3bec6db0effeRqOgfbbSnURRq3",
+        "messageID": "msg_c41393415001gD2qUjFYLiSzGV",
+        "type": "step-finish",
+        "reason": "stop",
+        "snapshot": "98a677276f27398ab8843b65eea2e04e6e349079",
+        "cost": 0,
+        "tokens": {
+          "input": 14811,
+          "output": 176,
+          "reasoning": 0,
+          "cache": {
+            "read": 0,
+            "write": 0
+          }
+        }
+      }
+    }
+  ]
+}

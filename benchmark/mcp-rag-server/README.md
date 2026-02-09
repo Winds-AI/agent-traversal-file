@@ -39,24 +39,12 @@ python ingest.py ../datasets/bandar_frd/document.txt --collection bandar_frd --r
 
 ### 4. Configure OpenCode
 
-Add the MCP server to your OpenCode configuration at `~/.opencode/mcp.json`:
+The benchmark harness isolates OpenCode config per run and enables MCP by writing a
+temporary `opencode.json` based on `benchmark/opencode.json`. You do not need to edit
+any user-global OpenCode configuration.
 
-```json
-{
-  "servers": {
-    "rag": {
-      "command": "python",
-      "args": ["/path/to/benchmark/mcp-rag-server/server.py"],
-      "env": {
-        "QDRANT_URL": "https://your-cluster.qdrant.io",
-        "QDRANT_API_KEY": "your-api-key",
-        "OPENAI_API_KEY": "your-openai-key",
-        "RAG_COLLECTION": "bandar_frd"
-      }
-    }
-  }
-}
-```
+If you need to change how OpenCode connects to the MCP server (host/port), edit
+`benchmark/opencode.json`.
 
 ## Available Tools
 
