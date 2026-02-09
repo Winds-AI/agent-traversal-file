@@ -24,26 +24,7 @@ iatf watch-dir <dir>             # Watch all .iatf files in directory
 
 ## File Structure
 
-```
-:::IATF
-@title: Document Title
-@purpose: Optional purpose
-
-===INDEX===
-<!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-# Section Title {#section-id | lines:15-25 | words:120}
-> Summary text
-  Created: 2025-01-20 | Modified: 2025-01-29
-  Hash: bf5d286
-
-===CONTENT===
-
-{#section-id}
-@summary: Brief description for INDEX
-# Section Title
-Content here. Reference other sections with {@other-id}.
-{/section-id}
-```
+See [example-format.md](./example-format.md) for the full file format example.
 
 ## Rules
 
@@ -63,4 +44,23 @@ Content here. Reference other sections with {@other-id}.
 **Fallback without CLI** (use absolute line numbers from INDEX):
 ```bash
 sed -n '42,57p' document.iatf
+```
+
+## Agent Patterns
+
+```bash
+# Filter index for topics
+iatf index doc.iatf | grep -i auth
+
+# Read all matching sections
+iatf index doc.iatf | grep -oP '#\K[a-z0-9_-]+' | xargs -n1 iatf read doc.iatf
+
+# Extract cross-references from a section
+iatf read doc.iatf section-id | grep -oP '\{@\K[^}]+' | sort -u
+
+# Search across multiple files
+for f in docs/*.iatf; do iatf index "$f" 2>/dev/null | grep -i topic && echo "^ $f"; done
+
+# Impact analysis: who references this section?
+iatf graph doc.iatf --show-incoming | grep "^section-id"
 ```

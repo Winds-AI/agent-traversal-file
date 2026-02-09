@@ -1,69 +1,40 @@
-## Frontend Development Workflow
+# Agent Workflow
 
-### 1. API Discovery
+Run **only** the steps the user lists in their prompt. Nothing more.
 
-- Use `openapi_searchEndpoints` to get API structure from OpenAPI spec
-- **Mandatory:** Call the real APIs using curl after `source .agent/api-env.sh` (see `.agent/API_SCRIPT_USAGE_GUIDE.md`) for any API-backed feature
-- Capture exact response structures (fields, keys, sample values) to drive UI/forms/state
-- Document any discrepancies between spec and runtime behavior
+## Steps
 
-### 2. Context Gathering
+| # | Keywords | File |
+|---|----------|------|
+| 1 | `api discovery`, `1` | `steps/1-api-discovery.md` |
+| 2 | `api testing`, `2` | `steps/2-api-testing.md` |
+| 3 | `context`, `plan`, `3` | `steps/3-context-and-plan.md` |
+| 4 | `implementation`, `implement`, `4` | `steps/4-implementation.md` |
+| 5 | `testing`, `test`, `5` | `steps/5-testing.md` |
+| 6 | `bug`, `issue`, `fix`, `resolve`, `6` | `steps/6-bug-resolution.md` |
 
-- **Mandatory: Read `docs/PROJECT_PATTERNS.md`** for project-wide patterns (uploads, forms, state, routing, etc.)
-- Read project structure from AGENTS.md and user's task
-- Traverse codebase to understand structure, patterns, and conventions
-- Ask all clarifying questions(no limit)) before proceeding—don't assume requirements important decisions and  configurations
+## Rules
 
-### 3. Planning
+1. Match keywords/numbers in the prompt → run those steps only.
+2. Multiple steps → execute in numerical order.
+3. Read the step file before executing it.
+4. Respect each step's boundaries — do not bleed into other steps.
+5. Feature/module name follows the step references (e.g., `"1","2" - certificate management`).
 
-- Use `sequential_thinking` for complex logic
-- Propose plan using template at `.agent/PLAN_TEMPLATE.md`
-- **Mandatory:** Write the plan to a markdown file named `PLAN_<feature>.md` in `.agent/` (e.g., `.agent/PLAN_certificate-management.md`) before requesting approval
-- **Wait for user approval before coding**
-- **Explicit user instruction to proceed counts as approval** (e.g., “go ahead and implement”)
+## Combinations
 
-### 4. Implementation
+- **3 + 4**: Skip plan approval. Use default answers to decisions.
+- **3 + 5** (or 5 included): Add `## Test Cases` to the plan.
+- **4 alone**: Requires existing `.agent/plans/PLAN_<feature>.md`. If missing, ask user.
+- **5 alone**: Derive test cases from the feature's user flows.
 
-- Write production-ready code following existing patterns
-- Keep changes focused and incremental
+## Resources
 
-### 5. Testing (if requested)
-
-- Use `.agent/skills/agent-browser` skill for e2e testing
-- Skip if not mentioned in task
-
-### 6. Summary
-
-- Provide concise summary of changes made
-
----
-
-## Bug/Issue Resolution Workflow
-
-### 1. Issue Discovery
-
-- Use `redmine_getIssue` to fetch issue details when user references a bug/issue ID
-- Combine: issue description + user context + codebase investigation
-
-### 2. Root Cause Analysis
-
-- Use `sequential_thinking` for complex or unclear issues
-- Search web if issue seems unusual—other devs may have documented fixes
-- Trace through relevant code paths to pinpoint the problem
-
-### 3. Resolution
-
-- **If user says "report back":** propose fix plan and wait for approval
-- **Otherwise:** implement fix directly and provide summary
-
-### 4. Summary
-
-- Explain root cause, what was changed, and why
-
----
-
-**Principles:**
-
-- Ask before assuming—human makes decisions
-- Propose, don't execute, until approved
-- Surface important tradeoffs and edge cases
+| Resource | Path |
+|----------|------|
+| API env + curl wrapper | `.agent/scripts/api-env.sh` |
+| API token usage | `.agent/docs/API_SCRIPT_USAGE_GUIDE.md` |
+| Plan template | `.agent/docs/PLAN_TEMPLATE.md` |
+| Browser automation | `.agent/skills/agent-browser/` |
+| Project patterns | `docs/PROJECT_PATTERNS.md` |
+| Project structure | `AGENTS.md` |

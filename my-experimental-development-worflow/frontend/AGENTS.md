@@ -1,7 +1,19 @@
-Your agents.md content. just add below section
-
 ## AI Assisted Frontend Development Workflow with Human in the Loop (frontend-agent)
 
-- `.agent/` directory contains local agent tooling, prompts, and scripts used to assist development with human review.
-- Key files: `.agent/Agent.md` (agent guidance), `docs/PROJECT_PATTERNS.md` (project patterns — read first), `.agent/PLAN_TEMPLATE.md` (planning template), `.agent/API_SCRIPT_USAGE_GUIDE.md` (script usage),
-- Agent scripts live in `.agent/bin/`; reusable skills are in `.agent/skills/`.
+The `.agent/` directory contains tooling and workflows for agent-assisted development. See `.agent/Agent.md` for workflow guidance, step definitions, and execution rules.
+
+### Directory Layout
+
+```
+.agent/
+├── Agent.md                 # Workflow guidance and step routing rules
+├── docs/                    # Documentation and templates
+├── scripts/                 # API scripts (api-env.sh)
+├── skills/agent-browser/    # Browser automation for web testing
+└── steps/                   # 6-step workflow files (1-api-discovery through 6-bug-resolution)
+```
+
+### Project Resources
+
+- `docs/PROJECT_PATTERNS.md` — project conventions and patterns (read first)
+- `.agent/Agent.md` — see here for how to invoke agent workflows

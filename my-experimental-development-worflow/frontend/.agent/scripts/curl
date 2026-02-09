@@ -40,7 +40,7 @@ if [[ "$has_auth_header" == false ]]; then
     echo "BLOCKED: API_TOKEN_NAME is required (or pass Authorization header)" >&2
     exit 1
   fi
-  TOKENS_FILE="${API_TOKENS_FILE:-$PWD/.agent/tokens.toml}"
+  TOKENS_FILE="${API_TOKENS_FILE:-$PWD/.agent/scripts/tokens.toml}"
   TOKEN_VALUE="$(grep "^${API_TOKEN_NAME} " "$TOKENS_FILE" | sed 's/.*"\(.*\)"/\1/')"
   if [[ -z "$TOKEN_VALUE" ]]; then
     echo "BLOCKED: token not found for API_TOKEN_NAME=$API_TOKEN_NAME" >&2
