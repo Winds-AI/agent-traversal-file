@@ -3,7 +3,7 @@
   "displayName": "IATF",
   "description": "Language support for IATF files with syntax highlighting, validation, and navigation",
   "license": "MIT",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "main": "./extension.js",
   "activationEvents": [
     "onLanguage:iatf",

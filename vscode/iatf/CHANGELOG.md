@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.5 - 2026-02-11
+
+### Changed
+- Improved autocomplete ranking so the closest matching section IDs are suggested first
+- `{/...}` completion now prioritizes the currently open section ID
+- Section title completions now disambiguate duplicate titles by showing section ID context
+
 ## 0.1.4 - 2026-02-11
 
 ### Added
