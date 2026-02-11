@@ -16,6 +16,7 @@
 ## Project Structure
 
 - `go/` - Go CLI implementation (entry: `go/main.go`)
+- `lsp/` - Go Language Server implementation (entry: `lsp/main.go`)
 - `examples/` - Sample `.iatf` files for testing
 - `installers/` - Installer scripts
 - `docs/` - Additional documentation (see links below)

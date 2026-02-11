@@ -24,9 +24,38 @@ builds:
     ignore:
       - goos: windows
         goarch: arm64
+  - id: iatf-lsp
+    main: .
+    dir: ./lsp
+    binary: iatf-lsp
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w
+      - -X main.version={{.Version}}
+    ignore:
+      - goos: windows
+        goarch: arm64
 
 archives:
   - id: iatf-archives
+    builds:
+      - iatf
+    format: binary
+    name_template: >-
+      {{ .Binary }}-
+      {{- .Os }}-
+      {{- .Arch }}
+  - id: iatf-lsp-archives
+    builds:
+      - iatf-lsp
     format: binary
     name_template: >-
       {{ .Binary }}-

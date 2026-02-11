@@ -1,5 +1,33 @@
 # Changelog
 
+## 0.1.3 - 2026-02-11
+
+### Fixed
+- Prevented preview command registration from failing when `vscode-languageclient` is unavailable in packaged installs
+- Extension now degrades gracefully by disabling LSP features instead of failing activation
+
+## 0.1.2 - 2026-02-11
+
+### Added
+- New `IATF: Open Preview` command for `.iatf` files
+- Editor title toolbar button for quick preview access (same editor group, not split by default)
+- Live preview panel that updates as the source document changes
+- In-preview Table of Contents for quick section jump navigation
+- Clickable `{@section-id}` references that jump to target sections in preview
+
+### Changed
+- Preview now focuses on reader-friendly output: section title, section summary, and section content only
+- Technical metadata (hashes, created/modified markers, annotation syntax) is hidden in preview
+- `{@section-id}` references are visually highlighted in preview content, with missing targets marked clearly
+
+## 0.1.1 - 2026-02-11
+
+### Changed
+- Reworked syntax highlighting hierarchy to reduce visual noise in `.iatf` files
+- Promoted `@title`, section summaries, and `Created`/`Modified` dates with dedicated scopes and stronger emphasis
+- De-emphasized low-priority metadata such as hashes, separators, braces, and index scaffolding
+- Split key/value captures for metadata fields to allow precise theming control
+
 ## 0.0.5 - 2026-01-26
 
 ### Added

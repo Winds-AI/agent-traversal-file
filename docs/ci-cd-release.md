@@ -4,11 +4,13 @@
 
 - **Tool**: GoReleaser (config: `.goreleaser.yml`)
 - **Workflow**: Single job (`.github/workflows/release.yml`)
+- **Artifacts Built**: `iatf` CLI and `iatf-lsp` binaries
 - **Platforms**: Windows (amd64), macOS (amd64, arm64), Linux (amd64, arm64)
 
 ### Release Artifacts
 
-- Compiled binaries for all platforms
+- Compiled `iatf` binaries for all platforms
+- Compiled `iatf-lsp` binaries for all platforms
 - Install scripts (`install.sh`, `install.ps1`)
 - SHA256SUMS
 - Auto-generated changelog
