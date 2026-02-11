@@ -10,6 +10,7 @@ The `.agent/` directory contains tooling and workflows for agent-assisted develo
 ├── docs/                    # Documentation and templates
 ├── scripts/                 # API scripts (api-env.sh)
 ├── skills/agent-browser/    # Browser automation for web testing
+├── plans/                   # all current plans
 └── steps/                   # 6-step workflow files (1-api-discovery through 6-bug-resolution)
 ```
 

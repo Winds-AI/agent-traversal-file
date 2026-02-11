@@ -20,6 +20,7 @@ Run **only** the steps the user lists in their prompt. Nothing more.
 3. Read the step file before executing it.
 4. Respect each step's boundaries — do not bleed into other steps.
 5. Feature/module name follows the step references (e.g., `"1","2" - certificate management`).
+6. Tool calls are sequential by default; only parallelize when the user explicitly asks.
 
 ## Combinations
 
