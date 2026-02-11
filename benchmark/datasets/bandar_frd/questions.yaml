@@ -5,7 +5,7 @@
 metadata:
   dataset: bandar_frd
   document: Bandar Web Application and Admin Portal
-  total_questions: 40
+  total_questions: 38
   description: >
     Test questions for benchmarking IATF navigation efficiency.
     Covers needle-in-haystack, multi-hop reasoning, aggregation,

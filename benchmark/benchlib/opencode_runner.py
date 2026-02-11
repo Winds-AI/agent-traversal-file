@@ -10,27 +10,9 @@ from typing import Any, Dict, Mapping, Optional
 
 from rich.console import Console
 
-from .extract_metrics import extract_answer_from_session, get_latest_session_id
+from .extract_metrics import extract_answer_from_session
 from .models import BenchmarkConfig, OpenCodeRun
 from .opencode_stream import parse_opencode_json_stream
-
-
-def _load_benchmark_opencode_config() -> Dict[str, Any]:
-    """
-    Load benchmark-scoped opencode config (used for MCP-enabled runs).
-
-    This lets the benchmark harness control MCP enablement per approach without
-    relying on user-global configuration (e.g., ~/.opencode) or repo-root config
-    discovery.
-    """
-    benchmark_dir = Path(__file__).resolve().parents[1]
-    cfg_path = benchmark_dir / "opencode.json"
-    if not cfg_path.exists():
-        return {}
-    try:
-        return json.loads(cfg_path.read_text(encoding="utf-8"))
-    except Exception:
-        return {}
 
 
 class OpenCodeIsolation:
@@ -128,8 +110,7 @@ def run_opencode(
 
     Preserves prior behavior:
     - Parse JSON stream for answer/session/metrics
-    - DB fallback for missing answer (when session_id present)
-    - Latest-session DB fallback for unknown session_id
+    - DB fallback for missing answer when stream includes a concrete session_id
     """
     start_time = time.time()
 
@@ -174,6 +155,13 @@ def run_opencode(
 
         answer = parsed.get("answer", "") or ""
         session_id = parsed.get("session_id", "unknown") or "unknown"
+        error: Optional[str] = None
+
+        if result.returncode != 0:
+            stderr_preview = (result.stderr or "").strip().replace("\n", " ")
+            if stderr_preview:
+                stderr_preview = f": {stderr_preview[:200]}"
+            error = f"ERROR: opencode exited with code {result.returncode}{stderr_preview}"
 
         if not answer:
             console.print(
@@ -193,16 +181,14 @@ def run_opencode(
                 # DB schema/path differences across opencode versions are common; don't fail the run.
                 pass
 
-        if session_id == "unknown":
-            try:
-                if config.db_path.exists():
-                    session_id = get_latest_session_id(config.db_path) or "unknown"
-            except Exception:
-                pass
+        if not answer and not error:
+            error = "ERROR: No answer parsed from opencode output"
 
-        error: Optional[str] = None
-        if answer.startswith("ERROR:"):
+        if answer.startswith("ERROR:") and not error:
             error = answer
+
+        if not answer and error:
+            answer = error
 
         console.print(
             f"  [dim]Result: session={session_id}, tokens={parsed.get('total_tokens', 0)}, answer_len={len(answer)}[/dim]"

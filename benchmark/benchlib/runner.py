@@ -85,32 +85,39 @@ def run_single_question(
         config.output_dir,
     )
 
-    console.print(f"  [dim]Judging answer (model={config.judge_model})...[/dim]")
-    try:
-        judgment = judge_answer(
-            question=question["question"],
-            expected_answer=question["answer"],
-            actual_answer=run_result.answer,
-            model=config.judge_model,
-            temperature=config.judge_temperature,
-        )
-        console.print(
-            f"  [dim]Judgment: correct={judgment.correct}, score={judgment.score}[/dim]"
-        )
-    except Exception as e:
-        console.print(f"  [red]Judge failed: {type(e).__name__}: {e}[/red]")
-        console.print(
-            "  [yellow]Recording as unjudged (not marking incorrect)[/yellow]"
-        )
+    if run_result.error:
+        console.print("  [yellow]Skipping judge due to run error[/yellow]")
         judgment = JudgmentResult(
             correct=False,
             score=-1.0,  # -1 signals "not judged"
-            reasoning=f"JUDGE_ERROR: {e}",
+            reasoning=f"RUN_ERROR: {run_result.error}",
             partial_credit=False,
         )
-
-        # Preserve prior behavior: stash judge error on the result.
-        run_result.error = f"JUDGE_ERROR: {e}"
+    else:
+        console.print(f"  [dim]Judging answer (model={config.judge_model})...[/dim]")
+        try:
+            judgment = judge_answer(
+                question=question["question"],
+                expected_answer=question["answer"],
+                actual_answer=run_result.answer,
+                model=config.judge_model,
+                temperature=config.judge_temperature,
+            )
+            console.print(
+                f"  [dim]Judgment: correct={judgment.correct}, score={judgment.score}[/dim]"
+            )
+        except Exception as e:
+            console.print(f"  [red]Judge failed: {type(e).__name__}: {e}[/red]")
+            console.print(
+                "  [yellow]Recording as unjudged (not marking incorrect)[/yellow]"
+            )
+            judgment = JudgmentResult(
+                correct=False,
+                score=-1.0,  # -1 signals "not judged"
+                reasoning=f"JUDGE_ERROR: {e}",
+                partial_credit=False,
+            )
+            run_result.error = f"JUDGE_ERROR: {e}"
 
     return QuestionResult(
         question_id=question["id"],
@@ -143,35 +150,46 @@ def run_benchmark(
     questions: List[Dict[str, Any]],
     dataset_path: Path,
     prompts_dir: Path,
-    approaches: Optional[List[str]] = None,
+    approach: str,
     question_types: Optional[List[str]] = None,
 ) -> List[QuestionResult]:
-    """Run the full benchmark."""
+    """Run a single isolated benchmark job for one approach."""
+    if not isinstance(approach, str) or not approach:
+        raise ValueError("Approach must be a non-empty string.")
+    if approach not in config.approaches:
+        raise ValueError(
+            f"Unknown approach: {approach}. "
+            f"Available: {', '.join(sorted(config.approaches))}"
+        )
+
+    all_question_types = {q["type"] for q in questions}
+    if question_types:
+        unknown_types = [t for t in question_types if t not in all_question_types]
+        if unknown_types:
+            raise ValueError(
+                f"Unknown question type(s): {', '.join(unknown_types)}. "
+                f"Available: {', '.join(sorted(all_question_types))}"
+            )
+
     active_questions = questions
     if question_types:
         active_questions = [q for q in active_questions if q["type"] in question_types]
 
-    if approaches:
-        active_approaches = {
-            k: v for k, v in config.approaches.items() if k in approaches
-        }
-    else:
-        active_approaches = {
-            k: v for k, v in config.approaches.items() if v.get("enabled", True)
-        }
+    if not active_questions:
+        raise ValueError("No questions selected for this run.")
+    approach_config = config.approaches[approach]
 
     results: list[QuestionResult] = []
-    total_runs = len(active_questions) * len(active_approaches)
+    total_runs = len(active_questions)
     prompt_template_cache: dict[Path, str] = {}
 
-    isolations: dict[str, OpenCodeIsolation] = {}
+    isolation: Optional[OpenCodeIsolation] = None
     try:
-        for approach, approach_config in active_approaches.items():
-            isolations[approach] = prepare_opencode_isolation(
-                approach=approach,
-                approach_config=approach_config,
-                run_cwd=dataset_path,
-            )
+        isolation = prepare_opencode_isolation(
+            approach=approach,
+            approach_config=approach_config,
+            run_cwd=dataset_path,
+        )
 
         with Progress(
             SpinnerColumn(),
@@ -183,54 +201,53 @@ def run_benchmark(
             task = progress.add_task("Running benchmark...", total=total_runs)
 
             for question in active_questions:
-                for approach, approach_config in active_approaches.items():
-                    progress.update(task, description=f"[{approach}] {question['id']}")
+                progress.update(task, description=f"[{approach}] {question['id']}")
 
-                    # Retry logic with accurate elapsed time on final failure.
-                    last_error: Optional[Exception] = None
+                # Retry logic with accurate elapsed time on final failure.
+                last_error: Optional[Exception] = None
+                attempt_start = time.time()
+                for attempt in range(config.max_retries + 1):
                     attempt_start = time.time()
-                    for attempt in range(config.max_retries + 1):
-                        attempt_start = time.time()
-                        try:
-                            result = run_single_question(
-                                console,
-                                config,
-                                question,
-                                approach,
-                                approach_config,
-                                dataset_path,
-                                prompts_dir,
-                                prompt_template_cache,
-                                isolations[approach],
-                            )
-                            results.append(result)
-                            last_error = None
-                            break
-                        except Exception as e:
-                            last_error = e
-                            if attempt < config.max_retries:
-                                console.print(
-                                    f"[yellow]Retry {attempt + 1} for {question['id']}: {type(e).__name__}: {e}[/yellow]"
-                                )
-                                time.sleep(config.retry_delay)
-
-                    if last_error is not None:
-                        console.print(
-                            f"[red]All retries exhausted for {question['id']}: {type(last_error).__name__}: {last_error}[/red]"
+                    try:
+                        result = run_single_question(
+                            console,
+                            config,
+                            question,
+                            approach,
+                            approach_config,
+                            dataset_path,
+                            prompts_dir,
+                            prompt_template_cache,
+                            isolation,
                         )
-                        latency_ms = (time.time() - attempt_start) * 1000
-                        results.append(
-                            QuestionResult(
-                                question_id=question["id"],
-                                question_type=question["type"],
-                                question=question["question"],
-                                expected_answer=question["answer"],
-                                approach=approach,
-                                model=config.model,
-                                actual_answer="",
-                                correct=False,
-                                score=0.0,
-                                judgment_reasoning=f"Error: {last_error}",
+                        results.append(result)
+                        last_error = None
+                        break
+                    except Exception as e:
+                        last_error = e
+                        if attempt < config.max_retries:
+                            console.print(
+                                f"[yellow]Retry {attempt + 1} for {question['id']}: {type(e).__name__}: {e}[/yellow]"
+                            )
+                            time.sleep(config.retry_delay)
+
+                if last_error is not None:
+                    console.print(
+                        f"[red]All retries exhausted for {question['id']}: {type(last_error).__name__}: {last_error}[/red]"
+                    )
+                    latency_ms = (time.time() - attempt_start) * 1000
+                    results.append(
+                        QuestionResult(
+                            question_id=question["id"],
+                            question_type=question["type"],
+                            question=question["question"],
+                            expected_answer=question["answer"],
+                            approach=approach,
+                            model=config.model,
+                            actual_answer="",
+                            correct=False,
+                            score=-1.0,
+                            judgment_reasoning=f"Error: {last_error}",
                             prompt_tokens=0,
                             completion_tokens=0,
                             total_tokens=0,
@@ -242,12 +259,12 @@ def run_benchmark(
                             latency_ms=latency_ms,
                             session_id="error",
                             error=str(last_error),
-                            )
                         )
+                    )
 
-                    progress.advance(task)
+                progress.advance(task)
 
         return results
     finally:
-        for isolation in isolations.values():
+        if isolation is not None:
             isolation.cleanup()

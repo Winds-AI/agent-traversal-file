@@ -38,8 +38,14 @@ def main(argv: list[str] | None = None) -> int:
     )
     parser.add_argument("--config", "-c", default="config.yaml", help="Path to config.yaml")
     parser.add_argument("--dataset", "-d", default="bandar_frd", help="Dataset name (subdirectory of datasets/)")
-    parser.add_argument("--approach", "-a", action="append", help="Run specific approach(es) only")
-    parser.add_argument("--type", "-t", action="append", help="Run specific question type(s) only")
+    parser.add_argument(
+        "--approach",
+        "-a",
+        action="append",
+        required=True,
+        help="Run one approach only (baseline | iatf | rag_mcp)",
+    )
+    parser.add_argument("--type", "-t", help="Run one question type only")
     parser.add_argument("--dry-run", action="store_true", help="Show what would run without executing")
     args = parser.parse_args(argv)
 
@@ -56,24 +62,47 @@ def main(argv: list[str] | None = None) -> int:
         console.print(f"[red]Dataset not found: {dataset_path}[/red]")
         return 1
 
-    questions = load_questions(dataset_path)
+    all_questions = load_questions(dataset_path)
+    questions = all_questions
+    available_question_types = sorted({q["type"] for q in all_questions})
+    if len(args.approach) != 1:
+        console.print(
+            f"[red]Exactly one --approach is required, got {len(args.approach)}[/red]"
+        )
+        return 1
+    selected_approach = args.approach[0]
+
+    if selected_approach not in config.approaches:
+        console.print(
+            f"[red]Unknown approach: {selected_approach}[/red]"
+        )
+        console.print(
+            f"[yellow]Available approaches: {', '.join(sorted(config.approaches))}[/yellow]"
+        )
+        return 1
+
     if args.type:
-        questions = [q for q in questions if q["type"] in args.type]
+        if args.type not in available_question_types:
+            console.print(f"[red]Unknown question type: {args.type}[/red]")
+            console.print(
+                f"[yellow]Available types: {', '.join(available_question_types)}[/yellow]"
+            )
+            return 1
+        questions = [q for q in questions if q["type"] == args.type]
 
     console.print("\n[bold]Benchmark Configuration[/bold]")
     console.print(f"  Model: {config.model}")
     console.print(f"  Dataset: {args.dataset}")
+    console.print(f"  Approach: {selected_approach}")
+    if args.type:
+        console.print(f"  Type: {args.type}")
     console.print(f"  Questions: {len(questions)}")
-    console.print(f"  Approaches: {list(config.approaches.keys())}")
 
     if args.dry_run:
         console.print("\n[yellow]Dry run - no tests executed[/yellow]")
         return 0
 
-    if args.approach:
-        rag_enabled = "rag_mcp" in args.approach
-    else:
-        rag_enabled = config.approaches.get("rag_mcp", {}).get("enabled", False)
+    rag_enabled = selected_approach == "rag_mcp"
 
     rag_proc = None
     if rag_enabled:
@@ -88,18 +117,28 @@ def main(argv: list[str] | None = None) -> int:
         results = run_benchmark(
             console,
             config,
-            questions,
+            all_questions,
             dataset_path,
             prompts_dir,
-            approaches=args.approach,
-            question_types=args.type,
+            approach=selected_approach,
+            question_types=[args.type] if args.type else None,
         )
 
         summary = summarize_results(results)
         console.print("\n")
         print_summary_table(console, summary)
-        save_results(console, results, summary, config.output_dir, config.model)
+        save_results(
+            console,
+            results,
+            summary,
+            config.output_dir,
+            config.model,
+            dataset=args.dataset,
+        )
         return 0
+    except ValueError as e:
+        console.print(f"[red]Configuration error: {e}[/red]")
+        return 1
     finally:
         if rag_proc:
             stop_rag_server(console, rag_proc)

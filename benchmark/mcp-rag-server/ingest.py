@@ -55,6 +55,12 @@ def chunk_text_by_tokens(
         List of Chunk objects
     """
     chunks = []
+    if chunk_size <= 0:
+        raise ValueError("chunk_size must be > 0")
+    if overlap < 0:
+        raise ValueError("overlap must be >= 0")
+    if overlap >= chunk_size:
+        raise ValueError("overlap must be smaller than chunk_size")
 
     # Use tiktoken for accurate token counting
     if tiktoken is None:
@@ -67,11 +73,12 @@ def chunk_text_by_tokens(
     stride = chunk_size - overlap
 
     for i in range(0, len(tokens), stride):
-        # Don't create a chunk that's too small at the end
-        if i + chunk_size > len(tokens) and i > 0:
-            break
-
         chunk_tokens = tokens[i:i + chunk_size]
+        if not chunk_tokens:
+            break
+        # Avoid near-duplicate tail chunks that only contain overlap tokens.
+        if i > 0 and i + chunk_size > len(tokens) and len(chunk_tokens) <= overlap:
+            break
         chunk_text = encoding.decode(chunk_tokens)
 
         if chunk_text.strip():
@@ -114,6 +121,8 @@ def ingest_document(
     chunks = chunk_text_by_tokens(text, chunk_size=512, overlap=50, source=file_path.stem)
 
     print(f"Created {len(chunks)} chunks")
+    if not chunks:
+        raise ValueError("No chunks generated from input document")
 
     # Generate embeddings in batches of 10 chunks
     print("Generating embeddings...")
@@ -128,13 +137,22 @@ def ingest_document(
         print(f"  Processed {min(i + batch_size, len(texts))}/{len(texts)} chunks")
 
     print(f"Generated {len(all_embeddings)} embeddings")
+    if all_embeddings and len(all_embeddings[0]) != EMBEDDING_DIMENSION:
+        raise ValueError(
+            f"Embedding dimension mismatch: expected {EMBEDDING_DIMENSION}, got {len(all_embeddings[0])}"
+        )
 
     # Connect to Qdrant
     print("Connecting to Qdrant...")
     client = get_qdrant_client()
 
     # Create collection if needed
-    created = create_collection(client, collection_name, recreate=recreate)
+    created = create_collection(
+        client,
+        collection_name,
+        vector_size=EMBEDDING_DIMENSION,
+        recreate=recreate,
+    )
     if created:
         print(f"Created collection: {collection_name}")
     else:

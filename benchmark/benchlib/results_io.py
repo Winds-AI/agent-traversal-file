@@ -17,6 +17,7 @@ def save_results(
     summary: Dict[str, Any],
     output_dir: Path,
     model: str,
+    dataset: str | None = None,
 ) -> Path:
     """Save results to JSON file."""
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -24,11 +25,16 @@ def save_results(
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     output_file = output_dir / f"benchmark_{timestamp}.json"
 
+    unique_questions = {r.question_id for r in results}
+    approaches = sorted({r.approach for r in results})
     output_data = {
         "metadata": {
             "timestamp": datetime.now().isoformat(),
             "model": model,
-            "total_questions": len(results),
+            "dataset": dataset,
+            "total_questions": len(unique_questions),
+            "total_runs": len(results),
+            "approaches": approaches,
         },
         "summary": summary,
         "results": [asdict(r) for r in results],
@@ -39,4 +45,3 @@ def save_results(
 
     console.print(f"\n[green]Results saved to: {output_file}[/green]")
     return output_file
-

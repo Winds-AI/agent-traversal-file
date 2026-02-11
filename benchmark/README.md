@@ -16,7 +16,7 @@ This framework tests three approaches to document navigation:
 
 - Python 3.10+
 - [OpenCode](https://github.com/opencode-ai/opencode) CLI
-- OpenAI API key (for embeddings and LLM judging)
+- OpenAI API key (for LLM judging)
 - Qdrant Cloud account (for RAG approach)
 
 ## Quick Start
@@ -56,7 +56,7 @@ python ingest.py ../datasets/bandar_frd/document.txt
 
 ```bash
 cd scripts
-python run_benchmark.py --dataset bandar_frd
+python run_job.py --dataset bandar_frd --approach baseline
 ```
 
 ## Project Structure
@@ -70,15 +70,16 @@ benchmark/
 │   └── bandar_frd/
 │       ├── document.iatf       # IATF format document
 │       ├── document.txt        # Plain text version
-│       └── questions.yaml      # 30 test questions
+│       └── questions.yaml      # 38 test questions
 ├── mcp-rag-server/             # RAG MCP server
 │   ├── server.py               # MCP server implementation
-│   ├── qdrant_client.py        # Qdrant Cloud wrapper
-│   ├── embeddings.py           # OpenAI embeddings
+│   ├── qdrant_store.py         # Qdrant Cloud wrapper
+│   ├── embeddings.py           # sentence-transformers embeddings
 │   ├── ingest.py               # Document ingestion
 │   └── requirements.txt        # Server dependencies
 ├── scripts/
-│   ├── run_benchmark.py        # Main orchestrator
+│   ├── run_job.py              # Strict single-job entrypoint
+│   ├── run_benchmark.py        # Single-job runner (compatible entrypoint)
 │   ├── extract_metrics.py      # OpenCode SQLite query
 │   ├── judge_accuracy.py       # LLM-based evaluation
 │   └── generate_report.py      # IATF report generator
@@ -91,32 +92,26 @@ benchmark/
 
 ## CLI Usage
 
-### Full Benchmark
+### Single Job (Required)
 
 ```bash
-python scripts/run_benchmark.py --dataset bandar_frd
-```
-
-### Single Approach
-
-```bash
-python scripts/run_benchmark.py --dataset bandar_frd --approach iatf
-python scripts/run_benchmark.py --dataset bandar_frd --approach baseline
-python scripts/run_benchmark.py --dataset bandar_frd --approach rag_mcp
+python scripts/run_job.py --dataset bandar_frd --approach baseline
+python scripts/run_job.py --dataset bandar_frd --approach iatf
+python scripts/run_job.py --dataset bandar_frd --approach rag_mcp
 ```
 
 ### Specific Question Types
 
 ```bash
-python scripts/run_benchmark.py --dataset bandar_frd --type needle
-python scripts/run_benchmark.py --dataset bandar_frd --type multihop
-python scripts/run_benchmark.py --dataset bandar_frd --type aggregation
+python scripts/run_job.py --dataset bandar_frd --approach baseline --type needle
+python scripts/run_job.py --dataset bandar_frd --approach iatf --type multihop
+python scripts/run_job.py --dataset bandar_frd --approach rag_mcp --type aggregation
 ```
 
 ### Dry Run
 
 ```bash
-python scripts/run_benchmark.py --dataset bandar_frd --dry-run
+python scripts/run_job.py --dataset bandar_frd --approach baseline --dry-run
 ```
 
 ### Generate IATF Report
@@ -150,6 +145,9 @@ Example: "How do Bandar Credits work across customer management and credits mana
 ### Aggregation (10 questions)
 Gather and synthesize information across the document.
 Example: "List all admin portal modules mentioned."
+
+### Advanced Types (8 questions)
+Workflow (3), conditional logic (3), and contradiction checks (2).
 
 ## Configuration
 
@@ -219,7 +217,7 @@ Results are also output in IATF format in `results/report_*.iatf`, demonstrating
 - Check `~/.opencode/opencode.db` exists and has recent sessions
 
 **RAG search returns no results**
-- Verify documents were ingested: `python qdrant_client.py`
+- Verify documents were ingested: `python qdrant_store.py`
 - Check Qdrant Cloud cluster is running
 
 **Judge errors**

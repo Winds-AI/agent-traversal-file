@@ -228,6 +228,7 @@ def generate_iatf_report(json_path: Path, output_path: Path) -> None:
     results = data.get("results", [])
 
     model = metadata.get("model", "unknown")
+    dataset = metadata.get("dataset", "unknown")
     timestamp = metadata.get("timestamp", datetime.now().isoformat())
 
     summary_content = generate_summary_section(summary, model)
@@ -300,7 +301,7 @@ def generate_iatf_report(json_path: Path, output_path: Path) -> None:
 @title: IATF Benchmark Results
 @date: {timestamp[:10]}
 @model: {model}
-@dataset: bandar_frd
+@dataset: {dataset}
 @generated: {datetime.now().isoformat()}
 
 ===INDEX===
@@ -345,4 +346,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

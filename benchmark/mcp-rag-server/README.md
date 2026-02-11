@@ -15,7 +15,6 @@ pip install -r requirements.txt
 ```bash
 export QDRANT_URL="https://your-cluster.qdrant.io"
 export QDRANT_API_KEY="your-api-key"
-export OPENAI_API_KEY="your-openai-key"  # For generating embeddings
 ```
 
 **Qdrant Cloud Setup:**
@@ -69,7 +68,7 @@ Search the document for relevant content using semantic similarity.
 
 ## Chunking Strategy
 
-Documents are chunked into 2048-token segments with 100-token overlap on both sides using OpenAI's `cl100k_base` tokenizer (via tiktoken). This overlap ensures context continuity between chunks. Embeddings are generated in batches of 10 chunks to optimize API usage.
+Documents are chunked into 512-token segments with 50-token overlap using `cl100k_base` (via tiktoken). Embeddings are generated in batches of 10 chunks. The server uses `sentence-transformers/all-MiniLM-L6-v2` for local embeddings.
 
 ## Architecture
 
@@ -81,8 +80,8 @@ Documents are chunked into 2048-token segments with 100-token overlap on both si
                                │
                                ▼
                         ┌─────────────────┐
-                        │  OpenAI API     │
-                        │  (embeddings)   │
+                        │ SentenceTransf. │
+                        │ (local embed)   │
                         └─────────────────┘
 ```
 
@@ -91,8 +90,8 @@ Documents are chunked into 2048-token segments with 100-token overlap on both si
 | File | Description |
 |------|-------------|
 | `server.py` | MCP server with `rag_search` tool |
-| `qdrant_client.py` | Qdrant Cloud connection wrapper |
-| `embeddings.py` | OpenAI embedding utilities |
+| `qdrant_store.py` | Qdrant Cloud connection wrapper |
+| `embeddings.py` | sentence-transformers embedding utilities |
 | `ingest.py` | Document chunking and upload script |
 | `requirements.txt` | Python dependencies |
 
@@ -105,7 +104,7 @@ Test the server manually:
 python embeddings.py
 
 # Test Qdrant connection
-python qdrant_client.py
+python qdrant_store.py
 
 # Test ingestion
 python ingest.py ../datasets/bandar_frd/document.txt --collection test_collection
@@ -113,7 +112,7 @@ python ingest.py ../datasets/bandar_frd/document.txt --collection test_collectio
 # Test full search
 python -c "
 from embeddings import embed_text
-from qdrant_client import get_qdrant_client, search
+from qdrant_store import get_qdrant_client, search
 
 client = get_qdrant_client()
 query = 'payment options'
@@ -132,9 +131,9 @@ for r in results:
 **"Qdrant connection failed: QDRANT_URL not set"**
 - Ensure `QDRANT_URL` environment variable is set with Qdrant Cloud URL
 
-**"OpenAI API key not set"**
-- Ensure `OPENAI_API_KEY` environment variable is set
-- Verify the key is valid and has API access
+**"Failed to generate embedding"**
+- Ensure dependencies are installed: `pip install -r requirements.txt`
+- If using a fresh environment, run `python embeddings.py` once to warm the local model download
 
 **"Collection '{name}' not found"**
 - Ingest documents first: `python ingest.py ../datasets/bandar_frd/document.txt --collection bandar_frd`

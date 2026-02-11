@@ -25,7 +25,7 @@ def save_session_export(
     sessions_dir.mkdir(parents=True, exist_ok=True)
 
     now = datetime.now()
-    timestamp = now.strftime("%Y%m%d_%H%M%S")
+    timestamp = now.strftime("%Y%m%d_%H%M%S_%f")
     filename = f"{question['id']}_{approach}_{timestamp}.json"
 
     export = {
