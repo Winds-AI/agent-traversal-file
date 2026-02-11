@@ -99,6 +99,15 @@ iatf index examples/incident-playbook.iatf | rg -i 'incident|rollback|postmortem
 # > Post-incident writeup outline
 ```
 
+**Alternative (recommended): ranked lookup**
+```bash
+iatf find examples/incident-playbook.iatf "rollback incident postmortem"
+# Output:
+# rollback    (score:...)  Rollback Steps
+# incident    (score:...)  Incident Timeline
+# postmortem  (score:...)  Action Items
+```
+
 **Step 2: Check dependencies before implementing**
 ```bash
 iatf graph examples/incident-playbook.iatf | rg '^incident'
@@ -116,8 +125,8 @@ iatf graph examples/incident-playbook.iatf --show-incoming | rg '^postmortem'
 **Step 4: Load only the needed section**
 ```bash
 iatf read examples/incident-playbook.iatf rollback
-# Returns only lines 42-57 (Rollback section)
-# Contains: rollback steps and commands
+# Returns rollback section content (wrapper tags hidden)
+# Contains rollback steps and commands
 ```
 
 **Total: far fewer tokens than reading the full file.**
@@ -137,13 +146,13 @@ iatf read examples/incident-playbook.iatf rollback
 
 **Find a topic and open first match:**
 ```bash
-id=$(iatf index examples/incident-playbook.iatf | rg -i rollback | head -1 | rg -o '#[A-Za-z0-9_-]+' | sed 's/^#//')
+id=$(iatf find examples/incident-playbook.iatf rollback | head -1 | cut -f1)
 iatf read examples/incident-playbook.iatf "$id"
 ```
 
 **Open every matching section:**
 ```bash
-iatf index examples/incident-playbook.iatf | rg -i 'incident|rollback' | rg -o '#[A-Za-z0-9_-]+' | sed 's/^#//' | xargs -n1 iatf read examples/incident-playbook.iatf
+iatf find examples/incident-playbook.iatf "incident rollback" | cut -f1 | xargs -n1 iatf read examples/incident-playbook.iatf
 ```
 
 **Show outgoing references for a section:**
@@ -195,7 +204,6 @@ sed -n '42,57p' examples/incident-playbook.iatf
 ---
 
 **You're all set! Start creating efficient, agent-friendly documentation!**
-
 
 
 

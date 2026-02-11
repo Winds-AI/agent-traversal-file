@@ -64,7 +64,7 @@ Thank you for your interest in contributing to IATF Tools!
 
 Before submitting:
 - Test on multiple platforms if possible (Linux, macOS, Windows)
-- Test all commands (rebuild, rebuild-all, watch, unwatch, validate, index, read)
+- Test all commands (rebuild, rebuild-all, watch, unwatch, validate, index, find, read, graph)
 - Verify installation scripts work (if modifying `installers/install.sh` or `installers/install.ps1`)
 - Test with example files in `examples/` directory
 
@@ -108,7 +108,6 @@ Be respectful, constructive, and helpful. We're all here to make IATF better!
 ## License
 
 By contributing, you agree that your contributions will be licensed under the MIT License.
-
 
 
 

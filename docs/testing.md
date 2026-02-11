@@ -8,22 +8,23 @@ Validate changes by manually running all commands on files in `examples/`:
 1. `rebuild` - Rebuild single file
 2. `rebuild-all` - Rebuild directory
 3. `validate` - Validate file structure
-4. `index` - Extract INDEX section
-5. `read` - Read section by ID
-6. `graph` - Show reference graph
+4. `index` - Extract simplified INDEX (and test `--with-dates`)
+5. `find` - Ranked section search from INDEX
+6. `read` - Read section by ID (without wrapper tags)
+7. `graph` - Show reference graph
 
 ### Watch Commands
-7. `watch <file>` - Watch single file (silent and --debug modes)
-8. `watch-dir <dir>` - Watch directory tree (silent and --debug modes)
-9. `unwatch <file>` - Stop watching file
-10. `watch --list` - List watched files
+8. `watch <file>` - Watch single file (silent and --debug modes)
+9. `watch-dir <dir>` - Watch directory tree (silent and --debug modes)
+10. `unwatch <file>` - Stop watching file
+11. `watch --list` - List watched files
 
 ### Daemon Commands
-11. `daemon start` - Start daemon (silent and --debug modes)
-12. `daemon stop` - Stop daemon
-13. `daemon status` - Show daemon status
-14. `daemon install` - Install OS service
-15. `daemon uninstall` - Remove OS service
+12. `daemon start` - Start daemon (silent and --debug modes)
+13. `daemon stop` - Stop daemon
+14. `daemon status` - Show daemon status
+15. `daemon install` - Install OS service
+16. `daemon uninstall` - Remove OS service
 
 ## Testing Approach
 

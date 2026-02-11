@@ -132,6 +132,45 @@ iatf watch --list
 
 ---
 
+### `iatf find <file> <query>`
+
+Finds and ranks relevant section IDs from the INDEX using section titles and summaries.
+
+**Usage:**
+```bash
+iatf find my-doc.iatf payment options
+iatf find my-doc.iatf "vendor approval workflow"
+```
+
+**What it does:**
+1. Reads the INDEX section entries
+2. Scores section relevance based on title + summary query matches
+3. Returns ranked section IDs to guide targeted `iatf read` calls
+
+**Best for:** Fast section discovery without writing ad-hoc grep loops.
+
+---
+
+### `iatf index <file> [--with-dates]`
+
+Shows INDEX entries. By default, output is simplified for agent consumption (titles + summaries only).
+
+**Usage:**
+```bash
+iatf index my-doc.iatf
+iatf index my-doc.iatf --with-dates
+```
+
+**What it does:**
+1. Reads INDEX section
+2. Prints section headers and summaries
+3. Hides hash/comment metadata by default
+4. With `--with-dates`, includes:
+   - INDEX generated timestamp
+   - per-section Created/Modified dates
+
+---
+
 ### `iatf validate <file>`
 
 Validates an IATF file for structural errors, missing metadata, and invalid syntax.
@@ -394,4 +433,3 @@ iatf validate my-doc.iatf
 This ensures all sections have proper metadata and correct formatting.
 
 ---
-
