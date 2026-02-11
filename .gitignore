@@ -15,6 +15,7 @@ go/iatf
 *.out
 go.sum
 !go/go.sum
+!lsp/go.sum
 
 # Installer build artifacts
 installers/windows/*.msi
