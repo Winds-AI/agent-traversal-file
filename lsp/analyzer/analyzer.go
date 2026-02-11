@@ -466,6 +466,7 @@ func (d *Document) GetCompletions(
 			prefix,
 			protocol.CompletionItemKindReference,
 			settings.SmartInsert,
+			"",
 		)
 	}
 
@@ -477,10 +478,12 @@ func (d *Document) GetCompletions(
 			prefix,
 			protocol.CompletionItemKindClass,
 			settings.SmartInsert,
+			"",
 		)
 	}
 
 	if openerCol, prefix, ok := activeOpenerPrefix(beforeCursor, "{/"); ok {
+		current := d.currentOpenSectionIDAtLine(line)
 		return d.buildSectionIDCompletions(
 			line,
 			openerCol,
@@ -488,6 +491,7 @@ func (d *Document) GetCompletions(
 			prefix,
 			protocol.CompletionItemKindClass,
 			settings.SmartInsert,
+			current,
 		)
 	}
 
@@ -571,17 +575,48 @@ func (d *Document) buildSectionIDCompletions(
 	prefix string,
 	kind protocol.CompletionItemKind,
 	smartInsert bool,
+	preferredID string,
 ) []protocol.CompletionItem {
 	items := []protocol.CompletionItem{}
 	seen := make(map[string]bool)
+	prefixLower := strings.ToLower(prefix)
+
+	type candidate struct {
+		section *Section
+		index   int
+		score   int
+	}
+	candidates := []candidate{}
+
 	for i, section := range d.OrderedSections {
 		if section == nil || seen[section.ID] {
 			continue
 		}
 		seen[section.ID] = true
-		if !strings.HasPrefix(section.ID, prefix) {
+
+		score := scoreIDMatch(section.ID, prefixLower)
+		if score <= 0 {
 			continue
 		}
+		if preferredID != "" && section.ID == preferredID {
+			score += 1000
+		}
+		candidates = append(candidates, candidate{
+			section: section,
+			index:   i,
+			score:   score,
+		})
+	}
+
+	sort.SliceStable(candidates, func(i, j int) bool {
+		if candidates[i].score != candidates[j].score {
+			return candidates[i].score > candidates[j].score
+		}
+		return candidates[i].index < candidates[j].index
+	})
+
+	for i, c := range candidates {
+		section := c.section
 
 		insert := section.ID
 		if smartInsert && !hasClosingBraceAfterCursor(d.Lines[line], endCol) {
@@ -690,21 +725,30 @@ func (d *Document) inContentRange(line int) bool {
 }
 
 func (d *Document) buildTitleCompletions(line int, col int, prefix string) []protocol.CompletionItem {
-	titles := d.collectTitleCandidates()
+	candidates := d.collectTitleCandidates()
 	items := []protocol.CompletionItem{}
 	startCol := col - len(prefix)
 	if startCol < 0 {
 		startCol = 0
 	}
-	for i, title := range titles {
+	titleCounts := make(map[string]int)
+	for _, candidate := range candidates {
+		titleCounts[candidate.Title]++
+	}
+	for i, candidate := range candidates {
+		title := candidate.Title
 		if prefix != "" && !strings.HasPrefix(strings.ToLower(title), strings.ToLower(prefix)) {
 			continue
 		}
 		sortText := fmt.Sprintf("1%03d-%s", i, strings.ToLower(title))
+		detail := "Section title"
+		if titleCounts[title] > 1 && candidate.ID != "" {
+			detail = "Section title (" + candidate.ID + ")"
+		}
 		items = append(items, protocol.CompletionItem{
 			Label:      title,
 			Kind:       ptrCompletionItemKind(protocol.CompletionItemKindText),
-			Detail:     ptrString("Section title"),
+			Detail:     ptrString(detail),
 			FilterText: ptrString(title),
 			SortText:   &sortText,
 			Preselect:  ptrBool(strings.EqualFold(prefix, title)),
@@ -720,33 +764,47 @@ func (d *Document) buildTitleCompletions(line int, col int, prefix string) []pro
 	return items
 }
 
-func (d *Document) collectTitleCandidates() []string {
-	seen := make(map[string]bool)
-	titles := []string{}
+type TitleCandidate struct {
+	Title string
+	ID    string
+}
 
-	for _, title := range d.collectIndexTitles() {
-		if title == "" || seen[title] {
+func (d *Document) collectTitleCandidates() []TitleCandidate {
+	seen := make(map[string]bool)
+	candidates := []TitleCandidate{}
+
+	for _, candidate := range d.collectIndexTitles() {
+		key := candidate.Title + "::" + candidate.ID
+		if candidate.Title == "" || seen[key] {
 			continue
 		}
-		seen[title] = true
-		titles = append(titles, title)
+		seen[key] = true
+		candidates = append(candidates, candidate)
 	}
 	for _, section := range d.OrderedSections {
 		if section == nil {
 			continue
 		}
 		title := strings.TrimSpace(section.Title)
-		if title == "" || seen[title] {
+		if title == "" {
 			continue
 		}
-		seen[title] = true
-		titles = append(titles, title)
+		candidate := TitleCandidate{
+			Title: title,
+			ID:    section.ID,
+		}
+		key := candidate.Title + "::" + candidate.ID
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		candidates = append(candidates, candidate)
 	}
-	return titles
+	return candidates
 }
 
-func (d *Document) collectIndexTitles() []string {
-	titles := []string{}
+func (d *Document) collectIndexTitles() []TitleCandidate {
+	titles := []TitleCandidate{}
 	inIndex := false
 	for _, line := range d.Lines {
 		trim := strings.TrimSpace(line)
@@ -764,11 +822,19 @@ func (d *Document) collectIndexTitles() []string {
 			continue
 		}
 		title := strings.TrimSpace(stripHeadingPrefix(line))
+		sectionID := ""
 		if idx := strings.Index(title, "{#"); idx >= 0 {
+			fragment := title[idx:]
+			if matches := sectionOpenPattern.FindStringSubmatch(fragment); matches != nil {
+				sectionID = matches[1]
+			}
 			title = strings.TrimSpace(title[:idx])
 		}
 		if title != "" {
-			titles = append(titles, title)
+			titles = append(titles, TitleCandidate{
+				Title: title,
+				ID:    sectionID,
+			})
 		}
 	}
 	return titles
@@ -792,6 +858,7 @@ func (d *Document) buildAggressiveCompletions(
 		prefix,
 		protocol.CompletionItemKindReference,
 		settings.SmartInsert,
+		"",
 	)
 	items = append(items, idItems...)
 	if settings.IncludeTitles {
@@ -803,6 +870,69 @@ func (d *Document) buildAggressiveCompletions(
 		return li < lj
 	})
 	return items
+}
+
+func scoreIDMatch(id string, prefixLower string) int {
+	if prefixLower == "" {
+		return 10
+	}
+	idLower := strings.ToLower(id)
+	if idLower == prefixLower {
+		return 900
+	}
+	if strings.HasPrefix(idLower, prefixLower) {
+		return 700
+	}
+	if strings.Contains(idLower, prefixLower) {
+		return 500
+	}
+	if isSubsequence(prefixLower, idLower) {
+		return 300
+	}
+	return 0
+}
+
+func isSubsequence(needle string, haystack string) bool {
+	if needle == "" {
+		return true
+	}
+	j := 0
+	for i := 0; i < len(haystack) && j < len(needle); i++ {
+		if haystack[i] == needle[j] {
+			j++
+		}
+	}
+	return j == len(needle)
+}
+
+func (d *Document) currentOpenSectionIDAtLine(line int) string {
+	contentStart := -1
+	for i, text := range d.Lines {
+		if strings.TrimSpace(text) == "===CONTENT===" {
+			contentStart = i + 1
+			break
+		}
+	}
+	if contentStart == -1 || line < contentStart {
+		return ""
+	}
+	stack := []string{}
+	for i := contentStart; i <= line && i < len(d.Lines); i++ {
+		text := d.Lines[i]
+		if matches := sectionOpenPattern.FindStringSubmatch(text); matches != nil {
+			stack = append(stack, matches[1])
+		}
+		if matches := sectionClosePattern.FindStringSubmatch(text); matches != nil {
+			id := matches[1]
+			if len(stack) > 0 && stack[len(stack)-1] == id {
+				stack = stack[:len(stack)-1]
+			}
+		}
+	}
+	if len(stack) == 0 {
+		return ""
+	}
+	return stack[len(stack)-1]
 }
 
 func trailingWord(text string) string {
