@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.1.4 - 2026-02-11
+
+### Added
+- Context-aware autocomplete for IATF syntax and metadata (`{@...}`, `{#...}`, `{/...}`, and `@` keys)
+- Section title completion sourced from both INDEX and CONTENT headings
+- New completion configuration settings:
+  - `iatf.completion.mode` (`context`, `manual`, `aggressive`)
+  - `iatf.completion.includeTitles`
+  - `iatf.completion.smartInsert`
+
+### Changed
+- Completion triggers are now conflict-safe and tuned to avoid noisy suggestions while typing regular text
+- Smart insert now closes syntax tokens only when needed (e.g., avoids duplicate `}`)
+
 ## 0.1.3 - 2026-02-11
 
 ### Fixed

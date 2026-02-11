@@ -1,6 +1,9 @@
 package main
 
 import (
+	"encoding/json"
+	"strings"
+
 	"github.com/tliron/commonlog"
 	_ "github.com/tliron/commonlog/simple"
 	"github.com/tliron/glsp"
@@ -15,6 +18,7 @@ const lsName = "IATF Language Server"
 var version string = "0.1.0"
 var handler protocol.Handler
 var documentStore = analyzer.NewDocumentStore()
+var completionSettings = analyzer.DefaultCompletionSettings()
 
 func main() {
 	commonlog.Configure(1, nil)
@@ -41,6 +45,7 @@ func main() {
 
 func initialize(context *glsp.Context, params *protocol.InitializeParams) (any, error) {
 	commonlog.NewInfoMessage(0, "Initializing IATF Language Server...")
+	completionSettings = parseCompletionSettings(params.InitializationOptions)
 
 	capabilities := handler.CreateServerCapabilities()
 
@@ -49,7 +54,7 @@ func initialize(context *glsp.Context, params *protocol.InitializeParams) (any, 
 
 	// Completion support
 	capabilities.CompletionProvider = &protocol.CompletionOptions{
-		TriggerCharacters: []string{"{", "@"},
+		TriggerCharacters: completionTriggerCharacters(completionSettings.Mode),
 		ResolveProvider:   ptrBool(false),
 	}
 
@@ -148,7 +153,7 @@ func textDocumentCompletion(context *glsp.Context, params *protocol.CompletionPa
 		return nil, nil
 	}
 
-	return doc.GetCompletions(params.Position), nil
+	return doc.GetCompletions(params.Position, params.Context, completionSettings), nil
 }
 
 func textDocumentHover(context *glsp.Context, params *protocol.HoverParams) (*protocol.Hover, error) {
@@ -193,4 +198,50 @@ func textDocumentDocumentSymbol(context *glsp.Context, params *protocol.Document
 
 func ptrBool(b bool) *bool {
 	return &b
+}
+
+func parseCompletionSettings(initializationOptions any) analyzer.CompletionSettings {
+	settings := analyzer.DefaultCompletionSettings()
+	if initializationOptions == nil {
+		return settings
+	}
+
+	raw, err := json.Marshal(initializationOptions)
+	if err != nil {
+		return settings
+	}
+
+	var payload struct {
+		CompletionMode string `json:"completionMode"`
+		IncludeTitles  *bool  `json:"includeTitles"`
+		SmartInsert    *bool  `json:"smartInsert"`
+	}
+	if err := json.Unmarshal(raw, &payload); err != nil {
+		return settings
+	}
+
+	switch strings.ToLower(strings.TrimSpace(payload.CompletionMode)) {
+	case "manual", "aggressive":
+		settings.Mode = strings.ToLower(strings.TrimSpace(payload.CompletionMode))
+	default:
+		settings.Mode = "context"
+	}
+	if payload.IncludeTitles != nil {
+		settings.IncludeTitles = *payload.IncludeTitles
+	}
+	if payload.SmartInsert != nil {
+		settings.SmartInsert = *payload.SmartInsert
+	}
+	return settings
+}
+
+func completionTriggerCharacters(mode string) []string {
+	switch strings.ToLower(strings.TrimSpace(mode)) {
+	case "manual":
+		return nil
+	case "aggressive":
+		return []string{"{", "@", "#", "/"}
+	default:
+		return []string{"@", "#", "/"}
+	}
 }

@@ -1,7 +1,9 @@
 package analyzer
 
 import (
+	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 	"sync"
 
@@ -54,6 +56,22 @@ type ValidationError struct {
 	StartCol int
 	EndCol   int
 	Severity protocol.DiagnosticSeverity
+}
+
+// CompletionSettings controls completion behavior.
+type CompletionSettings struct {
+	Mode          string
+	IncludeTitles bool
+	SmartInsert   bool
+}
+
+// DefaultCompletionSettings returns the default completion behavior.
+func DefaultCompletionSettings() CompletionSettings {
+	return CompletionSettings{
+		Mode:          "context",
+		IncludeTitles: true,
+		SmartInsert:   true,
+	}
 }
 
 // DocumentStore manages all open documents
@@ -414,7 +432,11 @@ func (d *Document) GetDiagnostics() []protocol.Diagnostic {
 }
 
 // GetCompletions returns completion items at the given position
-func (d *Document) GetCompletions(pos protocol.Position) []protocol.CompletionItem {
+func (d *Document) GetCompletions(
+	pos protocol.Position,
+	context *protocol.CompletionContext,
+	settings CompletionSettings,
+) []protocol.CompletionItem {
 	d.mu.RLock()
 	defer d.mu.RUnlock()
 
@@ -429,68 +451,374 @@ func (d *Document) GetCompletions(pos protocol.Position) []protocol.CompletionIt
 		col = len(lineContent)
 	}
 
-	// Check if we're in a reference context: typing after "{@"
 	beforeCursor := lineContent[:col]
-	refIdx := strings.LastIndex(beforeCursor, "{@")
-	if refIdx != -1 {
-		// We're completing a reference
-		prefix := beforeCursor[refIdx+2:]
-		items := []protocol.CompletionItem{}
-
-		for id, section := range d.Sections {
-			if strings.HasPrefix(id, prefix) {
-				item := protocol.CompletionItem{
-					Label:  id,
-					Kind:   ptrCompletionItemKind(protocol.CompletionItemKindReference),
-					Detail: ptrString(section.Title),
-				}
-				if section.Summary != "" {
-					item.Documentation = section.Summary
-				}
-				items = append(items, item)
-			}
-		}
-		return items
+	mode := normalizeCompletionMode(settings.Mode)
+	if mode == "manual" && context != nil &&
+		context.TriggerKind == protocol.CompletionTriggerKindTriggerCharacter {
+		return nil
 	}
 
-	// Check if we're after "{#" for section definition
-	openIdx := strings.LastIndex(beforeCursor, "{#")
-	if openIdx != -1 {
-		// Suggest existing section IDs (for creating matching close tags)
-		prefix := beforeCursor[openIdx+2:]
-		items := []protocol.CompletionItem{}
-
-		for id, section := range d.Sections {
-			if strings.HasPrefix(id, prefix) {
-				items = append(items, protocol.CompletionItem{
-					Label:  id,
-					Kind:   ptrCompletionItemKind(protocol.CompletionItemKindClass),
-					Detail: ptrString(section.Title),
-				})
-			}
-		}
-		return items
+	if openerCol, prefix, ok := activeOpenerPrefix(beforeCursor, "{@"); ok {
+		return d.buildSectionIDCompletions(
+			line,
+			openerCol,
+			col,
+			prefix,
+			protocol.CompletionItemKindReference,
+			settings.SmartInsert,
+		)
 	}
 
-	// Check if we're after "{/" for close tag
-	closeIdx := strings.LastIndex(beforeCursor, "{/")
-	if closeIdx != -1 {
-		prefix := beforeCursor[closeIdx+2:]
-		items := []protocol.CompletionItem{}
+	if openerCol, prefix, ok := activeOpenerPrefix(beforeCursor, "{#"); ok {
+		return d.buildSectionIDCompletions(
+			line,
+			openerCol,
+			col,
+			prefix,
+			protocol.CompletionItemKindClass,
+			settings.SmartInsert,
+		)
+	}
 
-		for id, section := range d.Sections {
-			if strings.HasPrefix(id, prefix) {
-				items = append(items, protocol.CompletionItem{
-					Label:  id,
-					Kind:   ptrCompletionItemKind(protocol.CompletionItemKindClass),
-					Detail: ptrString("Close section: " + section.Title),
-				})
-			}
+	if openerCol, prefix, ok := activeOpenerPrefix(beforeCursor, "{/"); ok {
+		return d.buildSectionIDCompletions(
+			line,
+			openerCol,
+			col,
+			prefix,
+			protocol.CompletionItemKindClass,
+			settings.SmartInsert,
+		)
+	}
+
+	if prefix, ok := metadataPrefix(beforeCursor); ok {
+		return buildMetadataCompletions(prefix)
+	}
+
+	if settings.IncludeTitles {
+		if prefix, ok := d.titlePrefixForLine(line, beforeCursor); ok {
+			return d.buildTitleCompletions(line, col, prefix)
 		}
-		return items
+	}
+
+	if mode == "aggressive" {
+		return d.buildAggressiveCompletions(line, col, beforeCursor, settings)
 	}
 
 	return nil
+}
+
+func normalizeCompletionMode(mode string) string {
+	mode = strings.ToLower(strings.TrimSpace(mode))
+	if mode == "manual" || mode == "aggressive" {
+		return mode
+	}
+	return "context"
+}
+
+func activeOpenerPrefix(beforeCursor string, opener string) (int, string, bool) {
+	idx := strings.LastIndex(beforeCursor, opener)
+	if idx == -1 {
+		return -1, "", false
+	}
+	typed := beforeCursor[idx+len(opener):]
+	if strings.Contains(typed, "}") {
+		return -1, "", false
+	}
+	if strings.ContainsAny(typed, " \t") {
+		return -1, "", false
+	}
+	return idx + len(opener), typed, true
+}
+
+func metadataPrefix(beforeCursor string) (string, bool) {
+	trimLeft := strings.TrimLeft(beforeCursor, " \t")
+	if !strings.HasPrefix(trimLeft, "@") {
+		return "", false
+	}
+	if strings.Contains(trimLeft, ":") {
+		return "", false
+	}
+	typed := strings.TrimPrefix(trimLeft, "@")
+	return typed, true
+}
+
+func buildMetadataCompletions(prefix string) []protocol.CompletionItem {
+	keys := []string{"title", "purpose", "summary", "created", "modified", "hash"}
+	items := []protocol.CompletionItem{}
+	for i, key := range keys {
+		if strings.HasPrefix(key, prefix) {
+			insert := "@" + key + ": "
+			sortText := fmt.Sprintf("0%02d-%s", i, key)
+			items = append(items, protocol.CompletionItem{
+				Label:      "@" + key,
+				Kind:       ptrCompletionItemKind(protocol.CompletionItemKindKeyword),
+				Detail:     ptrString("IATF metadata"),
+				FilterText: ptrString(key),
+				SortText:   &sortText,
+				InsertText: &insert,
+				Preselect:  ptrBool(false),
+			})
+		}
+	}
+	return items
+}
+
+func (d *Document) buildSectionIDCompletions(
+	line int,
+	startCol int,
+	endCol int,
+	prefix string,
+	kind protocol.CompletionItemKind,
+	smartInsert bool,
+) []protocol.CompletionItem {
+	items := []protocol.CompletionItem{}
+	seen := make(map[string]bool)
+	for i, section := range d.OrderedSections {
+		if section == nil || seen[section.ID] {
+			continue
+		}
+		seen[section.ID] = true
+		if !strings.HasPrefix(section.ID, prefix) {
+			continue
+		}
+
+		insert := section.ID
+		if smartInsert && !hasClosingBraceAfterCursor(d.Lines[line], endCol) {
+			insert += "}"
+		}
+		sortText := fmt.Sprintf("0%03d-%s", i, section.ID)
+		item := protocol.CompletionItem{
+			Label:      section.ID,
+			Kind:       ptrCompletionItemKind(kind),
+			Detail:     ptrString(section.Title),
+			FilterText: ptrString(section.ID),
+			SortText:   &sortText,
+			Preselect:  ptrBool(prefix == section.ID),
+			TextEdit: protocol.TextEdit{
+				Range: protocol.Range{
+					Start: protocol.Position{Line: protocol.UInteger(line), Character: protocol.UInteger(startCol)},
+					End:   protocol.Position{Line: protocol.UInteger(line), Character: protocol.UInteger(endCol)},
+				},
+				NewText: insert,
+			},
+		}
+		if section.Summary != "" {
+			item.Documentation = section.Summary
+		}
+		items = append(items, item)
+	}
+	return items
+}
+
+func hasClosingBraceAfterCursor(lineContent string, col int) bool {
+	if col < 0 || col > len(lineContent) {
+		return false
+	}
+	return strings.Contains(lineContent[col:], "}")
+}
+
+func (d *Document) titlePrefixForLine(line int, beforeCursor string) (string, bool) {
+	trim := strings.TrimSpace(beforeCursor)
+	if strings.Contains(trim, "{#") {
+		return "", false
+	}
+	if !isHeadingLine(beforeCursor) {
+		return "", false
+	}
+	if !d.inIndexRange(line) && !d.inContentRange(line) {
+		return "", false
+	}
+	return strings.TrimSpace(stripHeadingPrefix(beforeCursor)), true
+}
+
+func isHeadingLine(line string) bool {
+	trimLeft := strings.TrimLeft(line, " \t")
+	if !strings.HasPrefix(trimLeft, "#") {
+		return false
+	}
+	hashRun := 0
+	for hashRun < len(trimLeft) && trimLeft[hashRun] == '#' {
+		hashRun++
+	}
+	if hashRun == 0 || hashRun > 6 {
+		return false
+	}
+	if hashRun >= len(trimLeft) || trimLeft[hashRun] != ' ' {
+		return false
+	}
+	return true
+}
+
+func stripHeadingPrefix(line string) string {
+	trimLeft := strings.TrimLeft(line, " \t")
+	i := 0
+	for i < len(trimLeft) && trimLeft[i] == '#' {
+		i++
+	}
+	if i < len(trimLeft) && trimLeft[i] == ' ' {
+		return trimLeft[i+1:]
+	}
+	return trimLeft
+}
+
+func (d *Document) inIndexRange(line int) bool {
+	indexLine := -1
+	contentLine := len(d.Lines)
+	for i, v := range d.Lines {
+		trim := strings.TrimSpace(v)
+		if trim == "===INDEX===" {
+			indexLine = i
+		}
+		if trim == "===CONTENT===" {
+			contentLine = i
+			break
+		}
+	}
+	return indexLine != -1 && line > indexLine && line < contentLine
+}
+
+func (d *Document) inContentRange(line int) bool {
+	contentLine := -1
+	for i, v := range d.Lines {
+		if strings.TrimSpace(v) == "===CONTENT===" {
+			contentLine = i
+			break
+		}
+	}
+	return contentLine != -1 && line > contentLine
+}
+
+func (d *Document) buildTitleCompletions(line int, col int, prefix string) []protocol.CompletionItem {
+	titles := d.collectTitleCandidates()
+	items := []protocol.CompletionItem{}
+	startCol := col - len(prefix)
+	if startCol < 0 {
+		startCol = 0
+	}
+	for i, title := range titles {
+		if prefix != "" && !strings.HasPrefix(strings.ToLower(title), strings.ToLower(prefix)) {
+			continue
+		}
+		sortText := fmt.Sprintf("1%03d-%s", i, strings.ToLower(title))
+		items = append(items, protocol.CompletionItem{
+			Label:      title,
+			Kind:       ptrCompletionItemKind(protocol.CompletionItemKindText),
+			Detail:     ptrString("Section title"),
+			FilterText: ptrString(title),
+			SortText:   &sortText,
+			Preselect:  ptrBool(strings.EqualFold(prefix, title)),
+			TextEdit: protocol.TextEdit{
+				Range: protocol.Range{
+					Start: protocol.Position{Line: protocol.UInteger(line), Character: protocol.UInteger(startCol)},
+					End:   protocol.Position{Line: protocol.UInteger(line), Character: protocol.UInteger(col)},
+				},
+				NewText: title,
+			},
+		})
+	}
+	return items
+}
+
+func (d *Document) collectTitleCandidates() []string {
+	seen := make(map[string]bool)
+	titles := []string{}
+
+	for _, title := range d.collectIndexTitles() {
+		if title == "" || seen[title] {
+			continue
+		}
+		seen[title] = true
+		titles = append(titles, title)
+	}
+	for _, section := range d.OrderedSections {
+		if section == nil {
+			continue
+		}
+		title := strings.TrimSpace(section.Title)
+		if title == "" || seen[title] {
+			continue
+		}
+		seen[title] = true
+		titles = append(titles, title)
+	}
+	return titles
+}
+
+func (d *Document) collectIndexTitles() []string {
+	titles := []string{}
+	inIndex := false
+	for _, line := range d.Lines {
+		trim := strings.TrimSpace(line)
+		if trim == "===INDEX===" {
+			inIndex = true
+			continue
+		}
+		if trim == "===CONTENT===" {
+			break
+		}
+		if !inIndex {
+			continue
+		}
+		if !isHeadingLine(line) {
+			continue
+		}
+		title := strings.TrimSpace(stripHeadingPrefix(line))
+		if idx := strings.Index(title, "{#"); idx >= 0 {
+			title = strings.TrimSpace(title[:idx])
+		}
+		if title != "" {
+			titles = append(titles, title)
+		}
+	}
+	return titles
+}
+
+func (d *Document) buildAggressiveCompletions(
+	line int,
+	col int,
+	beforeCursor string,
+	settings CompletionSettings,
+) []protocol.CompletionItem {
+	prefix := trailingWord(beforeCursor)
+	if prefix == "" {
+		return nil
+	}
+	items := []protocol.CompletionItem{}
+	idItems := d.buildSectionIDCompletions(
+		line,
+		col-len(prefix),
+		col,
+		prefix,
+		protocol.CompletionItemKindReference,
+		settings.SmartInsert,
+	)
+	items = append(items, idItems...)
+	if settings.IncludeTitles {
+		items = append(items, d.buildTitleCompletions(line, col, prefix)...)
+	}
+	sort.SliceStable(items, func(i, j int) bool {
+		li := strings.ToLower(items[i].Label)
+		lj := strings.ToLower(items[j].Label)
+		return li < lj
+	})
+	return items
+}
+
+func trailingWord(text string) string {
+	lastBoundary := len(text)
+	for i := len(text) - 1; i >= 0; i-- {
+		r := text[i]
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '_' || r == '-' {
+			continue
+		}
+		lastBoundary = i + 1
+		break
+	}
+	if lastBoundary >= len(text) {
+		return text
+	}
+	return text[lastBoundary:]
 }
 
 // GetHover returns hover information at the given position
@@ -676,6 +1004,10 @@ func (d *Document) GetDocumentSymbols() []protocol.DocumentSymbol {
 // Helper functions
 func ptrString(s string) *string {
 	return &s
+}
+
+func ptrBool(v bool) *bool {
+	return &v
 }
 
 func ptrCompletionItemKind(k protocol.CompletionItemKind) *protocol.CompletionItemKind {

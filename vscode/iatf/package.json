@@ -3,7 +3,7 @@
   "displayName": "IATF",
   "description": "Language support for IATF files with syntax highlighting, validation, and navigation",
   "license": "MIT",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "main": "./extension.js",
   "activationEvents": [
     "onLanguage:iatf",
@@ -96,6 +96,26 @@
           "type": "string",
           "default": "",
           "description": "Path to the iatf-lsp executable. If empty, uses the bundled server or looks in PATH."
+        },
+        "iatf.completion.mode": {
+          "type": "string",
+          "enum": [
+            "context",
+            "manual",
+            "aggressive"
+          ],
+          "default": "context",
+          "description": "Controls autocomplete behavior. 'context' only suggests in IATF syntax positions, 'manual' limits suggestions to explicit completion requests, and 'aggressive' suggests more broadly."
+        },
+        "iatf.completion.includeTitles": {
+          "type": "boolean",
+          "default": true,
+          "description": "Include section title suggestions from INDEX and CONTENT headings."
+        },
+        "iatf.completion.smartInsert": {
+          "type": "boolean",
+          "default": true,
+          "description": "When enabled, completions can insert missing syntax characters like closing braces when appropriate."
         }
       }
     },

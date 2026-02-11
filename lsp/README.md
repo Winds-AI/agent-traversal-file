@@ -10,7 +10,7 @@ A Language Server Protocol (LSP) implementation for IATF files, providing IDE fe
 | **Go to Definition** | Jump from `{@ref}` to `{#section}` with F12 or Ctrl+Click |
 | **Find References** | Find all references to a section with Shift+F12 |
 | **Hover** | Show section summary and metadata on hover |
-| **Auto-completion** | Complete section IDs after typing `{@` |
+| **Auto-completion** | Context-aware completion for section IDs, metadata keys, and section titles |
 | **Document Symbols** | Outline view showing all sections |
 
 ## Installation

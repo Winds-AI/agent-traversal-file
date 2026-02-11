@@ -506,6 +506,7 @@ function openPreviewForActiveEditor() {
  */
 function findLspServer() {
   const config = vscode.workspace.getConfiguration('iatf.lsp');
+  const completionConfig = vscode.workspace.getConfiguration('iatf.completion');
   
   // Check user-configured path
   const configPath = config.get('path');
@@ -592,6 +593,11 @@ async function startLspClient(context) {
     documentSelector: [{ scheme: 'file', language: 'iatf' }],
     synchronize: {
       fileEvents: vscode.workspace.createFileSystemWatcher('**/*.iatf')
+    },
+    initializationOptions: {
+      completionMode: completionConfig.get('mode', 'context'),
+      includeTitles: completionConfig.get('includeTitles', true),
+      smartInsert: completionConfig.get('smartInsert', true)
     }
   };
 

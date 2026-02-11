@@ -31,7 +31,7 @@ When the IATF Language Server is installed, you get:
 | **Go to Definition** | Jump from `{@ref}` to `{#section}` | F12 or Ctrl+Click |
 | **Find All References** | Find all references to a section | Shift+F12 |
 | **Hover Information** | Show section summary on hover | Hover over tag |
-| **Auto-completion** | Complete section IDs after `{@` | Ctrl+Space |
+| **Auto-completion** | Context-aware suggestions for `{@...}`, `{#...}`, `{/...}`, metadata keys, and section titles | Ctrl+Space |
 | **Document Outline** | See all sections in the outline view | Ctrl+Shift+O |
 
 ### Installing the Language Server
@@ -53,12 +53,18 @@ go install github.com/Winds-AI/agent-traversal-file/lsp@latest
 |---------|------|---------|-------------|
 | `iatf.lsp.enabled` | boolean | `true` | Enable the language server |
 | `iatf.lsp.path` | string | `""` | Custom path to iatf-lsp executable |
+| `iatf.completion.mode` | string | `"context"` | Completion behavior: `context`, `manual`, or `aggressive` |
+| `iatf.completion.includeTitles` | boolean | `true` | Suggest section titles from INDEX and CONTENT headings |
+| `iatf.completion.smartInsert` | boolean | `true` | Insert missing syntax characters (like `}`) when selecting completion |
 
 Example settings.json:
 ```json
 {
   "iatf.lsp.enabled": true,
-  "iatf.lsp.path": "/usr/local/bin/iatf-lsp"
+  "iatf.lsp.path": "/usr/local/bin/iatf-lsp",
+  "iatf.completion.mode": "context",
+  "iatf.completion.includeTitles": true,
+  "iatf.completion.smartInsert": true
 }
 ```
 
