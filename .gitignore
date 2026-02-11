@@ -68,13 +68,22 @@ Thumbs.db
 
 # Dependencies
 node_modules/
+**/node_modules/
 
 # Python
+.venv/
+**/.venv/
 __pycache__/
+**/__pycache__/
 *.pyc
 
 # Environment
 .env
+.env*
+*.env
+**/.env
+**/.env*
+**/*.env
 
 # Test files
 test.iatf
