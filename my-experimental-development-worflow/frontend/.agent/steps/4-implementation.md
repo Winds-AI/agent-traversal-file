@@ -2,20 +2,20 @@
 
 ## Prerequisites
 
-Plan must exist at `.agent/plans/PLAN_<feature>.md`. If missing, ask user.
+Plan at `.agent/plans/PLAN_<feature>.md`. Missing → ask user.
 
-When run with Step 3: skip plan approval only if plan has ≤8 files and ≤2 decisions. Otherwise present plan and wait.
+With Step 3: skip plan approval only if ≤8 files and ≤2 decisions. Otherwise present plan; wait.
 
 ## Procedure
 
-1. Read the plan and the reference module identified in it.
-2. Read project patterns (see Resources in `Agent.md`).
-3. If the plan has a `## Phases` section, execute one phase at a time:
-   - Complete all files in the phase.
-   - Run lint/build. Fix before moving on.
+1. Read plan + reference module identified in it.
+2. Read project patterns (Resources in `Agent.md`).
+3. Plan has `## Phases` → execute one phase at a time:
+   - Complete all files in phase.
+   - Run lint/build. Fix before next phase.
    - Git commit with phase label.
-4. If no phases, implement file by file per the plan.
-5. Only implement what is in the plan.
+4. No phases → implement file by file per plan.
+5. Implement only what's in plan.
 
 ## Output
 
@@ -34,5 +34,5 @@ When run with Step 3: skip plan approval only if plan has ≤8 files and ≤2 de
 
 ## Boundaries
 
-- Do NOT run browser tests (Step 5).
-- Do NOT discover/test APIs (Steps 1-2).
+- No browser tests (Step 5).
+- No API discovery/testing (Steps 1-2).

@@ -15,23 +15,23 @@
 ## API Validation Report
 ✓ GET /users/:id — 200, returns { id, name, email, phone, avatar }
 ⚠ Avatar field sometimes null
-? Is null avatar a backend bug or expected?
+? Is null avatar backend bug or expected?
 ```
 
 ## 3. Open Questions
 
-List only integration-critical questions that can change code shape or break the backend contract.
+Integration-critical questions only (change code shape or break backend contract).
 
 ```
 ## Open Questions
-1. Permissions/roles: what module key (exact string) and what level gates each screen/action?
-2. Mutations: exact request shape (path/query/body), required fields, and whether partial update clears vs ignores omitted fields.
-3. Data shape: list/search/detail response shape differences and what the UI should normalize to.
+1. Permissions/roles: module key (exact string) + level per screen/action?
+2. Mutations: request shape (path/query/body), required fields, partial update clears vs ignores omitted fields?
+3. Data shape: list/search/detail response differences; UI normalization target?
 ```
 
 ## 4. Decisions
 
-Only genuinely ambiguous ones.
+Genuinely ambiguous ones only.
 
 ```
 ## Decisions
@@ -43,7 +43,7 @@ Only genuinely ambiguous ones.
 
 ## 5. Implementation Plan
 
-Tag each file header: `(NEW)`, `(MODIFIED)`, or `(DELETE)`. This is the file manifest.
+Tag file headers: `(NEW)`, `(MODIFIED)`, `(DELETE)`. File manifest.
 
 ```
 ## Implementation Plan
@@ -72,7 +72,7 @@ Tag each file header: `(NEW)`, `(MODIFIED)`, or `(DELETE)`. This is the file man
 
 ## Optional: Phases
 
-Include when plan has >8 files or multiple sub-domains. Each phase must compile independently.
+Include when >8 files or multiple sub-domains. Each phase compiles independently.
 
 ```
 ## Phases
@@ -88,7 +88,7 @@ Include when plan has >8 files or multiple sub-domains. Each phase must compile 
 
 ## Optional: Test Cases
 
-Include only when Step 5 is part of the current task.
+Include only when Step 5 in current task.
 
 ```
 ## Test Cases

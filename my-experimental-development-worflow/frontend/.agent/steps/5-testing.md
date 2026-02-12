@@ -1,15 +1,15 @@
 # Step 5: Testing
 
-These are **user-flow verifications in a headless browser**, not code-level unit tests.
+**User-flow verifications in headless browser**, not unit tests.
 
 ## Procedure
 
 1. Get test cases from:
    - Plan's `## Test Cases` section (if exists), OR
    - Derive from implementation: cover all happy-path user flows.
-2. For each test case, use `agent-browser` skill to:
-   - Navigate to the page.
-   - Perform the action (click, fill, submit).
+2. Per test case, use `agent-browser` skill:
+   - Navigate to page.
+   - Perform action (click, fill, submit).
    - Verify outcome (element visible, toast shown, data updated).
 3. Record: Pass / Fail / Blocked.
 
@@ -31,5 +31,5 @@ These are **user-flow verifications in a headless browser**, not code-level unit
 
 ## Boundaries
 
-- Do NOT modify code. Report issues only.
-- Do NOT call APIs via curl.
+- No code modifications. Report issues only.
+- No curl API calls.

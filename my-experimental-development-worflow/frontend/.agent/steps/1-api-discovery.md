@@ -2,14 +2,11 @@
 
 ## Procedure
 
-1. Search `openapi_searchEndpoints` for endpoints matching the feature keywords.
-   - Only Run one broad query first - prefering sequential tool calling for this tool (usually singular), e.g. `certificate`.
-   - Re-search only if 0 matches or a specific endpoint is missing.
-   - Report endpoints as `(METHOD, PATH)` rows; do not paste long raw tool output.
-   - For each endpoint, explicitly list parameter *locations*: `path`, `query`, `body`.
-   - If OpenAPI defines no query params for an endpoint, do not assume “extra” query params exist.
+1. Search `openapi_searchEndpoints` for endpoints matching task.
+   - One broad query first; prefer sequential tool calling (singular), e.g. `certificate`.
+   - Re-search only if 0 matches or specific endpoint missing.
 2. Scan existing API service files for overlap (see project patterns for API layer paths).
-3. Scan existing route constants for overlap (see project patterns).
+3. Scan existing route constants for overlap.
 
 ## Output
 
@@ -39,5 +36,5 @@
 
 ## Boundaries
 
-- Do NOT call APIs (Step 2).
-- Do NOT plan or implement.
+- No API calls (Step 2).
+- No plan or implementation.

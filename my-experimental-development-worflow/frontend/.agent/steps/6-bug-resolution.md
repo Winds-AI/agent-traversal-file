@@ -6,8 +6,8 @@
    - ID provided → fetch via `redmine_getIssue`.
    - Title/description provided → use directly.
 2. Search codebase for related code paths.
-3. If API-related: `source .agent/scripts/api-env.sh` and call the endpoint.
-4. If framework/library-related: search web.
+3. API-related → `source .agent/scripts/api-env.sh`; call endpoint.
+4. Framework/library-related → web search.
 5. Identify root cause. Apply minimal fix.
 
 ## Output
@@ -27,4 +27,4 @@
 
 ## Boundaries
 
-- Fix only the specific issue. No refactoring, no unrelated changes.
+- Fix specific issue only. No refactoring, no unrelated changes.

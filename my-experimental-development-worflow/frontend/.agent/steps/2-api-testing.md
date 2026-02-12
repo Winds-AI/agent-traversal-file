@@ -1,43 +1,34 @@
 # Step 2: API Testing
 
-## Prerequisites
-
-Step 1 output must exist. If missing, ask user whether to run Step 1 first.
-
 ## Goal
 
 Validate behavior (spec drift + parameter acceptance), not just status codes.
 
-## Safe-Updates Rules (Agent-Friendly)
+## Safe-Updates Rules
 
-When `API_MODE=safe-updates`, you may call mutating endpoints, but you must keep changes minimal and traceable:
+`API_MODE=safe-updates`: mutating endpoints allowed with constraints:
 
-1. Always tag test data with `[agent-test]` in a human-visible field (e.g., `title`, `name`, `description`, `notes`) so it can be found and cleaned up later.
-2. Updates must be minimal:
-   - Only add/remove the `[agent-test]` marker (or change the smallest required field to exercise the endpoint).
-   - Do not overwrite unrelated existing values.
-3. Create is allowed:
-   - Only create records that are clearly labeled `[agent-test] ...`.
-   - Record created IDs in the validation report so cleanup is possible.
-4. Deletes/unassigns are NOT allowed in `safe-updates` (by default in this repo’s curl wrapper).
-   - If the user explicitly enables `API_MODE=full-access`, you may `DELETE` only what you created/assigned during the current test run.
-5. Prefer non-mutating validation where possible:
-   - Use invalid payloads/IDs to confirm validation and response shapes when that avoids persistent changes.
+1. Tag test data `[agent-test]` in human-visible field (`title`, `name`, `description`, `notes`) for cleanup.
+2. Updates minimal: only `[agent-test]` marker or smallest required field. No overwriting unrelated values.
+3. Create allowed: only `[agent-test] ...` records. Record IDs for cleanup.
+4. Deletes/unassigns NOT allowed in `safe-updates` (repo curl wrapper default).
+   - `API_MODE=full-access` (explicit user enable): `DELETE` only what you created/assigned in current run.
+5. Prefer non-mutating validation: invalid payloads/IDs to confirm validation/response shapes.
 
 ## Procedure
 
 1. Run: `source .agent/scripts/api-env.sh`
-2. For each endpoint, validate the happy path and 1 contract edge:
+2. Per endpoint: validate happy path + 1 contract edge:
    ```bash
-   # curl wrapper reads defaults from .agent/scripts/config.toml (locked: no per-call overrides)
+   # curl wrapper reads .agent/scripts/config.toml (locked: no per-call overrides)
    curl "/<path>"
    ```
 3. Record: HTTP status, response structure, field names/types.
 4. Compare against OpenAPI spec from Step 1.
-5. Contract edge checks (pick the most relevant per endpoint):
+5. Contract edge checks (most relevant per endpoint):
    - Missing required field (expect 400) or unknown field/param (confirm reject vs ignore).
-   - If OpenAPI defines no query params, treat any “extra” query params as suspicious and raise a question in Step 3.
-6. If blocked by `API_MODE` (e.g., DELETE), document as unvalidated and raise a question (do not bypass).
+   - OpenAPI defines no query params → treat extra query params as suspicious; raise question in Step 3.
+6. Blocked by `API_MODE` → document unvalidated; raise question (no bypass).
 
 ## Output
 
@@ -62,9 +53,9 @@ When `API_MODE=safe-updates`, you may call mutating endpoints, but you must keep
 - [list]
 
 ### Contract Questions Raised
-- [e.g., backend rejects unknown query params; should we remove them from frontend?]
+- [e.g., backend rejects unknown query params; remove from frontend?]
 ```
 
 ## Boundaries
 
-- Do NOT plan or implement.
+- No plan or implementation.
