@@ -18,7 +18,18 @@
 ? Is null avatar a backend bug or expected?
 ```
 
-## 3. Decisions
+## 3. Open Questions
+
+List only integration-critical questions that can change code shape or break the backend contract.
+
+```
+## Open Questions
+1. Permissions/roles: what module key (exact string) and what level gates each screen/action?
+2. Mutations: exact request shape (path/query/body), required fields, and whether partial update clears vs ignores omitted fields.
+3. Data shape: list/search/detail response shape differences and what the UI should normalize to.
+```
+
+## 4. Decisions
 
 Only genuinely ambiguous ones.
 
@@ -30,7 +41,7 @@ Only genuinely ambiguous ones.
   → Question: which fits your architecture?
 ```
 
-## 4. Implementation Plan
+## 5. Implementation Plan
 
 Tag each file header: `(NEW)`, `(MODIFIED)`, or `(DELETE)`. This is the file manifest.
 
@@ -48,7 +59,7 @@ Tag each file header: `(NEW)`, `(MODIFIED)`, or `(DELETE)`. This is the file man
 ### src/components/OldUserProfile.js (DELETE)
 ```
 
-## 5. Blockers/Assumptions
+## 6. Blockers/Assumptions
 
 ```
 ## Blockers/Assumptions

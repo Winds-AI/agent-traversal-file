@@ -2,6 +2,10 @@
 
 Run **only** the steps the user lists in their prompt. Nothing more.
 
+## Ask-Questions Rule
+
+If requirements or the API contract are unclear (param locations, mutation semantics, permissions/module keys, response shapes), ask the user or write an explicit assumption in the plan. Do not silently guess.
+
 ## Steps
 
 | # | Keywords | File |

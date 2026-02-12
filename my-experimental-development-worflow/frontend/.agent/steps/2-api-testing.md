@@ -4,6 +4,10 @@
 
 Step 1 output must exist. If missing, ask user whether to run Step 1 first.
 
+## Goal
+
+Validate behavior (spec drift + parameter acceptance), not just status codes.
+
 ## Safe-Updates Rules (Agent-Friendly)
 
 When `API_MODE=safe-updates`, you may call mutating endpoints, but you must keep changes minimal and traceable:
@@ -23,14 +27,17 @@ When `API_MODE=safe-updates`, you may call mutating endpoints, but you must keep
 ## Procedure
 
 1. Run: `source .agent/scripts/api-env.sh`
-2. For each endpoint from the discovery report:
+2. For each endpoint, validate the happy path and 1 contract edge:
    ```bash
    # curl wrapper reads defaults from .agent/scripts/config.toml (locked: no per-call overrides)
    curl "/<path>"
    ```
 3. Record: HTTP status, response structure, field names/types.
 4. Compare against OpenAPI spec from Step 1.
-5. Flag: missing fields, extra fields, type mismatches, unexpected nulls.
+5. Contract edge checks (pick the most relevant per endpoint):
+   - Missing required field (expect 400) or unknown field/param (confirm reject vs ignore).
+   - If OpenAPI defines no query params, treat any “extra” query params as suspicious and raise a question in Step 3.
+6. If blocked by `API_MODE` (e.g., DELETE), document as unvalidated and raise a question (do not bypass).
 
 ## Output
 
@@ -53,6 +60,9 @@ When `API_MODE=safe-updates`, you may call mutating endpoints, but you must keep
 
 ### Discrepancies
 - [list]
+
+### Contract Questions Raised
+- [e.g., backend rejects unknown query params; should we remove them from frontend?]
 ```
 
 ## Boundaries
