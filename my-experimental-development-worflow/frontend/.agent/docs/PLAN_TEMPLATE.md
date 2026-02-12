@@ -70,6 +70,22 @@ Tag each file header: `(NEW)`, `(MODIFIED)`, or `(DELETE)`. This is the file man
 
 ---
 
+## Optional: Phases
+
+Include when plan has >8 files or multiple sub-domains. Each phase must compile independently.
+
+```
+## Phases
+
+| Phase | Scope | Files | Verification |
+|-------|-------|-------|--------------|
+| 1 | API layer + routes + page shells | [list] | Pages render, no data |
+| 2 | Primary CRUD flows | [list] | List/create/edit works |
+| 3 | Secondary features + polish | [list] | Full feature complete |
+```
+
+---
+
 ## Optional: Test Cases
 
 Include only when Step 5 is part of the current task.

@@ -3,13 +3,13 @@
 ## Procedure
 
 1. Search `openapi_searchEndpoints` for endpoints matching the feature keywords.
-   - Run one broad query first (usually singular), e.g. `certificate`.
+   - Only Run one broad query first - prefering sequential tool calling for this tool (usually singular), e.g. `certificate`.
    - Re-search only if 0 matches or a specific endpoint is missing.
    - Report endpoints as `(METHOD, PATH)` rows; do not paste long raw tool output.
    - For each endpoint, explicitly list parameter *locations*: `path`, `query`, `body`.
    - If OpenAPI defines no query params for an endpoint, do not assume “extra” query params exist.
-2. Scan `src/api/` for existing service files that overlap or need updating.
-3. Scan `src/api/routes.ts` for existing route constants.
+2. Scan existing API service files for overlap (see project patterns for API layer paths).
+3. Scan existing route constants for overlap (see project patterns).
 
 ## Output
 
