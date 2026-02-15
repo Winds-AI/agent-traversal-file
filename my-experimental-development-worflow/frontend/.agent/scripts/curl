@@ -1,8 +1,14 @@
 #!/usr/bin/env bash
 # Transparent curl wrapper with security enforcement
 
-REAL_CURL="/usr/bin/curl"
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Find real curl binary, skipping this wrapper directory
+REAL_CURL="$(PATH="${PATH//"$DIR:"}" command -v curl)"
+if [[ -z "$REAL_CURL" || "$REAL_CURL" == "$DIR/curl" ]]; then
+  echo "Error: Cannot find system curl binary" >&2
+  exit 1
+fi
 
 # Always load locked defaults from config (no per-call token/base overrides).
 # shellcheck disable=SC1091

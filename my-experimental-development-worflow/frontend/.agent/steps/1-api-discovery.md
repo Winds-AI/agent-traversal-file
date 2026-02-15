@@ -2,11 +2,15 @@
 
 ## Procedure
 
-1. Search `openapi_searchEndpoints` for endpoints matching task.
-   - One broad query first; prefer sequential tool calling (singular), e.g. `certificate`.
-   - Re-search only if 0 matches or specific endpoint missing.
-2. Scan existing API service files for overlap (see project patterns for API layer paths).
-3. Scan existing route constants for overlap.
+1. Source the API environment: `source .agent/scripts/api-env.sh`
+2. Search for relevant endpoints: `api search <keyword>`
+   - One broad query first (e.g., `api search certificate`)
+   - Re-search only if 0 matches or specific endpoint missing
+3. Drill into each relevant endpoint: `api detail <path> [method]`
+   - Get full parameters, request body, response schemas
+4. Inspect specific schemas if needed: `api schema <SchemaName>`
+5. Scan existing API service files for overlap (see project patterns for API layer paths).
+6. Scan existing route constants for overlap.
 
 ## Output
 
