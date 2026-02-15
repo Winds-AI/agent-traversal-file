@@ -36,18 +36,6 @@ See [example-format.md](./example-format.md) for the full file format example.
 - Max nesting depth: 2 levels
 - All content must be inside `{#id}...{/id}` blocks
 
-## Agent Workflow
-
-1. **Discover**: `iatf index file.iatf` — scan summaries for relevant sections
-2. **Analyze**: `iatf graph file.iatf` — check dependencies before editing
-3. **Load**: `iatf read file.iatf section-id` — fetch only what you need
-4. **Edit**: modify CONTENT, then `iatf rebuild file.iatf`
-
-**Fallback without CLI** (use absolute line numbers from INDEX):
-```bash
-sed -n '42,57p' document.iatf
-```
-
 ## Agent Patterns
 
 ```bash
