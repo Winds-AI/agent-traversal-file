@@ -4,23 +4,23 @@
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-02-17T09:16:35Z -->
+<!-- Generated: 2026-02-17T10:23:10Z -->
 <!-- Content-Hash: sha256:a9641dc -->
 
-# Start {#start | lines:28-33 | words:8}
-> Entry point for this small graph fixture
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: e5e6eac
+- start {lines:28-33 | words:8}
+Entry point for this small graph fixture
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: e5e6eac
 
-# Middle {#middle | lines:35-40 | words:12}
-> Middle node with two outgoing references
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: ea80295
+- middle {lines:35-40 | words:12}
+Middle node with two outgoing references
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: ea80295
 
-# End {#end | lines:42-47 | words:6}
-> Terminal node with backlink for graph symmetry
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: ccb02fb
+- end {lines:42-47 | words:6}
+Terminal node with backlink for graph symmetry
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: ccb02fb
 
 
 ===CONTENT===

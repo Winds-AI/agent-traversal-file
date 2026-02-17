@@ -143,7 +143,7 @@ The LSP server validates:
 
 - Format declaration (`:::IATF`)
 - INDEX and CONTENT section presence
-- Section nesting (max 2 levels)
+- Section nesting (max 2 levels in INDEX-aware validation context)
 - Duplicate section IDs
 - Unclosed sections
 - Mismatched open/close tags

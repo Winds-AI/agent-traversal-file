@@ -4,208 +4,208 @@
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-02-17T09:23:36Z -->
+<!-- Generated: 2026-02-17T10:23:10Z -->
 <!-- Content-Hash: sha256:45e6f78 -->
 
-# Module 01 Operations {#module-01 | lines:213-224 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 413e90e
+- module-01 {lines:213-224 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 413e90e
 
-# Module 02 Operations {#module-02 | lines:226-237 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 910c3bb
+- module-02 {lines:226-237 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 910c3bb
 
-# Module 03 Operations {#module-03 | lines:239-250 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: db2bf45
+- module-03 {lines:239-250 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: db2bf45
 
-# Module 04 Operations {#module-04 | lines:252-263 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 20d68a4
+- module-04 {lines:252-263 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 20d68a4
 
-# Module 05 Operations {#module-05 | lines:265-276 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 3fb30f5
+- module-05 {lines:265-276 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 3fb30f5
 
-# Module 06 Operations {#module-06 | lines:278-289 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 0b03773
+- module-06 {lines:278-289 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 0b03773
 
-# Module 07 Operations {#module-07 | lines:291-302 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 23780fe
+- module-07 {lines:291-302 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 23780fe
 
-# Module 08 Operations {#module-08 | lines:304-315 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: c1b6f8a
+- module-08 {lines:304-315 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: c1b6f8a
 
-# Module 09 Operations {#module-09 | lines:317-328 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 41ca9c5
+- module-09 {lines:317-328 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 41ca9c5
 
-# Module 10 Operations {#module-10 | lines:330-341 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: f8cd6f8
+- module-10 {lines:330-341 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: f8cd6f8
 
-# Module 11 Operations {#module-11 | lines:343-354 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 9442b74
+- module-11 {lines:343-354 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 9442b74
 
-# Module 12 Operations {#module-12 | lines:356-367 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 91449fd
+- module-12 {lines:356-367 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 91449fd
 
-# Module 13 Operations {#module-13 | lines:369-380 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 9a2fcea
+- module-13 {lines:369-380 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 9a2fcea
 
-# Module 14 Operations {#module-14 | lines:382-393 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 7ca06a7
+- module-14 {lines:382-393 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 7ca06a7
 
-# Module 15 Operations {#module-15 | lines:395-406 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 0c5be85
+- module-15 {lines:395-406 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 0c5be85
 
-# Module 16 Operations {#module-16 | lines:408-419 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 6ef6cd4
+- module-16 {lines:408-419 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 6ef6cd4
 
-# Module 17 Operations {#module-17 | lines:421-432 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 7bea2a8
+- module-17 {lines:421-432 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 7bea2a8
 
-# Module 18 Operations {#module-18 | lines:434-445 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 18f9478
+- module-18 {lines:434-445 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 18f9478
 
-# Module 19 Operations {#module-19 | lines:447-458 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 21902b3
+- module-19 {lines:447-458 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 21902b3
 
-# Module 20 Operations {#module-20 | lines:460-471 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: c8f7015
+- module-20 {lines:460-471 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: c8f7015
 
-# Module 21 Operations {#module-21 | lines:473-484 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: ba7613a
+- module-21 {lines:473-484 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: ba7613a
 
-# Module 22 Operations {#module-22 | lines:486-497 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 26870ea
+- module-22 {lines:486-497 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 26870ea
 
-# Module 23 Operations {#module-23 | lines:499-510 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 1218bf2
+- module-23 {lines:499-510 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 1218bf2
 
-# Module 24 Operations {#module-24 | lines:512-523 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 954c38c
+- module-24 {lines:512-523 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 954c38c
 
-# Module 25 Operations {#module-25 | lines:525-536 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 3012be1
+- module-25 {lines:525-536 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 3012be1
 
-# Module 26 Operations {#module-26 | lines:538-549 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 659268d
+- module-26 {lines:538-549 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 659268d
 
-# Module 27 Operations {#module-27 | lines:551-562 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: c2c3597
+- module-27 {lines:551-562 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: c2c3597
 
-# Module 28 Operations {#module-28 | lines:564-575 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: a63b823
+- module-28 {lines:564-575 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: a63b823
 
-# Module 29 Operations {#module-29 | lines:577-588 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 5b57871
+- module-29 {lines:577-588 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 5b57871
 
-# Module 30 Operations {#module-30 | lines:590-601 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 34e6cd3
+- module-30 {lines:590-601 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 34e6cd3
 
-# Module 31 Operations {#module-31 | lines:603-614 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: abbb52b
+- module-31 {lines:603-614 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: abbb52b
 
-# Module 32 Operations {#module-32 | lines:616-627 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 233bf2e
+- module-32 {lines:616-627 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 233bf2e
 
-# Module 33 Operations {#module-33 | lines:629-640 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 926ddc4
+- module-33 {lines:629-640 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 926ddc4
 
-# Module 34 Operations {#module-34 | lines:642-653 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 0c5a2ab
+- module-34 {lines:642-653 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 0c5a2ab
 
-# Module 35 Operations {#module-35 | lines:655-666 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: f05c6dd
+- module-35 {lines:655-666 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: f05c6dd
 
-# Module 36 Operations {#module-36 | lines:668-679 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 9dace4f
+- module-36 {lines:668-679 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 9dace4f
 
-# Module 37 Operations {#module-37 | lines:681-692 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 084f5f8
+- module-37 {lines:681-692 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 084f5f8
 
-# Module 38 Operations {#module-38 | lines:694-705 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: ca18a72
+- module-38 {lines:694-705 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: ca18a72
 
-# Module 39 Operations {#module-39 | lines:707-718 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 1f5e3f8
+- module-39 {lines:707-718 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 1f5e3f8
 
-# Module 40 Operations {#module-40 | lines:720-731 | words:42}
-> Operational notes, safeguards, and dependency references for this module.
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: df0c7cf
+- module-40 {lines:720-731 | words:42}
+Operational notes, safeguards, and dependency references for this module.
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: df0c7cf
 
 
 ===CONTENT===

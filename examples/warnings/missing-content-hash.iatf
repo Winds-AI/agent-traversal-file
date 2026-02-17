@@ -4,18 +4,18 @@
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-02-17T09:16:59Z -->
+<!-- Generated: 2026-02-17T10:23:10Z -->
 <!-- Content-Hash: broken -->
 
-# Alpha {#alpha | lines:23-28 | words:12}
-> First section for missing hash warning test
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 777920c
+- alpha {lines:23-28 | words:12}
+First section for missing hash warning test
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 777920c
 
-# Beta {#beta | lines:30-35 | words:8}
-> Second section for stability checks
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: ca0b425
+- beta {lines:30-35 | words:8}
+Second section for stability checks
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: ca0b425
 
 
 ===CONTENT===

@@ -4,33 +4,33 @@
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-02-17T09:16:35Z -->
+<!-- Generated: 2026-02-17T10:23:10Z -->
 <!-- Content-Hash: sha256:5f8f94b -->
 
-# Overview {#overview | lines:38-44 | words:14}
-> Starting point and high-level navigation hints
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: ceadbee
+- overview {lines:38-44 | words:14}
+Starting point and high-level navigation hints
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: ceadbee
 
-# Identity {#identity | lines:46-51 | words:9}
-> AuthN and token lifecycle guidance
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 554e33b
+- identity {lines:46-51 | words:9}
+AuthN and token lifecycle guidance
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 554e33b
 
-# Triage {#triage | lines:53-69 | words:50}
-> Incident triage process and decision points
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 5912396
+- triage {lines:53-69 | words:50}
+Incident triage process and decision points
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 5912396
 
-# Hardening {#hardening | lines:71-76 | words:12}
-> Security follow-ups and audit preparation
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: e11e606
+- hardening {lines:71-76 | words:12}
+Security follow-ups and audit preparation
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: e11e606
 
-# FAQ {#faq | lines:78-83 | words:11}
-> Common questions and navigation map
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: aa1318b
+- faq {lines:78-83 | words:11}
+Common questions and navigation map
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: aa1318b
 
 
 ===CONTENT===

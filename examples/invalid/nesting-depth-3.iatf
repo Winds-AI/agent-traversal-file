@@ -6,20 +6,20 @@
 <!-- Generated: 2026-02-17T09:16:35Z -->
 <!-- Content-Hash: sha256:4d14860 -->
 
-# Root {#root | lines:27-42 | words:2}
-> Level one
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: c508528
+- root {lines:27-42 | words:2}
+Level one
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: c508528
 
-## Child {#child | lines:31-41 | words:2}
-> Level two
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: b74c832
+- child {lines:31-41 | words:2}
+Level two
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: b74c832
 
-### Grandchild {#grandchild | lines:35-40 | words:5}
-> Level three should violate depth limit when INDEX exists
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: cc29ccc
+- grandchild {lines:35-40 | words:5}
+Level three should violate depth limit when INDEX exists
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: cc29ccc
 
 
 ===CONTENT===

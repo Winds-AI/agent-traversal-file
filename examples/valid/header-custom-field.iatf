@@ -5,18 +5,18 @@
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-02-17T09:16:35Z -->
+<!-- Generated: 2026-02-17T10:23:10Z -->
 <!-- Content-Hash: sha256:2592c95 -->
 
-# Policy {#policy | lines:24-29 | words:10}
-> Header metadata interoperability notes
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 249ea5a
+- policy {lines:24-29 | words:10}
+Header metadata interoperability notes
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 249ea5a
 
-# Implication {#implication | lines:31-36 | words:11}
-> Guidance for tool consumers reading custom header fields
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 061a9b7
+- implication {lines:31-36 | words:11}
+Guidance for tool consumers reading custom header fields
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 061a9b7
 
 
 ===CONTENT===

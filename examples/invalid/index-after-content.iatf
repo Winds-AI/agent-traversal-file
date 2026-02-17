@@ -11,5 +11,5 @@ Body text.
 {/only}
 
 ===INDEX===
-# Only {#only | lines:6-10 | words:2}
-> Incorrect index placement
+- only {lines:6-10 | words:2}
+Incorrect index placement

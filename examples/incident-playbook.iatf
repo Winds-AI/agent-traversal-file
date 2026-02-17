@@ -4,33 +4,33 @@
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-02-17T09:16:35Z -->
+<!-- Generated: 2026-02-17T10:23:10Z -->
 <!-- Content-Hash: sha256:1fc44e2 -->
 
-# Detect and Declare {#detect | lines:38-47 | words:30}
-> First-response detection and role assignment
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 34ba328
+- detect {lines:38-47 | words:30}
+First-response detection and role assignment
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 34ba328
 
-# Mitigation Plan {#mitigate | lines:49-56 | words:21}
-> Short-term mitigation and risk reduction plan
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 4323152
+- mitigate {lines:49-56 | words:21}
+Short-term mitigation and risk reduction plan
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 4323152
 
-# Rollback {#rollback | lines:58-66 | words:25}
-> Controlled rollback sequence and verification checks
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: c2859e3
+- rollback {lines:58-66 | words:25}
+Controlled rollback sequence and verification checks
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: c2859e3
 
-# Communications {#comms | lines:68-75 | words:24}
-> Internal and external communication checkpoints
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: a0e82f3
+- comms {lines:68-75 | words:24}
+Internal and external communication checkpoints
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: a0e82f3
 
-# Postmortem {#postmortem | lines:77-83 | words:19}
-> Structured post-incident writeup and action tracking
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: f091735
+- postmortem {lines:77-83 | words:19}
+Structured post-incident writeup and action tracking
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: f091735
 
 
 ===CONTENT===

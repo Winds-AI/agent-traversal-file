@@ -312,20 +312,16 @@ func main() {
 		if len(os.Args) < 4 {
 			fmt.Fprintln(os.Stderr, "Error: Missing arguments")
 			fmt.Fprintln(os.Stderr, "Usage: iatf read <file> <section-id>")
-			fmt.Fprintln(os.Stderr, "       iatf read <file> --title \"Title\"")
 			os.Exit(1)
 		}
-
-		// Check for --title flag
-		if os.Args[3] == "--title" {
-			if len(os.Args) < 5 {
-				fmt.Fprintln(os.Stderr, "Error: Missing title argument")
-				os.Exit(1)
-			}
-			os.Exit(readByTitleCommand(os.Args[2], os.Args[4]))
-		} else {
-			os.Exit(readCommand(os.Args[2], os.Args[3]))
+		os.Exit(readCommand(os.Args[2], os.Args[3]))
+	case "read-many":
+		if len(os.Args) < 4 {
+			fmt.Fprintln(os.Stderr, "Error: Missing arguments")
+			fmt.Fprintln(os.Stderr, "Usage: iatf read-many <file> <section-id> [section-id...]")
+			os.Exit(1)
 		}
+		os.Exit(readManyCommand(os.Args[2], os.Args[3:]))
 	case "graph":
 		if len(os.Args) < 3 {
 			fmt.Fprintln(os.Stderr, "Error: Missing file argument")
@@ -374,22 +370,22 @@ func main() {
 func printUsage() {
 	fmt.Printf(`IATF Tools v%s
 
-Usage:
-    iatf rebuild <file>              Rebuild index for a single file
-    iatf rebuild-all [directory]     Rebuild all .iatf files in directory
-    iatf watch <file> [--debug]      Watch file and auto-rebuild on changes
-    iatf watch-dir <dir> [--debug]   Watch directory tree for .iatf files
-    iatf unwatch <file>              Stop watching a file
-    iatf watch --list                List all watched files
-    iatf validate <file>             Validate iatf file structure
-    iatf index <file> [--with-dates] Output INDEX section (default hides dates/hashes)
-    iatf find <file> <query>         Find and rank relevant section IDs from INDEX
-    iatf read <file> <section-id>    Extract section by ID
-    iatf read <file> --title "Title" Extract section by title
-    iatf graph <file>                Show section reference graph
-    iatf graph <file> --show-incoming  Show incoming references (impact analysis)
-    iatf --help                      Show this help message
-    iatf --version                   Show version
+	Usage:
+	    iatf rebuild <file>              Rebuild index for a single file
+	    iatf rebuild-all [directory]     Rebuild all .iatf files in directory
+	    iatf watch <file> [--debug]      Watch file and auto-rebuild on changes
+	    iatf watch-dir <dir> [--debug]   Watch directory tree for .iatf files
+	    iatf unwatch <file>              Stop watching a file
+	    iatf watch --list                List all watched files
+	    iatf validate <file>             Validate iatf file structure
+	    iatf index <file> [--with-dates] Output INDEX section (default hides dates/hashes)
+	    iatf find <file> <query>         Find and rank relevant section IDs from INDEX
+	    iatf read <file> <section-id>    Extract section by ID
+	    iatf read-many <file> <section-id> [section-id...]  Extract multiple sections by ID
+	    iatf graph <file>                Show section reference graph
+	    iatf graph <file> --show-incoming  Show incoming references (impact analysis)
+	    iatf --help                      Show this help message
+	    iatf --version                   Show version
 
 Daemon Commands:
     iatf daemon start [--debug]      Start system-wide daemon
@@ -403,15 +399,15 @@ Examples:
     iatf rebuild-all ./docs
     iatf watch api-reference.iatf
     iatf watch api-reference.iatf --debug
-    iatf watch-dir ./docs
-    iatf validate my-doc.iatf
-    iatf index document.iatf
-    iatf index document.iatf --with-dates
-    iatf find document.iatf payment options
-    iatf read document.iatf intro
-    iatf read document.iatf --title "Introduction"
-    iatf daemon start
-    iatf daemon status
+	    iatf watch-dir ./docs
+	    iatf validate my-doc.iatf
+	    iatf index document.iatf
+	    iatf index document.iatf --with-dates
+	    iatf find document.iatf payment options
+	    iatf read document.iatf intro
+	    iatf read-many document.iatf intro setup faq
+	    iatf daemon start
+	    iatf daemon status
 
 For more information, visit: https://github.com/Winds-AI/agent-traversal-file
 `, Version)
@@ -581,7 +577,7 @@ func parseIndexMetadata(lines []string) map[string]indexMeta {
 		return map[string]indexMeta{}
 	}
 
-	entryRe := regexp.MustCompile(`^#{1,6}\s+.*\{#([a-zA-Z][a-zA-Z0-9_-]*)\s*\|`)
+	entryRe := regexp.MustCompile(`^- ([a-zA-Z][a-zA-Z0-9_-]*) \{lines:\d+-\d+ \| words:\d+\}$`)
 	metadata := map[string]indexMeta{}
 	currentID := ""
 
@@ -640,13 +636,12 @@ func generateIndex(sections []Section, contentHash string) []string {
 	}
 
 	for _, section := range sections {
-		levelMarker := strings.Repeat("#", section.Level)
-		indexLine := fmt.Sprintf("%s %s {#%s | lines:%d-%d | words:%d}",
-			levelMarker, section.Title, section.ID, section.Start, section.End, section.WordCount)
+		indexLine := fmt.Sprintf("- %s {lines:%d-%d | words:%d}",
+			section.ID, section.Start, section.End, section.WordCount)
 		indexLines = append(indexLines, indexLine)
 
 		if section.Summary != "" {
-			indexLines = append(indexLines, fmt.Sprintf("> %s", section.Summary))
+			indexLines = append(indexLines, section.Summary)
 		}
 
 		if section.Created != "" || section.Modified != "" {
@@ -657,11 +652,11 @@ func generateIndex(sections []Section, contentHash string) []string {
 			if section.Modified != "" {
 				timestamps = append(timestamps, fmt.Sprintf("Modified: %s", section.Modified))
 			}
-			indexLines = append(indexLines, fmt.Sprintf("  %s", strings.Join(timestamps, " | ")))
+			indexLines = append(indexLines, strings.Join(timestamps, " | "))
 		}
 
 		if section.XHash != "" {
-			indexLines = append(indexLines, fmt.Sprintf("  Hash: %s", section.XHash))
+			indexLines = append(indexLines, fmt.Sprintf("Hash: %s", section.XHash))
 		}
 
 		indexLines = append(indexLines, "")
@@ -1706,7 +1701,7 @@ func indexCommand(filePath string, withDates bool) int {
 	for i, entry := range entries {
 		fmt.Println(entry.Header)
 		if entry.Summary != "" {
-			fmt.Printf("> %s\n", entry.Summary)
+			fmt.Println(entry.Summary)
 		}
 		if withDates && (entry.Created != "" || entry.Modified != "") {
 			timestamps := []string{}
@@ -1716,7 +1711,7 @@ func indexCommand(filePath string, withDates bool) int {
 			if entry.Modified != "" {
 				timestamps = append(timestamps, fmt.Sprintf("Modified: %s", entry.Modified))
 			}
-			fmt.Printf("  %s\n", strings.Join(timestamps, " | "))
+			fmt.Println(strings.Join(timestamps, " | "))
 		}
 		if i < len(entries)-1 {
 			fmt.Println()
@@ -1777,22 +1772,12 @@ func readCommand(filePath string, sectionID string) int {
 		return 1
 	}
 
-	sectionLines := lines[targetSection.Start-1 : targetSection.End]
-	for i, line := range sectionLines {
-		// Hide raw section wrapper tags in read output for cleaner consumption.
-		if i == 0 && sectionOpenPattern.MatchString(strings.TrimSpace(line)) {
-			continue
-		}
-		if i == len(sectionLines)-1 && sectionClosePattern.MatchString(strings.TrimSpace(line)) {
-			continue
-		}
-		fmt.Println(line)
-	}
+	printSectionBody(lines, *targetSection)
 
 	return 0
 }
 
-func readByTitleCommand(filePath string, title string) int {
+func readManyCommand(filePath string, sectionIDs []string) int {
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		fmt.Fprintf(os.Stderr, "Error: File not found: %s\n", filePath)
 		return 1
@@ -1807,52 +1792,72 @@ func readByTitleCommand(filePath string, title string) int {
 	lines, _ := splitNormalizedLines(content)
 
 	indexStart := -1
-	indexEnd := -1
+	contentStart := -1
 	for i, line := range lines {
+		if strings.TrimSpace(line) == "===CONTENT===" {
+			contentStart = i + 1
+			break
+		}
 		if strings.TrimSpace(line) == "===INDEX===" {
 			indexStart = i
-		} else if strings.TrimSpace(line) == "===CONTENT===" {
-			indexEnd = i
-			break
 		}
 	}
 
-	if indexStart == -1 || indexEnd == -1 {
-		fmt.Fprintln(os.Stderr, "Error: Invalid iatf file format")
+	if indexStart == -1 {
+		fmt.Fprintln(os.Stderr, "Error: No ===INDEX=== section found")
+		return 1
+	}
+	if contentStart == -1 {
+		fmt.Fprintln(os.Stderr, "Error: No ===CONTENT=== section found")
 		return 1
 	}
 
-	entries := parseIndexEntries(lines, indexStart, indexEnd)
-
-	var matchedID string
-
-	for _, entry := range entries {
-		if strings.EqualFold(entry.Title, title) {
-			matchedID = entry.ID
-			break
-		}
+	sections := parseContentSection(lines, contentStart)
+	byID := make(map[string]Section, len(sections))
+	for _, section := range sections {
+		byID[section.ID] = section
 	}
 
-	if matchedID == "" {
-		titleLower := strings.ToLower(title)
-		for _, entry := range entries {
-			if strings.Contains(strings.ToLower(entry.Title), titleLower) {
-				matchedID = entry.ID
-				break
-			}
+	missing := []string{}
+	for _, id := range sectionIDs {
+		if _, ok := byID[id]; !ok {
+			missing = append(missing, id)
 		}
 	}
-
-	if matchedID == "" {
-		fmt.Fprintf(os.Stderr, "Error: No section found with title matching: %s\n", title)
+	if len(missing) > 0 {
+		fmt.Fprintln(os.Stderr, "Error: Section(s) not found:")
+		for _, id := range missing {
+			fmt.Fprintf(os.Stderr, "  - %s\n", id)
+		}
 		return 1
 	}
 
-	return readCommand(filePath, matchedID)
+	for i, id := range sectionIDs {
+		fmt.Printf("@section: %s\n", id)
+		printSectionBody(lines, byID[id])
+		if i < len(sectionIDs)-1 {
+			fmt.Println()
+		}
+	}
+
+	return 0
+}
+
+func printSectionBody(lines []string, section Section) {
+	sectionLines := lines[section.Start-1 : section.End]
+	for i, line := range sectionLines {
+		// Hide raw section wrapper tags in read output for cleaner consumption.
+		if i == 0 && sectionOpenPattern.MatchString(strings.TrimSpace(line)) {
+			continue
+		}
+		if i == len(sectionLines)-1 && sectionClosePattern.MatchString(strings.TrimSpace(line)) {
+			continue
+		}
+		fmt.Println(line)
+	}
 }
 
 type indexEntry struct {
-	Title    string
 	ID       string
 	Header   string
 	Summary  string
@@ -1866,7 +1871,7 @@ type scoredIndexEntry struct {
 }
 
 func parseIndexEntries(lines []string, indexStart int, indexEnd int) []indexEntry {
-	indexEntryPattern := regexp.MustCompile(`^#{1,6}\s+(.+)\s*\{#([a-zA-Z][a-zA-Z0-9_-]*)\s*\|.*\}$`)
+	indexEntryPattern := regexp.MustCompile(`^- ([a-zA-Z][a-zA-Z0-9_-]*) \{lines:\d+-\d+ \| words:\d+\}$`)
 	entries := []indexEntry{}
 	current := -1
 
@@ -1878,19 +1883,11 @@ func parseIndexEntries(lines []string, indexStart int, indexEnd int) []indexEntr
 
 		match := indexEntryPattern.FindStringSubmatch(trimmed)
 		if match != nil {
-			entries = append(entries, indexEntry{Title: match[1], ID: match[2], Header: trimmed})
+			entries = append(entries, indexEntry{ID: match[1], Header: trimmed})
 			current = len(entries) - 1
 			continue
 		}
 
-		if current >= 0 && strings.HasPrefix(trimmed, "> ") {
-			summaryPart := strings.TrimSpace(strings.TrimPrefix(trimmed, "> "))
-			if entries[current].Summary == "" {
-				entries[current].Summary = summaryPart
-			} else {
-				entries[current].Summary += " " + summaryPart
-			}
-		}
 		if current >= 0 && (strings.HasPrefix(trimmed, "Created:") || strings.HasPrefix(trimmed, "Modified:")) {
 			parts := strings.Split(trimmed, "|")
 			for _, part := range parts {
@@ -1902,6 +1899,17 @@ func parseIndexEntries(lines []string, indexStart int, indexEnd int) []indexEntr
 					entries[current].Modified = strings.TrimSpace(strings.TrimPrefix(part, "Modified:"))
 				}
 			}
+			continue
+		}
+		if current >= 0 && strings.HasPrefix(trimmed, "Hash:") {
+			continue
+		}
+		if current >= 0 && entries[current].Summary == "" {
+			entries[current].Summary = trimmed
+			continue
+		}
+		if current >= 0 && entries[current].Summary != "" {
+			entries[current].Summary += " " + trimmed
 		}
 	}
 
@@ -1965,11 +1973,11 @@ func findCommand(filePath string, query string) int {
 	scored := []scoredIndexEntry{}
 
 	for _, entry := range entries {
-		titleLower := strings.ToLower(entry.Title)
+		idLower := strings.ToLower(entry.ID)
 		summaryLower := strings.ToLower(entry.Summary)
 		score := 0
 
-		if strings.Contains(titleLower, queryLower) {
+		if strings.Contains(idLower, queryLower) {
 			score += 20
 		}
 		if strings.Contains(summaryLower, queryLower) {
@@ -1977,7 +1985,7 @@ func findCommand(filePath string, query string) int {
 		}
 
 		for _, term := range terms {
-			if strings.Contains(titleLower, term) {
+			if strings.Contains(idLower, term) {
 				score += 5
 			}
 			if strings.Contains(summaryLower, term) {
@@ -1994,9 +2002,6 @@ func findCommand(filePath string, query string) int {
 		if scored[i].Score != scored[j].Score {
 			return scored[i].Score > scored[j].Score
 		}
-		if scored[i].Entry.Title != scored[j].Entry.Title {
-			return scored[i].Entry.Title < scored[j].Entry.Title
-		}
 		return scored[i].Entry.ID < scored[j].Entry.ID
 	})
 
@@ -2006,7 +2011,11 @@ func findCommand(filePath string, query string) int {
 	}
 
 	for _, item := range scored {
-		fmt.Printf("%s\t(score:%d)\t%s\n", item.Entry.ID, item.Score, item.Entry.Title)
+		if item.Entry.Summary != "" {
+			fmt.Printf("%s\t(score:%d)\t%s\n", item.Entry.ID, item.Score, item.Entry.Summary)
+			continue
+		}
+		fmt.Printf("%s\t(score:%d)\n", item.Entry.ID, item.Score)
 	}
 
 	return 0
@@ -2288,7 +2297,7 @@ func validateLines(lines []string) validationResult {
 	}
 
 	if !invalidNesting && result.HasIndex && contentStart != -1 && indexStart != -1 {
-		indexEntryRe := regexp.MustCompile(`^#{1,6}\s+.*\{#([a-zA-Z][a-zA-Z0-9_-]*)\s*\|\s*lines:(\d+)-(\d+)[^}]*\}$`)
+		indexEntryRe := regexp.MustCompile(`^- ([a-zA-Z][a-zA-Z0-9_-]*) \{lines:(\d+)-(\d+) \| words:\d+\}$`)
 		indexRanges := map[string][2]int{}
 		for _, line := range lines[indexStart+1 : contentStart] {
 			match := indexEntryRe.FindStringSubmatch(strings.TrimSpace(line))

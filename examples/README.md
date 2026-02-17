@@ -1,6 +1,9 @@
-# IATF Example Corpus (E2E Testing)
+# IATF Example Corpus
 
-This corpus is designed for end-to-end validation of the current CLI and parser behavior.
+Indexed fixtures in this folder use ID-first entries:
+- `- id {lines:start-end | words:count}`
+- summary on the next plain line (no `>`)
+- plain metadata lines (`Created: ... | Modified: ...`, `Hash: ...`)
 
 ## Layout
 
@@ -83,6 +86,7 @@ done
 ./iatf index examples/incident-playbook.iatf
 ./iatf find examples/product-ops-manual.iatf "incident escalation sla"
 ./iatf read examples/product-ops-manual.iatf escalation
+./iatf read-many examples/product-ops-manual.iatf escalation sla-policy customer-updates
 ./iatf graph examples/cross-references.iatf
 ./iatf graph examples/cross-references.iatf --show-incoming
 ```

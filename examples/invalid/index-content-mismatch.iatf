@@ -4,23 +4,23 @@
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-02-17T09:16:35Z -->
+<!-- Generated: 2026-02-17T10:23:10Z -->
 <!-- Content-Hash: sha256:b2985cc -->
 
-# Introduction {#intro | lines:29-34 | words:21}
-> What IATF is and why the split index model exists
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: ffff91c
+- intro {lines:29-34 | words:21}
+What IATF is and why the split index model exists
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: ffff91c
 
-# Workflow {#workflow | lines:36-43 | words:26}
-> Command flow used by agents and humans
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 02b3c92
+- workflow {lines:36-43 | words:26}
+Command flow used by agents and humans
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 02b3c92
 
-# Next Steps {#next-steps | lines:45-50 | words:14}
-> Follow-up actions after validating a document
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 14cd6ae
+- next-steps {lines:45-50 | words:14}
+Follow-up actions after validating a document
+Created: 2026-02-17 | Modified: 2026-02-17
+Hash: 14cd6ae
 
 
 ===CONTENT===

@@ -31,10 +31,11 @@ Requested constraints followed:
 - Evidence: `README.md:38` previously pointed to `docs/agentic-usability-analysis.md`.
 - Status: fixed to `docs/reports/agentic-usability-analysis.md`.
 
-4. LSP parser behavior diverges from CLI/spec (not fixed in this pass).
-- Section tag regex is unanchored in LSP (`lsp/analyzer/analyzer.go:15`), anchored in CLI (`go/main.go:49`).
-- LSP treats any line starting with triple backticks as a fence (`lsp/analyzer/analyzer.go:397`), while CLI/spec only treat lines exactly equal to ````` (`go/main.go:100`, `docs/SPECIFICATION.md:557`).
-- Duplicate-ID diagnostic line number formatting bug in LSP (`string(rune(firstLine+1))` at `lsp/analyzer/analyzer.go:252`).
+4. LSP parser behavior had diverged from CLI/spec (fixed after this report’s initial draft).
+- Section tags are now anchored in LSP to match CLI (`lsp/analyzer/analyzer.go`, `go/main.go`).
+- Code-fence toggling now matches CLI/spec: only lines exactly equal to ````` toggle fence state.
+- Duplicate-ID diagnostic line numbers now use numeric formatting.
+- Added parity-focused LSP tests: `lsp/analyzer/analyzer_test.go`.
 
 ## 2. Example Corpus Rebuild
 
@@ -171,11 +172,14 @@ So the progressive-disclosure/Table-of-Contents philosophy is aligned with agent
 
 ## 7. Recommendations to Improve Real-World Efficiency
 
-1. Add a compact index mode for rebuild/index output (optional no dates/hash/word counts).
-2. Add `iatf read-many <ids...>` to reduce round-trip overhead for multi-section queries.
-3. Align LSP parsing strictly with CLI/spec (anchored tags + exact fence rule).
-4. Add integration tests for doc-behavior claims (especially command output semantics).
-5. Keep prompting strict for agents: index/find/read/graph-first flow materially improves consistency.
+Completed since initial draft:
+- compact default index output with optional `--with-dates`
+- `iatf read-many <ids...>`
+- LSP parser alignment for anchored tags and exact fence handling
+
+Remaining recommendations:
+1. Add integration tests for doc-behavior claims (especially command output semantics).
+2. Keep prompting strict for agents: index/find/read/graph-first flow materially improves consistency.
 
 ## 8. Repro Commands (Core)
 

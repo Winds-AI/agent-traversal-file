@@ -1,76 +1,50 @@
-# Testing Guidelines
+# Testing Guide
 
-## Automated Coverage Status
+## Goal
 
-The project has a small Go unit test suite in `go/main_test.go`, but most behavior is still validated via manual CLI testing.
+Ensure CLI behavior, format rules, and fixtures stay aligned.
 
-Validate changes by manually running all commands on files in `examples/`:
-- `examples/` and `examples/valid/` for expected-pass behavior
-- `examples/warnings/` for expected warning-only behavior
-- `examples/invalid/` for expected-failure behavior
+## Required Checks
 
-### Core Commands
-1. `rebuild` - Rebuild single file
-2. `rebuild-all` - Rebuild directory
-3. `validate` - Validate file structure
-4. `index` - Extract simplified INDEX (and test `--with-dates`)
-5. `find` - Ranked section search from INDEX
-6. `read` - Read section by ID (without wrapper tags)
-7. `graph` - Show reference graph
-
-### Watch Commands
-8. `watch <file>` - Watch single file (silent and --debug modes)
-9. `watch-dir <dir>` - Watch directory tree (silent and --debug modes)
-10. `unwatch <file>` - Stop watching file
-11. `watch --list` - List watched files
-
-### Daemon Commands
-12. `daemon start` - Start daemon (silent and --debug modes)
-13. `daemon stop` - Stop daemon
-14. `daemon status` - Show daemon status
-15. `daemon install` - Install OS service
-16. `daemon uninstall` - Remove OS service
-
-## Testing Approach
-
-Test task requirements by building, running, and validating with the Go CLI.
-
-## Manual Test Plan
-
-### Watch Command Testing
-- Test `watch` in silent mode: verify only "Watching:" printed
-- Test `watch --debug`: verify verbose output on changes
-- Edit watched file: verify 3-second debounce delay
-- Make rapid edits: verify debounce resets timer
-- Introduce syntax error: verify rebuild skipped (silent unless --debug)
-- Fix error: verify rebuild succeeds
-
-### Watch-Dir Command Testing
-- Test `watch-dir .`: verify file list printed initially
-- Test `watch-dir . --debug`: verify verbose output per file
-- Create new .iatf file: verify auto-detected
-- Edit multiple files: verify per-file debounce
-- Delete file: verify removed from watch list
-
-### Daemon Testing
-- Test `daemon start` without config: verify error message with example config
-- Configure `~/.iatf/daemon.json`: add test paths
-- Test `daemon start`: verify PID file created
-- Test `daemon status`: verify running status and paths displayed
-- Test `daemon stop`: verify process terminates
-- Test `daemon install`/`uninstall`: verify service created/removed
-
-### Cross-Platform Service Testing
-- **Linux**: Verify systemd user service in `~/.config/systemd/user/`
-- **macOS**: Verify launchd plist in `~/Library/LaunchAgents/`
-- **Windows**: Verify scheduled task creation via `schtasks`
-
-## Go Tests
-
-Run the existing test suite from `go/`:
+### 1. Go Tests
 
 ```bash
+cd go
 go test ./...
 ```
 
-If you add tests, keep `go test` clean and update this document with any new coverage areas.
+### 2. Fixture Validation Matrix
+
+```bash
+for f in examples/*.iatf examples/valid/*.iatf examples/warnings/*.iatf; do
+  ./iatf validate "$f"
+done
+for f in examples/invalid/*.iatf; do
+  ./iatf validate "$f"
+done
+```
+
+Expected:
+- `examples/` + `examples/valid/`: pass clean
+- `examples/warnings/`: pass with warnings
+- `examples/invalid/`: fail
+
+### 3. Command Smoke Flow
+
+```bash
+./iatf rebuild examples/incident-playbook.iatf
+./iatf validate examples/incident-playbook.iatf
+./iatf index examples/incident-playbook.iatf
+./iatf find examples/incident-playbook.iatf "rollback"
+./iatf read examples/incident-playbook.iatf rollback
+./iatf read-many examples/incident-playbook.iatf detect rollback
+./iatf graph examples/incident-playbook.iatf
+./iatf graph examples/incident-playbook.iatf --show-incoming
+```
+
+## Watch/Daemon (when touched)
+
+If a change affects watcher or daemon behavior, also test:
+- `iatf watch <file>` (silent and `--debug`)
+- `iatf watch-dir <dir>` (silent and `--debug`)
+- `iatf daemon start|status|stop`

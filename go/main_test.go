@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -221,4 +222,108 @@ func TestValidateAllowsLeadingAtTextWithoutAnnotationSyntax(t *testing.T) {
 	if len(result.Errors) != 0 {
 		t.Fatalf("expected no validation errors, got: %v", result.Errors)
 	}
+}
+
+func TestReadManyReturnsSectionsInRequestedOrder(t *testing.T) {
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "simple.iatf")
+
+	orig, err := os.ReadFile(filepath.Join("..", "examples", "simple.iatf"))
+	if err != nil {
+		t.Fatalf("read example: %v", err)
+	}
+	if err := os.WriteFile(tmpFile, orig, 0644); err != nil {
+		t.Fatalf("write tmp: %v", err)
+	}
+
+	exitCode, stdout, stderr := captureCommandOutput(t, func() int {
+		return readManyCommand(tmpFile, []string{"workflow", "intro"})
+	})
+	if exitCode != 0 {
+		t.Fatalf("expected success exit code, got %d stderr=%q", exitCode, stderr)
+	}
+
+	workflowMarker := "@section: workflow"
+	introMarker := "@section: intro"
+	if !strings.Contains(stdout, workflowMarker) || !strings.Contains(stdout, introMarker) {
+		t.Fatalf("missing read-many section markers in output: %q", stdout)
+	}
+	if strings.Index(stdout, workflowMarker) >= strings.Index(stdout, introMarker) {
+		t.Fatalf("expected workflow output before intro output: %q", stdout)
+	}
+	if !strings.Contains(stdout, "Run `iatf rebuild` after editing CONTENT.") {
+		t.Fatalf("expected workflow section body in output: %q", stdout)
+	}
+	if !strings.Contains(stdout, "IATF keeps an INDEX cache and CONTENT source-of-truth in one file.") {
+		t.Fatalf("expected intro section body in output: %q", stdout)
+	}
+}
+
+func TestReadManyFailsWhenAnySectionMissing(t *testing.T) {
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "simple.iatf")
+
+	orig, err := os.ReadFile(filepath.Join("..", "examples", "simple.iatf"))
+	if err != nil {
+		t.Fatalf("read example: %v", err)
+	}
+	if err := os.WriteFile(tmpFile, orig, 0644); err != nil {
+		t.Fatalf("write tmp: %v", err)
+	}
+
+	exitCode, stdout, stderr := captureCommandOutput(t, func() int {
+		return readManyCommand(tmpFile, []string{"workflow", "does-not-exist"})
+	})
+	if exitCode == 0 {
+		t.Fatalf("expected failure exit code when section missing")
+	}
+	if !strings.Contains(stderr, "Error: Section(s) not found:") {
+		t.Fatalf("expected missing-section error, got stderr=%q", stderr)
+	}
+	if !strings.Contains(stderr, "does-not-exist") {
+		t.Fatalf("expected missing ID in stderr, got stderr=%q", stderr)
+	}
+	if strings.Contains(stdout, "@section: workflow") {
+		t.Fatalf("expected no partial section output on failure, got stdout=%q", stdout)
+	}
+}
+
+func captureCommandOutput(t *testing.T, fn func() int) (int, string, string) {
+	t.Helper()
+
+	oldStdout := os.Stdout
+	oldStderr := os.Stderr
+
+	stdoutReader, stdoutWriter, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("stdout pipe: %v", err)
+	}
+	stderrReader, stderrWriter, err := os.Pipe()
+	if err != nil {
+		t.Fatalf("stderr pipe: %v", err)
+	}
+
+	os.Stdout = stdoutWriter
+	os.Stderr = stderrWriter
+
+	exitCode := fn()
+
+	if err := stdoutWriter.Close(); err != nil {
+		t.Fatalf("close stdout writer: %v", err)
+	}
+	if err := stderrWriter.Close(); err != nil {
+		t.Fatalf("close stderr writer: %v", err)
+	}
+	os.Stdout = oldStdout
+	os.Stderr = oldStderr
+
+	stdoutBytes, err := io.ReadAll(stdoutReader)
+	if err != nil {
+		t.Fatalf("read stdout: %v", err)
+	}
+	stderrBytes, err := io.ReadAll(stderrReader)
+	if err != nil {
+		t.Fatalf("read stderr: %v", err)
+	}
+	return exitCode, string(stdoutBytes), string(stderrBytes)
 }

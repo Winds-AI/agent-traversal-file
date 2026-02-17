@@ -12,11 +12,16 @@ import (
 
 // Pre-compiled regex patterns for IATF parsing (matching go/main.go patterns)
 var (
-	sectionOpenPattern  = regexp.MustCompile(`\{#([a-zA-Z][a-zA-Z0-9_-]*)\}`)
-	sectionClosePattern = regexp.MustCompile(`\{/([a-zA-Z][a-zA-Z0-9_-]*)\}`)
+	sectionOpenPattern  = regexp.MustCompile(`^\{#([a-zA-Z][a-zA-Z0-9_-]*)\}`)
+	sectionClosePattern = regexp.MustCompile(`^\{/([a-zA-Z][a-zA-Z0-9_-]*)\}`)
 	referencePattern    = regexp.MustCompile(`\{@([a-zA-Z][a-zA-Z0-9_-]*)\}`)
 	annotationTag       = regexp.MustCompile(`^@([a-zA-Z][a-zA-Z0-9_-]*):`)
+	indexDashEntryTag   = regexp.MustCompile(`^- ([a-zA-Z][a-zA-Z0-9_-]*) \{lines:\d+-\d+ \| words:\d+\}$`)
 )
+
+func isCodeFenceLine(line string) bool {
+	return strings.TrimSpace(line) == "```"
+}
 
 // Section represents an IATF section with its metadata
 type Section struct {
@@ -32,10 +37,11 @@ type Section struct {
 
 // Reference represents a cross-reference to a section
 type Reference struct {
-	TargetID string
-	Line     int // 0-indexed
-	StartCol int
-	EndCol   int
+	TargetID          string
+	ContainingSection string
+	Line              int // 0-indexed
+	StartCol          int
+	EndCol            int
 }
 
 // Document represents a parsed IATF document
@@ -148,75 +154,11 @@ func (d *Document) Parse() {
 	d.References = nil
 	d.Errors = nil
 
-	d.validate()
+	// Build navigation structures first (sections/references), then derive diagnostics
+	// from the CLI-aligned validation pass.
 	d.parseSections()
 	d.parseReferences()
-	d.validateReferences()
-}
-
-// validate performs basic validation of the IATF file structure
-func (d *Document) validate() {
-	// Check format declaration
-	if len(d.Lines) == 0 || strings.TrimSpace(d.Lines[0]) != ":::IATF" {
-		d.Errors = append(d.Errors, ValidationError{
-			Message:  "Missing format declaration (:::IATF) at the beginning of the file",
-			Line:     0,
-			StartCol: 0,
-			EndCol:   len(d.Lines[0]),
-			Severity: protocol.DiagnosticSeverityError,
-		})
-	}
-
-	// Find INDEX and CONTENT sections
-	hasIndex := false
-	hasContent := false
-	indexLine := -1
-	contentLine := -1
-
-	for i, line := range d.Lines {
-		trimmed := strings.TrimSpace(line)
-		if trimmed == "===INDEX===" {
-			hasIndex = true
-			indexLine = i
-		} else if trimmed == "===CONTENT===" {
-			hasContent = true
-			contentLine = i
-		}
-	}
-
-	if !hasContent {
-		lastLine := len(d.Lines) - 1
-		if lastLine < 0 {
-			lastLine = 0
-		}
-		d.Errors = append(d.Errors, ValidationError{
-			Message:  "Missing ===CONTENT=== section",
-			Line:     lastLine,
-			StartCol: 0,
-			EndCol:   1,
-			Severity: protocol.DiagnosticSeverityError,
-		})
-	}
-
-	if !hasIndex {
-		d.Errors = append(d.Errors, ValidationError{
-			Message:  "Missing ===INDEX=== section (Run 'iatf rebuild' to create)",
-			Line:     0,
-			StartCol: 0,
-			EndCol:   1,
-			Severity: protocol.DiagnosticSeverityWarning,
-		})
-	}
-
-	if hasIndex && hasContent && indexLine > contentLine {
-		d.Errors = append(d.Errors, ValidationError{
-			Message:  "INDEX section must appear before CONTENT section",
-			Line:     indexLine,
-			StartCol: 0,
-			EndCol:   len(d.Lines[indexLine]),
-			Severity: protocol.DiagnosticSeverityError,
-		})
-	}
+	d.Errors = d.buildParityDiagnostics()
 }
 
 // parseSections parses all section tags in the document
@@ -237,6 +179,7 @@ func (d *Document) parseSections() {
 	// Parse sections using a stack for nesting
 	stack := []*Section{}
 	seenIDs := make(map[string]int) // ID -> first occurrence line
+	enforceMaxDepth := d.hasIndexBeforeContent()
 
 	for i := contentStart; i < len(d.Lines); i++ {
 		line := d.Lines[i]
@@ -249,7 +192,7 @@ func (d *Document) parseSections() {
 			// Check for duplicate IDs
 			if firstLine, exists := seenIDs[id]; exists {
 				d.Errors = append(d.Errors, ValidationError{
-					Message:  "Duplicate section ID '" + id + "' (first defined on line " + string(rune(firstLine+1)) + ")",
+					Message:  fmt.Sprintf("Duplicate section ID '%s' (first defined on line %d)", id, firstLine+1),
 					Line:     i,
 					StartCol: startCol,
 					EndCol:   matches[1],
@@ -275,8 +218,8 @@ func (d *Document) parseSections() {
 			d.OrderedSections = append(d.OrderedSections, section)
 			stack = append(stack, section)
 
-			// Check nesting depth
-			if len(stack) > 2 {
+			// Match CLI behavior: enforce max depth only in INDEX-aware validation context.
+			if enforceMaxDepth && len(stack) > 2 {
 				d.Errors = append(d.Errors, ValidationError{
 					Message:  "Section nesting exceeds maximum depth of 2",
 					Line:     i,
@@ -325,6 +268,20 @@ func (d *Document) parseSections() {
 			Severity: protocol.DiagnosticSeverityError,
 		})
 	}
+}
+
+func (d *Document) hasIndexBeforeContent() bool {
+	indexSeen := false
+	for _, line := range d.Lines {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "===INDEX===" {
+			indexSeen = true
+		}
+		if trimmed == "===CONTENT===" {
+			return indexSeen
+		}
+	}
+	return false
 }
 
 // extractSectionMetadata extracts @summary and title from section content.
@@ -390,17 +347,51 @@ func (d *Document) extractSectionMetadata(section *Section, startLine int) []Val
 
 // parseReferences parses all cross-references in the document
 func (d *Document) parseReferences() {
-	inCodeFence := false
-
+	contentStart := -1
 	for i, line := range d.Lines {
+		if strings.TrimSpace(line) == "===CONTENT===" {
+			contentStart = i + 1
+			break
+		}
+	}
+	if contentStart == -1 {
+		return
+	}
+
+	inCodeFence := false
+	openSections := []string{}
+
+	for i := contentStart; i < len(d.Lines); i++ {
+		line := d.Lines[i]
 		// Track code fences
-		if strings.TrimSpace(line) == "```" || strings.HasPrefix(strings.TrimSpace(line), "```") {
-			inCodeFence = !inCodeFence
+		if inCodeFence {
+			if isCodeFenceLine(line) {
+				inCodeFence = false
+			}
+			continue
+		}
+		if isCodeFenceLine(line) {
+			inCodeFence = true
 			continue
 		}
 
-		if inCodeFence {
+		if matches := sectionOpenPattern.FindStringSubmatch(line); matches != nil {
+			openSections = append(openSections, matches[1])
 			continue
+		}
+		if matches := sectionClosePattern.FindStringSubmatch(line); matches != nil {
+			id := matches[1]
+			if len(openSections) > 0 && openSections[len(openSections)-1] == id {
+				openSections = openSections[:len(openSections)-1]
+			} else {
+				openSections = []string{}
+			}
+			continue
+		}
+
+		containingSection := ""
+		if len(openSections) > 0 {
+			containingSection = openSections[len(openSections)-1]
 		}
 
 		// Find all references in this line
@@ -408,44 +399,12 @@ func (d *Document) parseReferences() {
 		for _, match := range matches {
 			targetID := line[match[2]:match[3]]
 			d.References = append(d.References, Reference{
-				TargetID: targetID,
-				Line:     i,
-				StartCol: match[0],
-				EndCol:   match[1],
+				TargetID:          targetID,
+				ContainingSection: containingSection,
+				Line:              i,
+				StartCol:          match[0],
+				EndCol:            match[1],
 			})
-		}
-	}
-}
-
-// validateReferences checks that all references point to valid sections
-func (d *Document) validateReferences() {
-	for _, ref := range d.References {
-		if _, exists := d.Sections[ref.TargetID]; !exists {
-			d.Errors = append(d.Errors, ValidationError{
-				Message:  "Reference {@" + ref.TargetID + "} points to non-existent section",
-				Line:     ref.Line,
-				StartCol: ref.StartCol,
-				EndCol:   ref.EndCol,
-				Severity: protocol.DiagnosticSeverityError,
-			})
-		}
-	}
-
-	// Check for self-references
-	for _, ref := range d.References {
-		for _, section := range d.OrderedSections {
-			if ref.Line >= section.Start && ref.Line <= section.End {
-				if ref.TargetID == section.ID {
-					d.Errors = append(d.Errors, ValidationError{
-						Message:  "Self-reference not allowed: {@" + ref.TargetID + "}",
-						Line:     ref.Line,
-						StartCol: ref.StartCol,
-						EndCol:   ref.EndCol,
-						Severity: protocol.DiagnosticSeverityError,
-					})
-				}
-				break
-			}
 		}
 	}
 }
@@ -943,23 +902,15 @@ func (d *Document) collectIndexTitles() []TitleCandidate {
 		if !inIndex {
 			continue
 		}
-		if !isHeadingLine(line) {
-			continue
-		}
-		title := strings.TrimSpace(stripHeadingPrefix(line))
-		sectionID := ""
-		if idx := strings.Index(title, "{#"); idx >= 0 {
-			fragment := title[idx:]
-			if matches := sectionOpenPattern.FindStringSubmatch(fragment); matches != nil {
-				sectionID = matches[1]
+
+		if matches := indexDashEntryTag.FindStringSubmatch(strings.TrimSpace(line)); matches != nil {
+			sectionID := strings.TrimSpace(matches[1])
+			if sectionID != "" {
+				titles = append(titles, TitleCandidate{
+					Title: sectionID,
+					ID:    sectionID,
+				})
 			}
-			title = strings.TrimSpace(title[:idx])
-		}
-		if title != "" {
-			titles = append(titles, TitleCandidate{
-				Title: title,
-				ID:    sectionID,
-			})
 		}
 	}
 	return titles
@@ -1097,7 +1048,7 @@ func (d *Document) GetHover(pos protocol.Position) *protocol.Hover {
 				if section.Summary != "" {
 					content += "\n\n" + section.Summary
 				}
-				content += "\n\n*Lines " + string(rune(section.Start+1)) + "-" + string(rune(section.End+1)) + "*"
+				content += fmt.Sprintf("\n\n*Lines %d-%d*", section.Start+1, section.End+1)
 
 				return &protocol.Hover{
 					Contents: protocol.MarkupContent{
