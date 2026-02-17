@@ -1,0 +1,13 @@
+:::IATF
+@title: Invalid Content Outside Section
+
+===CONTENT===
+
+This line is outside any section and should fail validation.
+
+{#ok}
+@summary: Valid section below invalid stray content
+# Ok Section
+
+Section content.
+{/ok}

@@ -3,6 +3,9 @@
 ## No Automated Test Suite (Yet)
 
 Validate changes by manually running all commands on files in `examples/`:
+- `examples/` and `examples/valid/` for expected-pass behavior
+- `examples/warnings/` for expected warning-only behavior
+- `examples/invalid/` for expected-failure behavior
 
 ### Core Commands
 1. `rebuild` - Rebuild single file

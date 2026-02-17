@@ -474,10 +474,11 @@ func parseContentSection(lines []string, contentStart int) []Section {
 		}
 
 		if len(stack) > 0 && !inHeader[len(inHeader)-1] {
-			if strings.HasPrefix(line, "#") && !strings.HasPrefix(sections[stack[len(stack)-1]].Title, "#") {
-				sections[stack[len(stack)-1]].Title = strings.TrimSpace(strings.TrimLeft(line, "#"))
+			idx := stack[len(stack)-1]
+			if strings.HasPrefix(line, "#") && sections[idx].Title == sections[idx].ID {
+				sections[idx].Title = strings.TrimSpace(strings.TrimLeft(line, "#"))
 			}
-			sections[stack[len(stack)-1]].ContentLines = append(sections[stack[len(stack)-1]].ContentLines, line)
+			sections[idx].ContentLines = append(sections[idx].ContentLines, line)
 		}
 	}
 
@@ -740,19 +741,6 @@ func rebuildIndex(filePath string) error {
 	sum := sha256.Sum256([]byte(contentText))
 	contentHash := hex.EncodeToString(sum[:])[:7]
 
-	// Generate new INDEX (two-pass to adjust absolute line numbers)
-	newIndex := generateIndex(sections, contentHash)
-	originalSpan := indexEnd - headerEnd
-	newSpan := len(newIndex) + 1 // index + blank
-	lineDelta := newSpan - originalSpan
-	if lineDelta != 0 {
-		for i := range sections {
-			sections[i].Start += lineDelta
-			sections[i].End += lineDelta
-		}
-		newIndex = generateIndex(sections, contentHash)
-	}
-
 	// Rebuild file (normalize spacing around INDEX)
 	preLines := append([]string{}, lines[:headerEnd]...)
 	for len(preLines) > 0 && strings.TrimSpace(preLines[len(preLines)-1]) == "" {
@@ -764,12 +752,50 @@ func rebuildIndex(filePath string) error {
 		postLines = postLines[1:]
 	}
 
-	newLines := []string{}
-	newLines = append(newLines, preLines...)
-	newLines = append(newLines, "")
-	newLines = append(newLines, newIndex...)
-	newLines = append(newLines, "")
-	newLines = append(newLines, postLines...)
+	assembleFile := func(indexLines []string) []string {
+		newLines := []string{}
+		newLines = append(newLines, preLines...)
+		newLines = append(newLines, "")
+		newLines = append(newLines, indexLines...)
+		newLines = append(newLines, "")
+		newLines = append(newLines, postLines...)
+		return newLines
+	}
+
+	// First pass: generate INDEX with currently known line numbers.
+	newIndex := generateIndex(sections, contentHash)
+	firstPassLines := assembleFile(newIndex)
+
+	// Recalculate exact section line numbers from assembled output so one rebuild is enough
+	// even for files that start without an INDEX section.
+	recomputedContentStart := -1
+	for i, line := range firstPassLines {
+		if strings.TrimSpace(line) == "===CONTENT===" {
+			recomputedContentStart = i + 1
+			break
+		}
+	}
+	if recomputedContentStart == -1 {
+		return fmt.Errorf("===CONTENT=== section lost during rebuild")
+	}
+
+	recomputedSections := parseContentSection(firstPassLines, recomputedContentStart)
+	recomputedByID := make(map[string]Section, len(recomputedSections))
+	for _, section := range recomputedSections {
+		recomputedByID[section.ID] = section
+	}
+	for i := range sections {
+		updated, ok := recomputedByID[sections[i].ID]
+		if !ok {
+			return fmt.Errorf("failed to recompute line range for section: %s", sections[i].ID)
+		}
+		sections[i].Start = updated.Start
+		sections[i].End = updated.End
+	}
+
+	// Final pass: emit INDEX with corrected absolute line ranges.
+	newIndex = generateIndex(sections, contentHash)
+	newLines := assembleFile(newIndex)
 
 	newContent := strings.Join(newLines, "\n")
 	if preferredEOL == "\r\n" {
@@ -787,6 +813,15 @@ func rebuildCommand(filePath string) int {
 
 	if !checkWatchedFile(filePath) {
 		fmt.Println("Rebuild cancelled, no changes made.")
+		return 1
+	}
+
+	valid, errors := validateFileQuiet(filePath)
+	if !valid {
+		fmt.Fprintln(os.Stderr, "[ERROR] Rebuild aborted: file validation failed")
+		for _, e := range errors {
+			fmt.Fprintf(os.Stderr, "  - %s\n", e)
+		}
 		return 1
 	}
 
@@ -833,6 +868,14 @@ func rebuildAllCommand(directory string) int {
 	successCount := 0
 	for _, file := range iatfFiles {
 		fmt.Printf("\nProcessing: %s\n", file)
+		valid, errors := validateFileQuiet(file)
+		if !valid {
+			fmt.Println("  [ERROR] Validation failed:")
+			for _, e := range errors {
+				fmt.Printf("    - %s\n", e)
+			}
+			continue
+		}
 		if err := rebuildIndex(file); err != nil {
 			fmt.Printf("  [ERROR] Failed: %v\n", err)
 		} else {
@@ -2024,22 +2067,29 @@ func contains(slice []string, value string) bool {
 	return false
 }
 
-// validateFileQuiet performs validation without printing, returns errors
-func validateFileQuiet(filePath string) (bool, []string) {
-	content, err := os.ReadFile(filePath)
-	if err != nil {
-		return false, []string{fmt.Sprintf("Cannot read file: %v", err)}
+type validationResult struct {
+	Errors            []string
+	Warnings          []string
+	HasFormat         bool
+	HasIndex          bool
+	HasContent        bool
+	AllSectionsClosed bool
+	SectionCount      int
+	ReferencesValid   bool
+}
+
+func validateLines(lines []string) validationResult {
+	result := validationResult{
+		Errors:   []string{},
+		Warnings: []string{},
 	}
 
-	lines, _ := splitNormalizedLines(content)
-	errors := []string{}
-
-	// Check format declaration
-	if len(lines) == 0 || strings.TrimSpace(lines[0]) != ":::IATF" {
-		errors = append(errors, "Missing format declaration (:::IATF)")
+	if len(lines) > 0 && strings.TrimSpace(lines[0]) == ":::IATF" {
+		result.HasFormat = true
+	} else {
+		result.Errors = append(result.Errors, "Missing format declaration (:::IATF)")
 	}
 
-	// Check INDEX and CONTENT sections exist
 	indexPositions := []int{}
 	contentPositions := []int{}
 	for i, line := range lines {
@@ -2050,25 +2100,32 @@ func validateFileQuiet(filePath string) (bool, []string) {
 		}
 	}
 
-	hasContent := len(contentPositions) > 0
-	if !hasContent {
-		errors = append(errors, "Missing CONTENT section")
+	result.HasIndex = len(indexPositions) > 0
+	result.HasContent = len(contentPositions) > 0
+
+	if !result.HasIndex {
+		result.Warnings = append(result.Warnings, "No INDEX section (Run 'iatf rebuild' to create)")
+	}
+	if !result.HasContent {
+		result.Errors = append(result.Errors, "Missing CONTENT section")
 	}
 
 	if len(indexPositions) > 1 {
-		errors = append(errors, "Multiple INDEX sections found")
+		result.Errors = append(result.Errors, "Multiple INDEX sections found")
 	}
 	if len(contentPositions) > 1 {
-		errors = append(errors, "Multiple CONTENT sections found")
+		result.Errors = append(result.Errors, "Multiple CONTENT sections found")
 	}
-	if len(indexPositions) > 0 && hasContent && indexPositions[0] > contentPositions[0] {
-		errors = append(errors, "INDEX section appears after CONTENT")
+	if result.HasIndex && result.HasContent && indexPositions[0] > contentPositions[0] {
+		result.Errors = append(result.Errors, "INDEX section appears after CONTENT")
 	}
 
-	// Validate nesting
+	indexStart := -1
 	contentStart := -1
 	for i, line := range lines {
-		if strings.TrimSpace(line) == "===CONTENT===" {
+		if strings.TrimSpace(line) == "===INDEX===" {
+			indexStart = i
+		} else if strings.TrimSpace(line) == "===CONTENT===" {
 			contentStart = i + 1
 			break
 		}
@@ -2076,12 +2133,52 @@ func validateFileQuiet(filePath string) (bool, []string) {
 
 	if contentStart != -1 {
 		if err := validateNesting(lines, contentStart); err != nil {
-			errors = append(errors, fmt.Sprintf("Invalid section nesting: %v", err))
+			result.Errors = append(result.Errors, fmt.Sprintf("Invalid section nesting: %v", err))
 		}
 	}
 
-	// Check for unclosed/mismatched sections
+	if result.HasIndex {
+		contentHashLine := ""
+		if indexStart != -1 && contentStart != -1 {
+			for _, line := range lines[indexStart:contentStart] {
+				if strings.HasPrefix(line, "<!-- Content-Hash:") {
+					contentHashLine = line
+					break
+				}
+			}
+		}
+		if contentHashLine != "" && contentStart != -1 {
+			hashRe := regexp.MustCompile(`^<!-- Content-Hash:\s*([a-z0-9]+):([a-f0-9]+)\s*-->$`)
+			matches := hashRe.FindStringSubmatch(strings.TrimSpace(contentHashLine))
+			if matches == nil {
+				result.Warnings = append(result.Warnings, "Invalid Content-Hash format in INDEX")
+			} else {
+				algo := matches[1]
+				expectedHash := matches[2]
+				if algo != "sha256" {
+					result.Warnings = append(result.Warnings, fmt.Sprintf("Unsupported Content-Hash algorithm: %s", algo))
+				} else {
+					contentText := strings.Join(lines[contentStart:], "\n")
+					sum := sha256.Sum256([]byte(contentText))
+					actualHash := hex.EncodeToString(sum[:])
+					hashMatches := false
+					if len(expectedHash) == 7 {
+						hashMatches = strings.HasPrefix(actualHash, expectedHash)
+					} else {
+						hashMatches = actualHash == expectedHash
+					}
+					if !hashMatches {
+						result.Warnings = append(result.Warnings, "INDEX Content-Hash does not match CONTENT (index may be stale)")
+					}
+				}
+			}
+		} else {
+			result.Warnings = append(result.Warnings, "INDEX missing Content-Hash (Run 'iatf rebuild' to add)")
+		}
+	}
+
 	openSections := []string{}
+	invalidNesting := false
 	for _, line := range lines {
 		if match := sectionOpenPattern.FindStringSubmatch(line); match != nil {
 			openSections = append(openSections, match[1])
@@ -2090,34 +2187,131 @@ func validateFileQuiet(filePath string) (bool, []string) {
 			if len(openSections) > 0 && openSections[len(openSections)-1] == id {
 				openSections = openSections[:len(openSections)-1]
 			} else {
-				errors = append(errors, fmt.Sprintf("Closing tag without matching opening: %s", id))
+				result.Errors = append(result.Errors, fmt.Sprintf("Closing tag without matching opening: %s", id))
+				invalidNesting = true
 			}
 		}
 	}
-	for _, id := range openSections {
-		errors = append(errors, fmt.Sprintf("Unclosed section: %s", id))
+	if len(openSections) > 0 {
+		for _, id := range openSections {
+			result.Errors = append(result.Errors, fmt.Sprintf("Unclosed section: %s", id))
+		}
+		invalidNesting = true
+	}
+	result.AllSectionsClosed = !invalidNesting
+
+	if !invalidNesting && contentStart != -1 {
+		contentOpen := []string{}
+		for i := contentStart; i < len(lines); i++ {
+			line := lines[i]
+			if match := sectionOpenPattern.FindStringSubmatch(line); match != nil {
+				contentOpen = append(contentOpen, match[1])
+				continue
+			}
+			if match := sectionClosePattern.FindStringSubmatch(line); match != nil {
+				if len(contentOpen) > 0 && contentOpen[len(contentOpen)-1] == match[1] {
+					contentOpen = contentOpen[:len(contentOpen)-1]
+				}
+				continue
+			}
+			if len(contentOpen) == 0 && strings.TrimSpace(line) != "" {
+				result.Errors = append(result.Errors, fmt.Sprintf("Content outside section block at line %d", i+1))
+				break
+			}
+		}
 	}
 
-	// Check for duplicate section IDs
+	if !invalidNesting && result.HasIndex && contentStart != -1 && indexStart != -1 {
+		indexEntryRe := regexp.MustCompile(`^#{1,6}\s+.*\{#([a-zA-Z][a-zA-Z0-9_-]*)\s*\|\s*lines:(\d+)-(\d+)[^}]*\}$`)
+		indexRanges := map[string][2]int{}
+		for _, line := range lines[indexStart+1 : contentStart] {
+			match := indexEntryRe.FindStringSubmatch(strings.TrimSpace(line))
+			if match == nil {
+				continue
+			}
+			id := match[1]
+			start := match[2]
+			end := match[3]
+			if _, exists := indexRanges[id]; exists {
+				result.Errors = append(result.Errors, fmt.Sprintf("Duplicate INDEX section ID: %s", id))
+				continue
+			}
+			startNum := 0
+			endNum := 0
+			fmt.Sscanf(start, "%d", &startNum)
+			fmt.Sscanf(end, "%d", &endNum)
+			if startNum < 1 || endNum < startNum || endNum > len(lines) {
+				result.Errors = append(result.Errors, fmt.Sprintf("Invalid line range for INDEX section: %s", id))
+			}
+			indexRanges[id] = [2]int{startNum, endNum}
+		}
+
+		contentSections := map[string][2]int{}
+		parsedSections := parseContentSection(lines, contentStart)
+		for _, section := range parsedSections {
+			contentSections[section.ID] = [2]int{section.Start, section.End}
+			if section.Level > 2 {
+				result.Errors = append(result.Errors, fmt.Sprintf("Section nesting exceeds 2 levels: %s", section.ID))
+			}
+		}
+
+		for id := range indexRanges {
+			if _, exists := contentSections[id]; !exists {
+				result.Errors = append(result.Errors, fmt.Sprintf("INDEX references missing CONTENT section: %s", id))
+			}
+		}
+		for id := range contentSections {
+			if _, exists := indexRanges[id]; !exists {
+				result.Errors = append(result.Errors, fmt.Sprintf("CONTENT section missing from INDEX: %s", id))
+			}
+		}
+		for id, contentRange := range contentSections {
+			if indexRange, exists := indexRanges[id]; exists {
+				if indexRange != contentRange {
+					result.Errors = append(result.Errors, fmt.Sprintf("INDEX line range mismatch for section: %s", id))
+				}
+			}
+		}
+	}
+
 	sectionIDs := make(map[string]bool)
 	for _, line := range lines {
 		if match := sectionOpenPattern.FindStringSubmatch(line); match != nil {
 			id := match[1]
 			if sectionIDs[id] {
-				errors = append(errors, fmt.Sprintf("Duplicate section ID: %s", id))
+				result.Errors = append(result.Errors, fmt.Sprintf("Duplicate section ID: %s", id))
 			}
 			sectionIDs[id] = true
 		}
 	}
-
-	// Validate references
-	if contentStart != -1 && len(openSections) == 0 {
-		parsedSections := parseContentSection(lines, contentStart)
-		refErrors := validateReferences(lines, contentStart, parsedSections)
-		errors = append(errors, refErrors...)
+	result.SectionCount = len(sectionIDs)
+	if result.SectionCount == 0 {
+		result.Warnings = append(result.Warnings, "No sections found in CONTENT")
 	}
 
-	return len(errors) == 0, errors
+	if !invalidNesting && contentStart != -1 {
+		parsedSectionsForRefs := parseContentSection(lines, contentStart)
+		refErrors := validateReferences(lines, contentStart, parsedSectionsForRefs)
+		if len(refErrors) == 0 {
+			result.ReferencesValid = true
+		} else {
+			result.Errors = append(result.Errors, refErrors...)
+		}
+	}
+
+	return result
+}
+
+// validateFileQuiet performs validation without printing, returns errors
+func validateFileQuiet(filePath string) (bool, []string) {
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return false, []string{fmt.Sprintf("Cannot read file: %v", err)}
+	}
+
+	lines, _ := splitNormalizedLines(content)
+	result := validateLines(lines)
+	return len(result.Errors) == 0, result.Errors
 }
 
 func validateCommand(filePath string) int {
@@ -2135,252 +2329,46 @@ func validateCommand(filePath string) int {
 	}
 
 	lines, _ := splitNormalizedLines(content)
-	errors := []string{}
-	warnings := []string{}
+	result := validateLines(lines)
 
-	if strings.TrimSpace(lines[0]) != ":::IATF" {
-		errors = append(errors, "Missing format declaration (:::IATF)")
-	} else {
+	if result.HasFormat {
 		fmt.Println("[OK] Format declaration found")
 	}
-	indexPositions := []int{}
-	contentPositions := []int{}
-	for i, line := range lines {
-		if strings.TrimSpace(line) == "===INDEX===" {
-			indexPositions = append(indexPositions, i)
-		} else if strings.TrimSpace(line) == "===CONTENT===" {
-			contentPositions = append(contentPositions, i)
-		}
-	}
-	hasIndex := len(indexPositions) > 0
-	hasContent := len(contentPositions) > 0
-
-	if hasIndex {
+	if result.HasIndex {
 		fmt.Println("[OK] INDEX section found")
-	} else {
-		warnings = append(warnings, "No INDEX section (Run 'iatf rebuild' to create)")
 	}
-
-	if hasContent {
+	if result.HasContent {
 		fmt.Println("[OK] CONTENT section found")
-	} else {
-		errors = append(errors, "Missing CONTENT section")
 	}
-
-	if len(indexPositions) > 1 {
-		errors = append(errors, "Multiple INDEX sections found")
-	}
-	if len(contentPositions) > 1 {
-		errors = append(errors, "Multiple CONTENT sections found")
-	}
-	if hasIndex && hasContent && indexPositions[0] > contentPositions[0] {
-		errors = append(errors, "INDEX section appears after CONTENT")
-	}
-
-	indexStart := -1
-	contentStart := -1
-	for i, line := range lines {
-		if strings.TrimSpace(line) == "===INDEX===" {
-			indexStart = i
-		} else if strings.TrimSpace(line) == "===CONTENT===" {
-			contentStart = i + 1
-			break
-		}
-	}
-
-	if contentStart != -1 {
-		if err := validateNesting(lines, contentStart); err != nil {
-			errors = append(errors, fmt.Sprintf("Invalid section nesting: %v", err))
-		}
-	}
-
-	if hasIndex {
-		contentHashLine := ""
-		if indexStart != -1 && contentStart != -1 {
-			for _, line := range lines[indexStart:contentStart] {
-				if strings.HasPrefix(line, "<!-- Content-Hash:") {
-					contentHashLine = line
-					break
-				}
-			}
-		}
-		if contentHashLine != "" && contentStart != -1 {
-			hashRe := regexp.MustCompile(`^<!-- Content-Hash:\s*([a-z0-9]+):([a-f0-9]+)\s*-->$`)
-			matches := hashRe.FindStringSubmatch(strings.TrimSpace(contentHashLine))
-			if matches == nil {
-				warnings = append(warnings, "Invalid Content-Hash format in INDEX")
-			} else {
-				algo := matches[1]
-				expectedHash := matches[2]
-				if algo != "sha256" {
-					warnings = append(warnings, fmt.Sprintf("Unsupported Content-Hash algorithm: %s", algo))
-				} else {
-					contentText := strings.Join(lines[contentStart:], "\n")
-					sum := sha256.Sum256([]byte(contentText))
-					actualHash := hex.EncodeToString(sum[:])
-					hashMatches := false
-					if len(expectedHash) == 7 {
-						hashMatches = strings.HasPrefix(actualHash, expectedHash)
-					} else {
-						hashMatches = actualHash == expectedHash
-					}
-					if !hashMatches {
-						warnings = append(warnings, "INDEX Content-Hash does not match CONTENT (index may be stale)")
-					}
-				}
-			}
-		} else {
-			warnings = append(warnings, "INDEX missing Content-Hash (Run 'iatf rebuild' to add)")
-		}
-	}
-
-	openSections := []string{}
-	invalidNesting := false
-	for _, line := range lines {
-		if match := sectionOpenPattern.FindStringSubmatch(line); match != nil {
-			openSections = append(openSections, match[1])
-		} else if match := sectionClosePattern.FindStringSubmatch(line); match != nil {
-			id := match[1]
-			if len(openSections) > 0 && openSections[len(openSections)-1] == id {
-				openSections = openSections[:len(openSections)-1]
-			} else {
-				errors = append(errors, fmt.Sprintf("Closing tag without matching opening: %s", id))
-				invalidNesting = true
-			}
-		}
-	}
-	if len(openSections) > 0 {
-		for _, id := range openSections {
-			errors = append(errors, fmt.Sprintf("Unclosed section: %s", id))
-		}
-		invalidNesting = true
-	}
-	if !invalidNesting {
+	if result.AllSectionsClosed {
 		fmt.Println("[OK] All sections properly closed")
 	}
-
-	if !invalidNesting && contentStart != -1 {
-		contentOpen := []string{}
-		for i := contentStart; i < len(lines); i++ {
-			line := lines[i]
-			if match := sectionOpenPattern.FindStringSubmatch(line); match != nil {
-				contentOpen = append(contentOpen, match[1])
-				continue
-			}
-			if match := sectionClosePattern.FindStringSubmatch(line); match != nil {
-				if len(contentOpen) > 0 && contentOpen[len(contentOpen)-1] == match[1] {
-					contentOpen = contentOpen[:len(contentOpen)-1]
-				}
-				continue
-			}
-			if len(contentOpen) == 0 && strings.TrimSpace(line) != "" {
-				errors = append(errors, fmt.Sprintf("Content outside section block at line %d", i+1))
-				break
-			}
-		}
+	if result.SectionCount > 0 {
+		fmt.Printf("[OK] Found %d section(s) with unique IDs\n", result.SectionCount)
 	}
-
-	if !invalidNesting && hasIndex && contentStart != -1 && indexStart != -1 {
-		indexEntryRe := regexp.MustCompile(`^#{1,6}\s+.*\{#([a-zA-Z][a-zA-Z0-9_-]*)\s*\|\s*lines:(\d+)-(\d+)[^}]*\}$`)
-		indexRanges := map[string][2]int{}
-		for _, line := range lines[indexStart+1 : contentStart] {
-			match := indexEntryRe.FindStringSubmatch(strings.TrimSpace(line))
-			if match == nil {
-				continue
-			}
-			id := match[1]
-			start := match[2]
-			end := match[3]
-			if _, exists := indexRanges[id]; exists {
-				errors = append(errors, fmt.Sprintf("Duplicate INDEX section ID: %s", id))
-				continue
-			}
-			startNum := 0
-			endNum := 0
-			fmt.Sscanf(start, "%d", &startNum)
-			fmt.Sscanf(end, "%d", &endNum)
-			if startNum < 1 || endNum < startNum || endNum > len(lines) {
-				errors = append(errors, fmt.Sprintf("Invalid line range for INDEX section: %s", id))
-			}
-			indexRanges[id] = [2]int{startNum, endNum}
-		}
-
-		contentSections := map[string][2]int{}
-		parsedSections := parseContentSection(lines, contentStart)
-		for _, section := range parsedSections {
-			contentSections[section.ID] = [2]int{section.Start, section.End}
-			if section.Level > 2 {
-				errors = append(errors, fmt.Sprintf("Section nesting exceeds 2 levels: %s", section.ID))
-			}
-		}
-
-		for id := range indexRanges {
-			if _, exists := contentSections[id]; !exists {
-				errors = append(errors, fmt.Sprintf("INDEX references missing CONTENT section: %s", id))
-			}
-		}
-		for id := range contentSections {
-			if _, exists := indexRanges[id]; !exists {
-				errors = append(errors, fmt.Sprintf("CONTENT section missing from INDEX: %s", id))
-			}
-		}
-		for id, contentRange := range contentSections {
-			if indexRange, exists := indexRanges[id]; exists {
-				if indexRange != contentRange {
-					errors = append(errors, fmt.Sprintf("INDEX line range mismatch for section: %s", id))
-				}
-			}
-		}
-	}
-
-	sectionIDs := make(map[string]bool)
-	for _, line := range lines {
-		if match := sectionOpenPattern.FindStringSubmatch(line); match != nil {
-			id := match[1]
-			if sectionIDs[id] {
-				errors = append(errors, fmt.Sprintf("Duplicate section ID: %s", id))
-			}
-			sectionIDs[id] = true
-		}
-	}
-
-	if len(sectionIDs) > 0 {
-		fmt.Printf("[OK] Found %d section(s) with unique IDs\n", len(sectionIDs))
-	} else {
-		warnings = append(warnings, "No sections found in CONTENT")
-	}
-
-	if !invalidNesting && contentStart != -1 {
-		parsedSectionsForRefs := parseContentSection(lines, contentStart)
-		refErrors := validateReferences(lines, contentStart, parsedSectionsForRefs)
-		if len(refErrors) == 0 {
-			fmt.Println("[OK] All references valid")
-		} else {
-			for _, refErr := range refErrors {
-				errors = append(errors, refErr)
-			}
-		}
+	if result.ReferencesValid {
+		fmt.Println("[OK] All references valid")
 	}
 
 	fmt.Println()
-	if len(errors) > 0 {
-		fmt.Printf("[ERROR] %d error(s) found:\n", len(errors))
-		for _, err := range errors {
+	if len(result.Errors) > 0 {
+		fmt.Printf("[ERROR] %d error(s) found:\n", len(result.Errors))
+		for _, err := range result.Errors {
 			fmt.Printf("  - %s\n", err)
 		}
 	}
 
-	if len(warnings) > 0 {
-		fmt.Printf("[WARN] %d warning(s):\n", len(warnings))
-		for _, warn := range warnings {
+	if len(result.Warnings) > 0 {
+		fmt.Printf("[WARN] %d warning(s):\n", len(result.Warnings))
+		for _, warn := range result.Warnings {
 			fmt.Printf("  - %s\n", warn)
 		}
 	}
 
-	if len(errors) == 0 && len(warnings) == 0 {
+	if len(result.Errors) == 0 && len(result.Warnings) == 0 {
 		fmt.Println("[OK] File is valid!")
 		return 0
-	} else if len(errors) == 0 {
+	} else if len(result.Errors) == 0 {
 		fmt.Println("\n[WARN] File is valid (with warnings)")
 		return 0
 	}

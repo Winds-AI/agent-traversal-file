@@ -1,0 +1,42 @@
+:::IATF
+@title: Invalid Nesting Depth
+
+===INDEX===
+<!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
+<!-- Generated: 2026-02-17T06:08:25Z -->
+<!-- Content-Hash: sha256:02ec738 -->
+
+# Level One {#level-one | lines:27-42 | words:3}
+> First level section
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: e2d1de5
+
+## Level Two {#level-two | lines:31-41 | words:3}
+> Second level section
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: b8e346d
+
+### Level Three {#level-three | lines:35-40 | words:12}
+> Third level should violate validator depth limit
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: 3182c6c
+
+
+===CONTENT===
+
+{#level-one}
+@summary: First level section
+# Level One
+
+{#level-two}
+@summary: Second level section
+# Level Two
+
+{#level-three}
+@summary: Third level should violate validator depth limit
+# Level Three
+
+This third nested level should be rejected by validate.
+{/level-three}
+{/level-two}
+{/level-one}

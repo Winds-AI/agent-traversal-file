@@ -35,6 +35,10 @@ See [docs/CONTRIBUTING.md](docs/CONTRIBUTING.md) for:
 See [docs/IDEAS.md](docs/IDEAS.md) for:
 - Experimental ideas and proposed features
 
+See [docs/agentic-usability-analysis.md](docs/agentic-usability-analysis.md) for:
+- Practical usability findings from manual/subagent testing
+- Retrieval efficiency measurements and implementation notes
+
 See [docs/TASKS.md](docs/TASKS.md) for:
 - Current and completed development tasks
 
@@ -127,6 +131,3 @@ MIT License - see [LICENSE](LICENSE) for details.
 ---
 
 **Made with love for AI agents and the humans who work with them.**
-
-
-

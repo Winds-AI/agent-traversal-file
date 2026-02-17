@@ -1,0 +1,35 @@
+:::IATF
+@title: No Index Yet Fixture
+@purpose: Validate warning-only behavior before the first rebuild
+
+===INDEX===
+<!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
+<!-- Generated: 2026-02-17T07:56:56Z -->
+<!-- Content-Hash: sha256:59fea95 -->
+
+# Seed {#seed | lines:23-28 | words:9}
+> Seed section before first index generation
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: a66ef86
+
+# Next {#next | lines:30-35 | words:11}
+> Follow-up section for bootstrap test
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: 4b6a77c
+
+
+===CONTENT===
+
+{#seed}
+@summary: Seed section before first index generation
+# Seed
+
+This file intentionally has no INDEX yet.
+{/seed}
+
+{#next}
+@summary: Follow-up section for bootstrap test
+# Next
+
+Run `iatf rebuild` to generate the initial INDEX section.
+{/next}

@@ -1,0 +1,37 @@
+:::IATF
+@title: Bootstrap Example Without Index
+@purpose: Start with CONTENT only and let rebuild create the first INDEX
+
+===INDEX===
+<!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
+<!-- Generated: 2026-02-17T06:08:25Z -->
+<!-- Content-Hash: sha256:acfe465 -->
+
+# Goal {#goal | lines:23-28 | words:12}
+> Why this file intentionally starts without INDEX
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: 10f7f54
+
+# Procedure {#procedure | lines:30-37 | words:22}
+> How to convert CONTENT-only file into fully indexed file
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: ceb42ad
+
+
+===CONTENT===
+
+{#goal}
+@summary: Why this file intentionally starts without INDEX
+# Goal
+
+This fixture is used to validate first-time `iatf rebuild` behavior.
+{/goal}
+
+{#procedure}
+@summary: How to convert CONTENT-only file into fully indexed file
+# Procedure
+
+1. Run `iatf rebuild` on this file.
+2. Confirm INDEX appears above CONTENT.
+3. Run `iatf validate` and ensure success.
+{/procedure}

@@ -1,26 +1,26 @@
 :::IATF
-@title: Incident Playbook Example
-@purpose: Test timelines, inline code, and prose-heavy sections
+@title: Incident Playbook
+@purpose: Quickstart-friendly playbook for demonstrating index-first traversal
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-01-30T09:52:01Z -->
-<!-- Content-Hash: sha256:c761c92 -->
+<!-- Generated: 2026-02-17T06:08:25Z -->
+<!-- Content-Hash: sha256:2ec4f24 -->
 
-# Incident Timeline {#incident | lines:28-40 | words:50}
+# Incident Timeline {#incident | lines:28-38 | words:36}
 > Incident response timeline template
-  Created: 2025-01-20 | Modified: 2026-01-30
-  Hash: e7534f5
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: 1d7fde3
 
-# Rollback Steps {#rollback | lines:42-57 | words:44}
+# Rollback Steps {#rollback | lines:40-55 | words:42}
 > Rollback steps with commands
-  Created: 2025-01-20 | Modified: 2026-01-30
-  Hash: f95ddb2
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: a27bb43
 
-# Action Items {#postmortem | lines:59-73 | words:45}
+# Postmortem Outline {#postmortem | lines:57-71 | words:42}
 > Post-incident writeup outline
-  Created: 2025-01-20 | Modified: 2026-01-30
-  Hash: 4ab0c91
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: f9d7c8e
 
 
 ===CONTENT===
@@ -29,50 +29,43 @@
 @summary: Incident response timeline template
 # Incident Timeline
 
-- T+00m: Detect alert and declare incident
-- T+05m: Assign incident commander and scribe
-- T+15m: Share initial customer update
-- T+30m: Identify mitigation steps
+- T+00m: Detect alert and declare incident.
+- T+05m: Assign incident commander and scribe.
+- T+15m: Publish first customer update.
+- T+30m: Choose mitigation or rollback path via {@rollback}.
 
-Keep all timestamps in UTC and link the primary ticket.
-If mitigation requires reversal, follow {@rollback}.
-After stabilization, capture outcomes in {@postmortem}.
+After stabilization, complete {@postmortem}.
 {/incident}
 
 {#rollback}
 @summary: Rollback steps with commands
 # Rollback Steps
 
-1. Pause deploys for the affected service
-2. Roll back to the last known good release
-3. Validate service health
+1. Pause deploys.
+2. Roll back to last known good release.
+3. Validate health checks and traffic recovery.
 
 ```
 ./deploy freeze
-./deploy rollback --service api --to release-2025-01-18
+./deploy rollback --service api --to release-2026-02-01
 ./deploy status --service api
 ```
 
-After service recovery, complete the {@postmortem} checklist.
+If recovery succeeds, document outcomes in {@postmortem}.
 {/rollback}
 
 {#postmortem}
 @summary: Post-incident writeup outline
 # Postmortem Outline
 
-## Summary
-Describe impact and duration in two or three sentences.
+Summary:
+Capture impact window, severity, and affected customers.
 
-## Root Cause
-List primary causes and contributing factors.
+Root Cause:
+List direct cause and contributing factors.
 
-## Action Items
-- [ ] Patch the root cause
-- [ ] Add monitoring
-- [ ] Document the runbook change
+Action Items:
+- [ ] Fix root cause permanently.
+- [ ] Add guardrail monitoring.
+- [ ] Update this runbook with learnings.
 {/postmortem}
-
-
-
-
-

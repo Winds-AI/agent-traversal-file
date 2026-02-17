@@ -1,0 +1,18 @@
+:::IATF
+@title: Invalid Broken Reference
+
+===CONTENT===
+
+{#start}
+@summary: Contains reference to non-existent section
+# Start
+
+This section references {@missing-section}, which is not defined.
+{/start}
+
+{#end}
+@summary: Valid section but unrelated to missing reference
+# End
+
+No additional references.
+{/end}

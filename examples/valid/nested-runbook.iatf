@@ -1,0 +1,75 @@
+:::IATF
+@title: Nested Runbook Example
+@purpose: Validate two-level nesting, summaries, and line-range generation
+
+===INDEX===
+<!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
+<!-- Generated: 2026-02-17T06:08:25Z -->
+<!-- Content-Hash: sha256:c00a30f -->
+
+# Release Runbook {#release-runbook | lines:38-68 | words:12}
+> End-to-end release runbook used by platform engineering
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: 66698ae
+
+## Preflight Checks {#preflight | lines:44-51 | words:20}
+> Checks completed before deployment starts
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: 5e1ecdd
+
+## Deployment Steps {#deployment | lines:53-60 | words:17}
+> Controlled rollout steps for the service
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: 794da7d
+
+## Rollback Plan {#rollback | lines:62-67 | words:15}
+> Recovery plan when rollout fails
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: 5c52daa
+
+# Post Release Review {#post-release-review | lines:70-75 | words:13}
+> Post-release checklist and follow-up tasks
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: 25aec7e
+
+
+===CONTENT===
+
+{#release-runbook}
+@summary: End-to-end release runbook used by platform engineering
+# Release Runbook
+
+This runbook coordinates preflight checks, deployment steps, and rollback.
+
+{#preflight}
+@summary: Checks completed before deployment starts
+# Preflight Checks
+
+- Confirm CI is green.
+- Confirm migration window is open.
+- Confirm pager owner is assigned.
+{/preflight}
+
+{#deployment}
+@summary: Controlled rollout steps for the service
+# Deployment Steps
+
+1. Deploy canary.
+2. Monitor error budget and latency.
+3. Promote to full rollout.
+{/deployment}
+
+{#rollback}
+@summary: Recovery plan when rollout fails
+# Rollback Plan
+
+If canary fails, revert to last known good release and follow {@post-release-review}.
+{/rollback}
+{/release-runbook}
+
+{#post-release-review}
+@summary: Post-release checklist and follow-up tasks
+# Post Release Review
+
+Document incidents, open action items, and confirm metric stabilization.
+{/post-release-review}

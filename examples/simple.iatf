@@ -1,24 +1,26 @@
 :::IATF
+@title: Simple IATF Fixture
+@purpose: Canonical fixture for tests and quick command sanity checks
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-02-11T22:34:24Z -->
-<!-- Content-Hash: sha256:d1e157d -->
+<!-- Generated: 2026-02-17T06:08:25Z -->
+<!-- Content-Hash: sha256:f881161 -->
 
-# How It Works {#intro | lines:26-44 | words:72}
+# Introduction {#intro | lines:28-35 | words:39}
 > Introduction to iatf format
   Created: 2026-01-30 | Modified: 2026-01-30
-  Hash: b3c54e2
+  Hash: ae60982
 
-# Validate {#usage | lines:46-71 | words:39}
+# Usage {#usage | lines:37-44 | words:27}
 > Basic usage examples
   Created: 2026-01-30 | Modified: 2026-01-30
-  Hash: 846db5b
+  Hash: 319c0ce
 
-# Next Steps {#next-steps | lines:73-83 | words:29}
+# Next Steps {#next-steps | lines:46-53 | words:25}
 > What to do next
   Created: 2026-01-30 | Modified: 2026-01-30
-  Hash: 2440fc7
+  Hash: 0faeea5
 
 
 ===CONTENT===
@@ -28,62 +30,24 @@
 # Introduction
 
 IATF (Indexed Agent Traversal Format) is a document format designed for AI agents.
-
-## Why IATF?
-
-- **Token efficient**: Agents load only what they need
-- **Self-indexing**: INDEX auto-generated from CONTENT
-- **Human readable**: Plain text, works with any editor
-- **Line-addressable**: Direct access to sections
-
-## How It Works
-
-1. Write content in CONTENT section
-2. Run `iatf rebuild` to generate INDEX
-3. Agents read INDEX to navigate efficiently
+It keeps a compact INDEX section and a detailed CONTENT section in one file.
+Agents can inspect summaries first, then read only relevant sections.
 {/intro}
 
 {#usage}
 @summary: Basic usage examples
 # Usage
 
-## Rebuild Index
-
-```
-iatf rebuild document.iatf
-```
-
-## Watch Mode
-
-```
-iatf watch document.iatf
-```
-
-File will auto-rebuild when you save changes.
-
-## Validate
-
-```
-iatf validate document.iatf
-```
-
-Checks if the file structure is valid.
+Use `iatf rebuild` after editing content.
+Use `iatf validate` to check structure and references.
+Use `iatf index`, `iatf find`, and `iatf read` for targeted retrieval.
 {/usage}
 
 {#next-steps}
 @summary: What to do next
 # Next Steps
 
-1. Create your own iatf file
-2. Try the rebuild command
-3. Use watch mode while editing
-4. Read the full specification at [SPECIFICATION.md](../docs/SPECIFICATION.md)
-
-Happy documenting!
+1. Duplicate this file for your own document.
+2. Keep section IDs stable.
+3. Use `{@usage}` as a pattern for internal references.
 {/next-steps}
-
-
-
-
-
-

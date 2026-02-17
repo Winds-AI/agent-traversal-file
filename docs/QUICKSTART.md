@@ -52,20 +52,20 @@ Open `examples/incident-playbook.iatf` and you'll see the auto-generated INDEX:
 ```
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-01-30T09:52:01Z -->
-<!-- Content-Hash: sha256:c761c92 -->
+<!-- Generated: 2026-02-17T...Z -->
+<!-- Content-Hash: sha256:... -->
 
-# Incident Timeline {#incident | lines:28-40 | words:50}
+# Incident Timeline {#incident | lines:28-38 | words:36}
 > Incident response timeline template
-  Created: 2025-01-20 | Modified: 2026-01-30
+  Created: 2026-02-17 | Modified: 2026-02-17
 
-# Rollback Steps {#rollback | lines:42-57 | words:44}
+# Rollback Steps {#rollback | lines:40-55 | words:42}
 > Rollback steps with commands
-  Created: 2025-01-20 | Modified: 2026-01-30
+  Created: 2026-02-17 | Modified: 2026-02-17
 
-# Action Items {#postmortem | lines:59-73 | words:45}
+# Postmortem Outline {#postmortem | lines:57-71 | words:42}
 > Post-incident writeup outline
-  Created: 2025-01-20 | Modified: 2026-01-30
+  Created: 2026-02-17 | Modified: 2026-02-17
 ```
 
 **Agents can now:**
@@ -91,11 +91,11 @@ answer = extract_section(content, "rollback")
 ```bash
 iatf index examples/incident-playbook.iatf | rg -i 'incident|rollback|postmortem'
 # Output:
-# # Incident Timeline {#incident | lines:28-40 | words:50}
+# # Incident Timeline {#incident | lines:28-38 | words:36}
 # > Incident response timeline template
-# # Rollback Steps {#rollback | lines:42-57 | words:44}
+# # Rollback Steps {#rollback | lines:40-55 | words:42}
 # > Rollback steps with commands
-# # Action Items {#postmortem | lines:59-73 | words:45}
+# # Postmortem Outline {#postmortem | lines:57-71 | words:42}
 # > Post-incident writeup outline
 ```
 
@@ -103,9 +103,9 @@ iatf index examples/incident-playbook.iatf | rg -i 'incident|rollback|postmortem
 ```bash
 iatf find examples/incident-playbook.iatf "rollback incident postmortem"
 # Output:
-# rollback    (score:...)  Rollback Steps
 # incident    (score:...)  Incident Timeline
-# postmortem  (score:...)  Action Items
+# postmortem  (score:...)  Postmortem Outline
+# rollback    (score:...)  Rollback Steps
 ```
 
 **Step 2: Check dependencies before implementing**
@@ -173,8 +173,8 @@ iatf read examples/incident-playbook.iatf incident | rg -o '\\{@[A-Za-z0-9_-]+\\
 **Fallback without iatf CLI (read by INDEX line numbers):**
 ```bash
 rg '^# .*\\{#rollback' examples/incident-playbook.iatf
-# Example output contains: lines:42-57
-sed -n '42,57p' examples/incident-playbook.iatf
+# Example output contains: lines:40-55
+sed -n '40,55p' examples/incident-playbook.iatf
 ```
 
 ---
@@ -183,7 +183,7 @@ sed -n '42,57p' examples/incident-playbook.iatf
 
 1. **Section IDs**: Use descriptive IDs like `rollback` instead of `section1`
 2. **Summaries**: Always add `@summary:` - agents rely on these!
-3. **Timestamps**: Update `@modified:` when you change a section
+3. **Timestamps**: Run `iatf rebuild` after changes so Created/Modified metadata stays current
 4. **Section references**: Link between sections with `{@section-id}` syntax
 
 ---
@@ -204,6 +204,5 @@ sed -n '42,57p' examples/incident-playbook.iatf
 ---
 
 **You're all set! Start creating efficient, agent-friendly documentation!**
-
 
 
