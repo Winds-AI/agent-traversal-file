@@ -13,12 +13,13 @@ IATF is a self-indexing format:
 
 Use this flow for every `.iatf` task unless user explicitly asks otherwise.
 
-1. Discover, don’t scan
-- `iatf index <file>` to see sections/summaries
-- `iatf find <file> <query>` to rank section IDs
+1. Discover, don't scan
+- `iatf index <file>` to see section IDs/summaries
+- `iatf find <file> <query>` to rank relevant IDs
 
 2. Read only what is needed
-- `iatf read <file> <id>` for top 1-3 IDs
+- `iatf read <file> <id>` for single-section lookup
+- `iatf read-many <file> <id> [id...]` for multi-section lookup in one call
 - For dependency/impact questions, use:
   - `iatf graph <file>`
   - `iatf graph <file> --show-incoming`
@@ -37,9 +38,9 @@ Use this flow for every `.iatf` task unless user explicitly asks otherwise.
 
 ## Hard Rules
 
-- Prefer `iatf` commands over full-file `cat`/global grep.
+- Prefer `iatf` commands over full-file `cat`/global grep for `.iatf` retrieval.
 - Do not assume references inside fenced code blocks are real edges.
-- Keep answers grounded in retrieved section IDs/titles.
+- Keep answers grounded in retrieved section IDs and summaries.
 
 ## Core Commands
 
@@ -47,18 +48,19 @@ Use this flow for every `.iatf` task unless user explicitly asks otherwise.
 iatf index <file>
 iatf find <file> <query>
 iatf read <file> <id>
-iatf read <file> --title "Title"
+iatf read-many <file> <id> [id...]
 iatf graph <file>
 iatf graph <file> --show-incoming
 iatf rebuild <file>
 iatf validate <file>
 ```
+See `additional-commands.md` in this same skill directory for watch/daemon and utility commands.
 
 ## Fast Patterns
 
 ```bash
-# Ranked retrieval (top 3)
-iatf find doc.iatf "<query>" | cut -f1 | head -3 | xargs -n1 -I{} iatf read doc.iatf {}
+# Ranked retrieval (top 3), one call to read-many
+iatf read-many doc.iatf $(iatf find doc.iatf "<query>" | cut -f1 | head -3)
 
 # Incoming impact for a section ID
 iatf graph doc.iatf --show-incoming | rg '^section-id'
