@@ -8,7 +8,7 @@ Complete guide to all IATF CLI commands and their options.
 
 ### `iatf rebuild <file>`
 
-Rebuilds the INDEX for a single IATF file. The tool scans all sections (marked with `{#section-id}` and `{/section-id}`), extracts metadata (@summary, @created, @modified), and generates an auto-indexed INDEX section.
+Rebuilds the INDEX for a single IATF file. The tool scans all sections (marked with `{#section-id}` and `{/section-id}`), extracts section summary metadata (`@summary`), and generates an auto-indexed INDEX section.
 
 **Usage:**
 ```bash
@@ -173,7 +173,7 @@ iatf index my-doc.iatf --with-dates
 
 ### `iatf validate <file>`
 
-Validates an IATF file for structural errors, missing metadata, and invalid syntax.
+Validates an IATF file for structural and reference errors, unsupported section annotations, and invalid syntax.
 
 **Usage:**
 ```bash
@@ -182,7 +182,7 @@ iatf validate my-doc.iatf
 
 **What it does:**
 1. Checks file structure (===INDEX=== and ===CONTENT=== sections)
-2. Validates all section metadata (missing @summary, @created, @modified)
+2. Validates section-header annotations (`@summary` is the only allowed annotation after `{#section-id}`)
 3. Checks for malformed section tags
 4. Reports errors and warnings
 5. Returns exit code 0 if valid, 1 if errors found
@@ -404,8 +404,6 @@ iatf daemon status           # Verify installation
    ```
    {#my-section}
    @summary: Brief description
-   @created: 2025-01-20
-   @modified: 2025-01-20
    # Section Title
 
    Content here...
@@ -413,6 +411,8 @@ iatf daemon status           # Verify installation
    ```
 3. Save the file (if watch mode is on, INDEX updates automatically)
 4. Otherwise run: `iatf rebuild filename.iatf`
+
+**Note:** Only `@summary:` is treated as section-header metadata. Other annotation-style lines like `@name:` in that metadata position are validation errors. Plain `@` text (for example emails/mentions) is treated as normal content.
 
 ### Linking Between Sections
 

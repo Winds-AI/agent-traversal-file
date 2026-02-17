@@ -147,6 +147,7 @@ The LSP server validates:
 - Duplicate section IDs
 - Unclosed sections
 - Mismatched open/close tags
+- Unsupported section annotations in section headers (`@summary` is the only allowed one)
 - Invalid references (non-existent targets)
 - Self-references
 

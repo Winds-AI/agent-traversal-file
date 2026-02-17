@@ -108,7 +108,7 @@ Following the declaration, optional metadata fields can appear:
 | `@title` | Document title | `@title: API Documentation` |
 | `@purpose` | Document purpose | `@purpose: Test timelines and prose-heavy sections` |
 
-**Note**: Only reserved fields (`@title` and `@purpose`) should be preserved. Custom metadata fields are not supported and should be ignored or rejected by implementations.
+**Current implementation note**: `@title` and `@purpose` are the documented header fields, but the CLI currently preserves additional header `@...` lines and does not reject them.
 
 ## 3. Index Section
 
@@ -237,7 +237,7 @@ Actual content starts here...
 **Reserved annotations**:
 - `@summary:` - Description shown in index (can span multiple lines if continued with indentation)
 
-Only `@summary:` is supported for content block annotations. Custom annotations (e.g., `@created`, `@modified`, `@author`) are not allowed and will be ignored or rejected by implementations.
+Only `@summary:` is supported for section-header annotations. Custom annotations (e.g., `@created`, `@modified`, `@author`) are rejected by validation when used immediately after `{#section-id}`. If `@...` appears later in normal section content, it is treated as plain text.
 
 **Automatic Modification Tracking**:
 When `iatf rebuild` runs, it automatically updates section modification data stored in the INDEX:
@@ -926,4 +926,3 @@ Batch operations available at `/resources/batch`.
 {/endpoints-resources}
 {/endpoints}
 ```
-

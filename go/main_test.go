@@ -138,3 +138,85 @@ func TestRebuildUpdatesOnlyChangedSectionModified(t *testing.T) {
 		}
 	}
 }
+
+func TestValidateRejectsUnsupportedSectionHeaderAnnotation(t *testing.T) {
+	lines := []string{
+		":::IATF",
+		"===CONTENT===",
+		"{#example}",
+		"@created: 2026-02-17",
+		"# Example",
+		"Body",
+		"{/example}",
+	}
+
+	result := validateLines(lines)
+	if len(result.Errors) == 0 {
+		t.Fatalf("expected validation error for unsupported section annotation")
+	}
+
+	found := false
+	for _, err := range result.Errors {
+		if strings.Contains(err, "Unsupported section annotation @created") {
+			found = true
+			break
+		}
+	}
+	if !found {
+		t.Fatalf("expected unsupported annotation error, got: %v", result.Errors)
+	}
+}
+
+func TestValidateAllowsAtSymbolInSectionContent(t *testing.T) {
+	lines := []string{
+		":::IATF",
+		"===CONTENT===",
+		"{#example}",
+		"@summary: Example summary",
+		"# Example",
+		"@username mentions stay as normal content text.",
+		"Body",
+		"{/example}",
+	}
+
+	result := validateLines(lines)
+	if len(result.Errors) != 0 {
+		t.Fatalf("expected no validation errors, got: %v", result.Errors)
+	}
+
+	sections := parseContentSection(lines, 2)
+	if len(sections) != 1 {
+		t.Fatalf("expected 1 section, got %d", len(sections))
+	}
+	if sections[0].Summary != "Example summary" {
+		t.Fatalf("unexpected summary: %q", sections[0].Summary)
+	}
+
+	foundContentLine := false
+	for _, line := range sections[0].ContentLines {
+		if strings.Contains(line, "@username mentions stay as normal content text.") {
+			foundContentLine = true
+			break
+		}
+	}
+	if !foundContentLine {
+		t.Fatalf("expected @content line to remain in section body, got: %v", sections[0].ContentLines)
+	}
+}
+
+func TestValidateAllowsLeadingAtTextWithoutAnnotationSyntax(t *testing.T) {
+	lines := []string{
+		":::IATF",
+		"===CONTENT===",
+		"{#example}",
+		"@username plain text line, not an annotation",
+		"# Example",
+		"Body",
+		"{/example}",
+	}
+
+	result := validateLines(lines)
+	if len(result.Errors) != 0 {
+		t.Fatalf("expected no validation errors, got: %v", result.Errors)
+	}
+}

@@ -49,6 +49,7 @@ var (
 	sectionOpenPattern  = regexp.MustCompile(`^\{#([a-zA-Z][a-zA-Z0-9_-]*)\}`)
 	sectionClosePattern = regexp.MustCompile(`^\{/([a-zA-Z][a-zA-Z0-9_-]*)\}`)
 	referencePattern    = regexp.MustCompile(`\{@([a-zA-Z][a-zA-Z0-9_-]*)\}`)
+	annotationTag       = regexp.MustCompile(`^@([a-zA-Z][a-zA-Z0-9_-]*):`)
 )
 
 type Section struct {
@@ -440,14 +441,10 @@ func parseContentSection(lines []string, contentStart int) []Section {
 		}
 
 		if len(stack) > 0 && inHeader[len(inHeader)-1] {
-			if strings.HasPrefix(line, "@") {
-				if strings.HasPrefix(line, "@summary:") {
-					sections[stack[len(stack)-1]].Summary = strings.TrimSpace(line[9:])
-					summaryContinuation[len(summaryContinuation)-1] = true
-				} else if strings.HasPrefix(line, "@created:") {
-					// @created is stored in INDEX, not CONTENT
-					summaryContinuation[len(summaryContinuation)-1] = false
-				}
+			trimmedHeader := strings.TrimLeft(line, " \t")
+			if strings.HasPrefix(trimmedHeader, "@summary:") {
+				sections[stack[len(stack)-1]].Summary = strings.TrimSpace(strings.TrimPrefix(trimmedHeader, "@summary:"))
+				summaryContinuation[len(summaryContinuation)-1] = true
 				continue
 			}
 			if (strings.HasPrefix(line, " ") || strings.HasPrefix(line, "\t")) && summaryContinuation[len(summaryContinuation)-1] {
@@ -483,6 +480,72 @@ func parseContentSection(lines []string, contentStart int) []Section {
 	}
 
 	return sections
+}
+
+type sectionHeaderState struct {
+	ID                  string
+	InHeader            bool
+	SummaryContinuation bool
+}
+
+// validateSectionAnnotations ensures only @summary is used as section-header metadata.
+// Any other @annotation inside regular section content is treated as normal text.
+func validateSectionAnnotations(lines []string, contentStart int) []string {
+	errors := []string{}
+	stack := []sectionHeaderState{}
+
+	for i := contentStart; i < len(lines); i++ {
+		line := lines[i]
+
+		if match := sectionOpenPattern.FindStringSubmatch(line); match != nil {
+			stack = append(stack, sectionHeaderState{
+				ID:                  match[1],
+				InHeader:            true,
+				SummaryContinuation: false,
+			})
+			continue
+		}
+
+		if match := sectionClosePattern.FindStringSubmatch(line); match != nil {
+			if len(stack) > 0 && stack[len(stack)-1].ID == match[1] {
+				stack = stack[:len(stack)-1]
+			} else {
+				// Let nesting validation report this separately.
+				stack = []sectionHeaderState{}
+			}
+			continue
+		}
+
+		if len(stack) == 0 {
+			continue
+		}
+
+		top := &stack[len(stack)-1]
+		if !top.InHeader {
+			continue
+		}
+
+		trimmedHeader := strings.TrimLeft(line, " \t")
+		if strings.HasPrefix(trimmedHeader, "@summary:") {
+			top.SummaryContinuation = true
+			continue
+		}
+		if top.SummaryContinuation && (strings.HasPrefix(line, " ") || strings.HasPrefix(line, "\t")) {
+			continue
+		}
+		if match := annotationTag.FindStringSubmatch(trimmedHeader); match != nil {
+			annotation := "@" + match[1]
+			errors = append(errors, fmt.Sprintf(
+				"Unsupported section annotation %s at line %d (only @summary is allowed)",
+				annotation, i+1,
+			))
+		}
+
+		top.InHeader = false
+		top.SummaryContinuation = false
+	}
+
+	return errors
 }
 
 func computeContentHash(contentLines []string) string {
@@ -2201,6 +2264,9 @@ func validateLines(lines []string) validationResult {
 	result.AllSectionsClosed = !invalidNesting
 
 	if !invalidNesting && contentStart != -1 {
+		annotationErrors := validateSectionAnnotations(lines, contentStart)
+		result.Errors = append(result.Errors, annotationErrors...)
+
 		contentOpen := []string{}
 		for i := contentStart; i < len(lines); i++ {
 			line := lines[i]

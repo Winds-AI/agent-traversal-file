@@ -15,6 +15,7 @@ var (
 	sectionOpenPattern  = regexp.MustCompile(`\{#([a-zA-Z][a-zA-Z0-9_-]*)\}`)
 	sectionClosePattern = regexp.MustCompile(`\{/([a-zA-Z][a-zA-Z0-9_-]*)\}`)
 	referencePattern    = regexp.MustCompile(`\{@([a-zA-Z][a-zA-Z0-9_-]*)\}`)
+	annotationTag       = regexp.MustCompile(`^@([a-zA-Z][a-zA-Z0-9_-]*):`)
 )
 
 // Section represents an IATF section with its metadata
@@ -266,8 +267,9 @@ func (d *Document) parseSections() {
 				Level:    len(stack) + 1,
 			}
 
-			// Look for summary annotation and title in the following lines
-			d.extractSectionMetadata(section, i+1)
+			// Look for summary annotation/title and validate section-header annotations.
+			metadataErrors := d.extractSectionMetadata(section, i+1)
+			d.Errors = append(d.Errors, metadataErrors...)
 
 			d.Sections[id] = section
 			d.OrderedSections = append(d.OrderedSections, section)
@@ -325,8 +327,13 @@ func (d *Document) parseSections() {
 	}
 }
 
-// extractSectionMetadata extracts @summary and title from section content
-func (d *Document) extractSectionMetadata(section *Section, startLine int) {
+// extractSectionMetadata extracts @summary and title from section content.
+// Only @summary is treated as section-header metadata; other @annotations are rejected.
+func (d *Document) extractSectionMetadata(section *Section, startLine int) []ValidationError {
+	validationErrors := []ValidationError{}
+	inHeader := true
+	summaryContinuation := false
+
 	for i := startLine; i < len(d.Lines) && i < startLine+10; i++ {
 		line := d.Lines[i]
 		trimmed := strings.TrimSpace(line)
@@ -336,17 +343,49 @@ func (d *Document) extractSectionMetadata(section *Section, startLine int) {
 			break
 		}
 
-		// Extract @summary
-		if strings.HasPrefix(trimmed, "@summary:") {
-			section.Summary = strings.TrimSpace(strings.TrimPrefix(trimmed, "@summary:"))
-			continue
+		trimmedLeft := strings.TrimLeft(line, " \t")
+		if inHeader {
+			if strings.HasPrefix(trimmedLeft, "@summary:") {
+				section.Summary = strings.TrimSpace(strings.TrimPrefix(trimmedLeft, "@summary:"))
+				summaryContinuation = true
+				continue
+			}
+			if summaryContinuation && (strings.HasPrefix(line, " ") || strings.HasPrefix(line, "\t")) {
+				continuation := strings.TrimSpace(line)
+				if continuation != "" {
+					if section.Summary == "" {
+						section.Summary = continuation
+					} else {
+						section.Summary += " " + continuation
+					}
+				}
+				continue
+			}
+			if match := annotationTag.FindStringSubmatch(trimmedLeft); match != nil && match[1] != "summary" {
+				annotation := "@" + match[1]
+				startCol := strings.Index(line, "@")
+				if startCol < 0 {
+					startCol = 0
+				}
+				validationErrors = append(validationErrors, ValidationError{
+					Message:  "Only @summary is allowed in section header; found " + annotation,
+					Line:     i,
+					StartCol: startCol,
+					EndCol:   startCol + len(annotation),
+					Severity: protocol.DiagnosticSeverityError,
+				})
+			}
+			inHeader = false
+			summaryContinuation = false
 		}
 
-		// Extract title from first heading
+		// Extract title from first heading after metadata header.
 		if strings.HasPrefix(trimmed, "#") && section.Title == section.ID {
 			section.Title = strings.TrimSpace(strings.TrimLeft(trimmed, "#"))
 		}
 	}
+
+	return validationErrors
 }
 
 // parseReferences parses all cross-references in the document
@@ -496,7 +535,7 @@ func (d *Document) GetCompletions(
 	}
 
 	if prefix, ok := metadataPrefix(beforeCursor); ok {
-		return buildMetadataCompletions(prefix)
+		return d.buildMetadataCompletions(line, prefix)
 	}
 
 	if settings.IncludeTitles {
@@ -547,8 +586,17 @@ func metadataPrefix(beforeCursor string) (string, bool) {
 	return typed, true
 }
 
-func buildMetadataCompletions(prefix string) []protocol.CompletionItem {
-	keys := []string{"title", "purpose", "summary", "created", "modified", "hash"}
+func (d *Document) buildMetadataCompletions(line int, prefix string) []protocol.CompletionItem {
+	keys := []string{}
+	switch {
+	case d.inDocumentHeaderRange(line):
+		keys = []string{"title", "purpose"}
+	case d.inSectionAnnotationHeaderAtLine(line):
+		keys = []string{"summary"}
+	default:
+		return nil
+	}
+
 	items := []protocol.CompletionItem{}
 	for i, key := range keys {
 		if strings.HasPrefix(key, prefix) {
@@ -722,6 +770,83 @@ func (d *Document) inContentRange(line int) bool {
 		}
 	}
 	return contentLine != -1 && line > contentLine
+}
+
+func (d *Document) inDocumentHeaderRange(line int) bool {
+	if line <= 0 {
+		return false
+	}
+
+	limit := len(d.Lines)
+	for i, text := range d.Lines {
+		trimmed := strings.TrimSpace(text)
+		if trimmed == "===INDEX===" || trimmed == "===CONTENT===" {
+			limit = i
+			break
+		}
+	}
+
+	return line < limit
+}
+
+func (d *Document) inSectionAnnotationHeaderAtLine(line int) bool {
+	contentStart := -1
+	for i, text := range d.Lines {
+		if strings.TrimSpace(text) == "===CONTENT===" {
+			contentStart = i + 1
+			break
+		}
+	}
+	if contentStart == -1 || line < contentStart {
+		return false
+	}
+
+	type sectionState struct {
+		id                  string
+		inHeader            bool
+		summaryContinuation bool
+	}
+
+	stack := []sectionState{}
+	for i := contentStart; i < len(d.Lines) && i < line; i++ {
+		text := d.Lines[i]
+		if matches := sectionOpenPattern.FindStringSubmatch(text); matches != nil {
+			stack = append(stack, sectionState{
+				id:                  matches[1],
+				inHeader:            true,
+				summaryContinuation: false,
+			})
+			continue
+		}
+		if matches := sectionClosePattern.FindStringSubmatch(text); matches != nil {
+			if len(stack) > 0 && stack[len(stack)-1].id == matches[1] {
+				stack = stack[:len(stack)-1]
+			}
+			continue
+		}
+		if len(stack) == 0 {
+			continue
+		}
+
+		top := &stack[len(stack)-1]
+		if !top.inHeader {
+			continue
+		}
+
+		trimmedLeft := strings.TrimLeft(text, " \t")
+		if strings.HasPrefix(trimmedLeft, "@summary:") {
+			top.summaryContinuation = true
+			continue
+		}
+		if top.summaryContinuation && (strings.HasPrefix(text, " ") || strings.HasPrefix(text, "\t")) {
+			continue
+		}
+
+		top.inHeader = false
+		top.summaryContinuation = false
+	}
+
+	return len(stack) > 0 && stack[len(stack)-1].inHeader
 }
 
 func (d *Document) buildTitleCompletions(line int, col int, prefix string) []protocol.CompletionItem {
