@@ -1,69 +1,47 @@
 :::IATF
-@title: Cross Reference Navigation
-@purpose: Validate find/read/graph behavior and fenced-code reference handling
+@title: Valid Cross References
+@purpose: Directory-level valid fixture for reference graph checks
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-02-17T06:08:25Z -->
-<!-- Content-Hash: sha256:c6d8b19 -->
+<!-- Generated: 2026-02-17T09:16:35Z -->
+<!-- Content-Hash: sha256:a9641dc -->
 
-# Overview {#overview | lines:33-39 | words:22}
-> High-level orientation for the document
+# Start {#start | lines:28-33 | words:8}
+> Entry point for this small graph fixture
   Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: b237d5a
+  Hash: e5e6eac
 
-# Authentication {#authentication | lines:41-47 | words:19}
-> How credentials are issued and rotated
+# Middle {#middle | lines:35-40 | words:12}
+> Middle node with two outgoing references
   Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 76eae90
+  Hash: ea80295
 
-# This should NOT be parsed as a real reference because it is fenced code. {#incident-flow | lines:49-61 | words:40}
-> Steps for triage and remediation
+# End {#end | lines:42-47 | words:6}
+> Terminal node with backlink for graph symmetry
   Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: f0de3b8
-
-# FAQ {#faq | lines:63-69 | words:17}
-> Frequently asked troubleshooting questions
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 650df14
+  Hash: ccb02fb
 
 
 ===CONTENT===
 
-{#overview}
-@summary: High-level orientation for the document
-# Overview
+{#start}
+@summary: Entry point for this small graph fixture
+# Start
 
-This guide explains navigation flow, authentication expectations, and failure handling.
-Read {@authentication} before operating workflows and use {@incident-flow} for escalations.
-{/overview}
+Move to {@middle} for dependent steps.
+{/start}
 
-{#authentication}
-@summary: How credentials are issued and rotated
-# Authentication
+{#middle}
+@summary: Middle node with two outgoing references
+# Middle
 
-Operators use short-lived access tokens and quarterly key rotation.
-If login fails after rotation, jump to {@incident-flow}.
-{/authentication}
+After this section, read {@end} and then return to {@start}.
+{/middle}
 
-{#incident-flow}
-@summary: Steps for triage and remediation
-# Incident Flow
+{#end}
+@summary: Terminal node with backlink for graph symmetry
+# End
 
-When an incident starts, verify scope and severity.
-If root cause is unclear, consult {@faq}.
-
-Example script:
-```
-# This should NOT be parsed as a real reference because it is fenced code.
-echo "See {@fake-target}"
-```
-{/incident-flow}
-
-{#faq}
-@summary: Frequently asked troubleshooting questions
-# FAQ
-
-Q: Where should new engineers start?
-A: Start from {@overview}, then review {@authentication} and {@incident-flow}.
-{/faq}
+This section references {@start}.
+{/end}

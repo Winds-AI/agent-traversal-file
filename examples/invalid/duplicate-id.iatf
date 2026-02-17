@@ -1,18 +1,18 @@
 :::IATF
-@title: Invalid Duplicate ID
+@title: Invalid - Duplicate IDs
 
 ===CONTENT===
 
-{#repeat}
-@summary: First section with ID repeat
+{#dup}
+@summary: First section using dup
 # First
 
-This section uses ID repeat.
-{/repeat}
+Body.
+{/dup}
 
-{#repeat}
-@summary: Second section incorrectly reusing ID repeat
+{#dup}
+@summary: Second section reusing dup
 # Second
 
-This section reuses the same ID and should fail validation.
-{/repeat}
+Body.
+{/dup}

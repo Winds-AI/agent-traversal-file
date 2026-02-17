@@ -190,7 +190,9 @@ Each index entry follows this format:
 2. Skipping levels is allowed (# followed by ###)
 3. Parent sections' line ranges MUST contain children's ranges
 4. IDs MUST be unique within the document
-5. Implementations may enforce a maximum nesting depth (this project enforces 2 levels)
+5. Implementations may enforce a maximum nesting depth
+
+**Current implementation note**: The CLI currently reports nesting depth >2 as a validation error only when an `===INDEX===` section is present (because depth checks run during INDEX/CONTENT consistency validation).
 
 ## 4. Content Section
 
@@ -335,7 +337,7 @@ Valid IDs:
 - Start with a letter (a-z, A-Z)
 - Contain letters, numbers, hyphens, underscores
 - Case-sensitive
-- 1-64 characters long
+- No maximum length is currently enforced by the CLI
 
 ```
 Valid:   intro, getting-started, section_1, apiV2Reference
@@ -437,19 +439,33 @@ See [IDEAS.md](./IDEAS.md) for editor plugin development ideas.
 
 ## 12. Validation Rules
 
-A valid IATF file MUST:
+The current CLI applies a mix of errors and warnings:
 
-1. [check]" Start with `:::IATF/` declaration
-2. [check]" Have exactly one `===INDEX===` section
-3. [check]" Have exactly one `===CONTENT===` section
-4. [check]" Have INDEX before CONTENT
-5. [check]" Have all IDs in CONTENT be unique
-6. [check]" Have all index IDs match content blocks
-7. [check]" Have properly nested content blocks
-8. [check]" Have INDEX marked as auto-generated
-9. [check]" Have valid content hash (if present)
+### 12.1 Validation errors (exit code 1)
 
-### 12.1 Index Staleness Detection
+1. Missing format declaration (`:::IATF`)
+2. Missing `===CONTENT===` section
+3. Multiple `===INDEX===` or multiple `===CONTENT===` sections
+4. `===INDEX===` appears after `===CONTENT===`
+5. Invalid nesting (unclosed section or mismatched closing tag)
+6. Content outside section blocks
+7. Duplicate section IDs in CONTENT
+8. Unsupported section-header annotations (only `@summary` is allowed immediately after `{#id}`)
+9. Invalid references (`{@missing}` targets, self-references)
+10. If INDEX exists: INDEX/CONTENT consistency errors (missing IDs, line-range mismatch, duplicate IDs in INDEX)
+
+### 12.2 Validation warnings (exit code 0)
+
+1. Missing INDEX section
+2. Missing/invalid/stale INDEX `Content-Hash`
+3. No sections found in CONTENT
+
+### 12.3 Conditional checks tied to INDEX presence
+
+- Nesting depth >2 is currently reported only when INDEX is present.
+- INDEX-related consistency checks run only when INDEX is present.
+
+### 12.4 Index Staleness Detection
 
 Tools should verify INDEX matches CONTENT by:
 
@@ -458,9 +474,9 @@ Tools should verify INDEX matches CONTENT by:
 3. Warning if mismatch detected
 4. Offering to rebuild INDEX if stale
 
-### 12.2 Validation Levels
+### 12.5 Validation Levels
 
-**Level 1 - Structure**: File has required sections in correct order
+**Level 1 - Structure**: File has required declarations in correct order (`:::IATF`, `===CONTENT===`; INDEX optional)
 **Level 2 - Consistency**: All IDs in INDEX exist in CONTENT
 **Level 3 - Accuracy**: Line numbers and word counts match actual content (requires parse)
 **Level 4 - Freshness**: Content hash matches, INDEX is current
@@ -500,7 +516,11 @@ Content here.
 {/main}
 ```
 
-**Note**: The INDEX section is optional in hand-written files. Parsing tools will generate it when needed. The `graph` command requires an INDEX section and will fail if it is missing.
+**Note**: The INDEX section is optional in hand-written files. Parsing tools will generate it when needed.
+
+Current command behavior:
+- `iatf read`, `iatf find`, and `iatf index` require INDEX.
+- `iatf graph` does not require INDEX; it reads section/reference structure directly from CONTENT.
 
 ## 13A. Section References
 
@@ -530,7 +550,8 @@ See {@intro} for context.
 | **Self-reference** | **Error** - A section cannot reference itself |
 | **Missing target** | **Error** - Reference must point to existing section |
 | **Circular refs** | **Allowed** - A->B->A is valid |
-| **Inside code blocks/spans** | **Ignored** - References inside fenced code blocks (```) are not validated |
+| **Inside fenced code blocks** | **Ignored** - References inside fenced code blocks (```) are not validated |
+| **Inside inline code spans** | **Validated** - Backtick inline code does not disable reference matching |
 | **INDEX impact** | None - References do not affect INDEX generation |
 
 **Code block rule:** Only lines that are exactly three backticks (```), with no extra characters, open/close a fenced code block. Any other number of backticks is treated as normal text.
@@ -610,7 +631,7 @@ section-with-no-incoming
 - References are comma-separated, sorted alphabetically
 - Blank line after header
 **Errors:**
-- Missing INDEX section: command fails with a non-zero exit code
+- Invalid section nesting: command fails with a non-zero exit code
 - Missing CONTENT section: command fails with a non-zero exit code
 - No sections in CONTENT: command fails with a non-zero exit code
 
@@ -693,7 +714,7 @@ lines = output.strip().split('\n')
 graph = {}
 
 for line in lines[2:]:  # Skip header and blank line
-    if '-> in line:
+    if '->' in line:
         # Has references
         section, refs = line.split(' -> ')
         graph[section] = [r.strip() for r in refs.split(',')]

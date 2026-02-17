@@ -1,0 +1,38 @@
+:::IATF
+@title: Multiline Summary Fixture
+@purpose: Validate summary continuation parsing and rendering
+
+===INDEX===
+<!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
+<!-- Generated: 2026-02-17T09:16:35Z -->
+<!-- Content-Hash: sha256:90f5bdb -->
+
+# Retrieval Strategy {#retrieval-strategy | lines:23-30 | words:12}
+> Retrieval strategy comparison for agent workflows with emphasis on index-first discovery, targeted reads, and dependency awareness.
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: 92ce359
+
+# Tradeoffs {#tradeoffs | lines:32-38 | words:10}
+> Tradeoffs of strict structure versus free-form writing when teams iterate quickly in operational docs.
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: 39fed97
+
+
+===CONTENT===
+
+{#retrieval-strategy}
+@summary: Retrieval strategy comparison for agent workflows
+  with emphasis on index-first discovery, targeted reads,
+  and dependency awareness.
+# Retrieval Strategy
+
+Index-first traversal typically reduces prompt bloat in large documents.
+{/retrieval-strategy}
+
+{#tradeoffs}
+@summary: Tradeoffs of strict structure versus free-form writing
+  when teams iterate quickly in operational docs.
+# Tradeoffs
+
+Structured writing adds process overhead but improves retrievability.
+{/tradeoffs}

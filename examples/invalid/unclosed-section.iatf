@@ -1,10 +1,10 @@
 :::IATF
-@title: Invalid Unclosed Section
+@title: Invalid - Unclosed Section
 
 ===CONTENT===
 
 {#open}
-@summary: Missing closing tag should trigger nesting error
-# Open Section
+@summary: Missing close tag
+# Open
 
 This section never closes.

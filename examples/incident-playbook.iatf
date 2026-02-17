@@ -1,71 +1,83 @@
 :::IATF
 @title: Incident Playbook
-@purpose: Quickstart-friendly playbook for demonstrating index-first traversal
+@purpose: Realistic operations fixture for index-first traversal and graph analysis
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-02-17T06:08:25Z -->
-<!-- Content-Hash: sha256:2ec4f24 -->
+<!-- Generated: 2026-02-17T09:16:35Z -->
+<!-- Content-Hash: sha256:1fc44e2 -->
 
-# Incident Timeline {#incident | lines:28-38 | words:36}
-> Incident response timeline template
+# Detect and Declare {#detect | lines:38-47 | words:30}
+> First-response detection and role assignment
   Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 1d7fde3
+  Hash: 34ba328
 
-# Rollback Steps {#rollback | lines:40-55 | words:42}
-> Rollback steps with commands
+# Mitigation Plan {#mitigate | lines:49-56 | words:21}
+> Short-term mitigation and risk reduction plan
   Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: a27bb43
+  Hash: 4323152
 
-# Postmortem Outline {#postmortem | lines:57-71 | words:42}
-> Post-incident writeup outline
+# Rollback {#rollback | lines:58-66 | words:25}
+> Controlled rollback sequence and verification checks
   Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: f9d7c8e
+  Hash: c2859e3
+
+# Communications {#comms | lines:68-75 | words:24}
+> Internal and external communication checkpoints
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: a0e82f3
+
+# Postmortem {#postmortem | lines:77-83 | words:19}
+> Structured post-incident writeup and action tracking
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: f091735
 
 
 ===CONTENT===
 
-{#incident}
-@summary: Incident response timeline template
-# Incident Timeline
+{#detect}
+@summary: First-response detection and role assignment
+# Detect and Declare
 
-- T+00m: Detect alert and declare incident.
-- T+05m: Assign incident commander and scribe.
-- T+15m: Publish first customer update.
-- T+30m: Choose mitigation or rollback path via {@rollback}.
+- Confirm the alert is real and customer-impacting.
+- Assign incident commander and scribe.
+- Open status channel and incident ticket.
 
-After stabilization, complete {@postmortem}.
-{/incident}
+Continue with {@mitigate} after declaration.
+{/detect}
+
+{#mitigate}
+@summary: Short-term mitigation and risk reduction plan
+# Mitigation Plan
+
+Apply traffic shaping, feature flags, or service isolation.
+If mitigation fails, execute {@rollback}.
+Coordinate external comms through {@comms}.
+{/mitigate}
 
 {#rollback}
-@summary: Rollback steps with commands
-# Rollback Steps
+@summary: Controlled rollback sequence and verification checks
+# Rollback
 
-1. Pause deploys.
-2. Roll back to last known good release.
-3. Validate health checks and traffic recovery.
-
-```
-./deploy freeze
-./deploy rollback --service api --to release-2026-02-01
-./deploy status --service api
-```
-
-If recovery succeeds, document outcomes in {@postmortem}.
+1. Freeze deployments.
+2. Roll back to previous stable version.
+3. Verify core endpoints and queue drain.
+4. Update timeline in {@postmortem} notes.
 {/rollback}
 
+{#comms}
+@summary: Internal and external communication checkpoints
+# Communications
+
+- Publish updates every 15 minutes.
+- Include impact scope, mitigation status, and ETA.
+- After recovery, link final notes to {@postmortem}.
+{/comms}
+
 {#postmortem}
-@summary: Post-incident writeup outline
-# Postmortem Outline
+@summary: Structured post-incident writeup and action tracking
+# Postmortem
 
-Summary:
-Capture impact window, severity, and affected customers.
-
-Root Cause:
-List direct cause and contributing factors.
-
-Action Items:
-- [ ] Fix root cause permanently.
-- [ ] Add guardrail monitoring.
-- [ ] Update this runbook with learnings.
+Capture timeline, root cause, blast radius, and follow-up actions.
+Reference {@rollback} outcomes and communication quality from {@comms}.
 {/postmortem}

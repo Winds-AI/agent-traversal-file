@@ -1,94 +1,88 @@
 # IATF Example Corpus (E2E Testing)
 
-This folder contains an end-to-end test corpus for the current IATF CLI and validator.
+This corpus is designed for end-to-end validation of the current CLI and parser behavior.
 
-## Structure
-
-- `simple.iatf`
-  - Canonical smoke-test fixture used by Go tests and manual checks.
-- `incident-playbook.iatf`
-  - Quickstart-focused file for `index`, `find`, `read`, and `graph` demos.
-- `cross-references.iatf`
-  - Root-level graph/reference fixture for docs compatibility.
-- `valid/`
-  - Additional valid fixtures with different structure patterns.
-- `warnings/`
-  - Structurally valid fixtures expected to return warnings.
-- `invalid/`
-  - Fixtures expected to fail validation.
-
-## Valid Fixtures
+## Layout
 
 - `examples/simple.iatf`
-  - Basic 3-section document with summaries and one reference.
+  - Small smoke test for `rebuild`, `validate`, `index`, `find`, and `read`.
 - `examples/incident-playbook.iatf`
-  - Incident workflow with cross references and command snippets.
+  - Operational workflow fixture with references for realistic navigation.
 - `examples/cross-references.iatf`
-  - Multiple sections with references; includes fenced code containing a fake reference.
+  - Graph/reference fixture with fenced-code edge cases.
+- `examples/product-ops-manual.iatf`
+  - Larger multi-section fixture for agentic retrieval and token analysis.
+- `examples/scalability-handbook.iatf`
+  - Large 40-section fixture for sparse-retrieval and token-scaling evaluation.
+- `examples/valid/`
+  - Valid fixtures covering nesting, multiline summaries, and header metadata tolerance.
+- `examples/warnings/`
+  - Warning-only fixtures (validation exit code 0).
+- `examples/invalid/`
+  - Error fixtures (validation exit code 1).
+
+## Expected Validation Outcomes
+
+### Valid (`validate` succeeds with no warnings)
+
+- `examples/simple.iatf`
+- `examples/incident-playbook.iatf`
+- `examples/cross-references.iatf`
+- `examples/product-ops-manual.iatf`
+- `examples/scalability-handbook.iatf`
 - `examples/valid/cross-references.iatf`
-  - Same scenario as root fixture for directory-based test runs.
 - `examples/valid/nested-runbook.iatf`
-  - Two-level nested sections (maximum supported depth).
-- `examples/valid/no-index-bootstrap.iatf`
-  - CONTENT-first file intended for first-time `iatf rebuild` bootstrap testing.
+- `examples/valid/multiline-summary.iatf`
+- `examples/valid/header-custom-field.iatf`
 
-## Warning Fixture
+### Warning-Only (`validate` succeeds with warnings)
 
-- `examples/warnings/stale-index.iatf`
-  - Expected: `iatf validate` succeeds with stale `Content-Hash` warning.
 - `examples/warnings/no-index-yet.iatf`
-  - Expected: `iatf validate` succeeds with "No INDEX section" warning until first rebuild.
+  - Missing INDEX (bootstrap scenario).
+- `examples/warnings/stale-index.iatf`
+  - INDEX hash intentionally stale.
+- `examples/warnings/missing-content-hash.iatf`
+  - INDEX exists but missing Content-Hash comment.
 
-## Invalid Fixtures (Expected `validate` failure)
+### Invalid (`validate` fails)
 
-- `examples/invalid/duplicate-id.iatf`
-  - Duplicate section IDs.
 - `examples/invalid/broken-reference.iatf`
-  - Reference to missing section.
-- `examples/invalid/self-reference.iatf`
-  - Self-reference in section body.
-- `examples/invalid/unclosed-section.iatf`
-  - Missing closing section tag.
 - `examples/invalid/content-outside-section.iatf`
-  - Stray content outside any section block.
+- `examples/invalid/duplicate-id.iatf`
 - `examples/invalid/index-after-content.iatf`
-  - Delimiter order violation (`INDEX` appears after `CONTENT`).
+- `examples/invalid/index-content-mismatch.iatf`
 - `examples/invalid/nesting-depth-3.iatf`
-  - Third-level nested section (validator limit is depth 2).
+- `examples/invalid/self-reference.iatf`
+- `examples/invalid/unclosed-section.iatf`
+- `examples/invalid/unsupported-annotation.iatf`
 
-## Manual E2E Command Set
+## Suggested Manual E2E Sweep
 
 ```bash
-# Build local CLI once from repo root
+# Build CLI from source
 GOCACHE=/tmp/go-build-cache GOMODCACHE=/tmp/go-mod-cache go build -o iatf ./go
 
-# Rebuild valid fixtures only
+# Rebuild core/valid fixtures
 ./iatf rebuild examples/simple.iatf
 ./iatf rebuild examples/incident-playbook.iatf
 ./iatf rebuild examples/cross-references.iatf
+./iatf rebuild examples/product-ops-manual.iatf
 ./iatf rebuild-all examples/valid
 
-# Optional warning fixture bootstrap
-./iatf rebuild examples/warnings/no-index-yet.iatf
+# Validate valid and warning fixtures
+for f in examples/*.iatf examples/valid/*.iatf examples/warnings/*.iatf; do
+  ./iatf validate "$f"
+done
 
-# Validate expected-pass fixtures
-./iatf validate examples/simple.iatf
-./iatf validate examples/incident-playbook.iatf
-./iatf validate examples/cross-references.iatf
-./iatf validate examples/valid/cross-references.iatf
-./iatf validate examples/valid/nested-runbook.iatf
-./iatf validate examples/valid/no-index-bootstrap.iatf
-./iatf validate examples/warnings/stale-index.iatf
-
-# Validate expected-fail fixtures
+# Validate invalid fixtures (expected non-zero)
 for f in examples/invalid/*.iatf; do
   ./iatf validate "$f"
 done
 
 # Navigation checks
 ./iatf index examples/incident-playbook.iatf
-./iatf find examples/incident-playbook.iatf rollback
-./iatf read examples/incident-playbook.iatf rollback
-./iatf graph examples/incident-playbook.iatf
-./iatf graph examples/incident-playbook.iatf --show-incoming
+./iatf find examples/product-ops-manual.iatf "incident escalation sla"
+./iatf read examples/product-ops-manual.iatf escalation
+./iatf graph examples/cross-references.iatf
+./iatf graph examples/cross-references.iatf --show-incoming
 ```

@@ -1,15 +1,15 @@
 :::IATF
-@title: Invalid Delimiter Order
+@title: Invalid - INDEX After CONTENT
 
 ===CONTENT===
 
 {#only}
-@summary: Basic section in content
-# Only Section
+@summary: Only section
+# Only
 
-Content exists before INDEX delimiter, which is invalid.
+Body text.
 {/only}
 
 ===INDEX===
-# Only Section {#only | lines:6-12 | words:9}
-> Manually placed INDEX after CONTENT
+# Only {#only | lines:6-10 | words:2}
+> Incorrect index placement

@@ -1,35 +1,35 @@
 :::IATF
-@title: Stale Index Warning Fixture
-@purpose: Validate that stale content hash produces warning but not hard failure
+@title: Warning Fixture - Stale Index
+@purpose: Should validate with stale Content-Hash warning only
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-02-17T06:08:25Z -->
-<!-- Content-Hash: sha256:e2907d2 -->
+<!-- Generated: 2026-02-17T09:16:35Z -->
+<!-- Content-Hash: sha256:d6242b1 -->
 
-# Summary {#summary | lines:23-28 | words:16}
-> Summary section used for stale-index validation
+# Summary {#summary | lines:23-28 | words:12}
+> Stable summary section used for staleness testing
   Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 22cac36
+  Hash: c541a75
 
-# Details {#details | lines:30-35 | words:11}
-> Additional details that will be changed after rebuild
+# Details {#details | lines:30-35 | words:8}
+> Details section that will be modified post-rebuild
   Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 54e25c3
+  Hash: d1eb0aa
 
 
 ===CONTENT===
 
 {#summary}
-@summary: Summary section used for stale-index validation
+@summary: Stable summary section used for staleness testing
 # Summary
 
-This file will be rebuilt once and then content will be edited without rebuilding.
+This file is rebuilt once and then edited without rebuild.
 {/summary}
 
 {#details}
-@summary: Additional details that will be changed after rebuild
+@summary: Details section that will be modified post-rebuild
 # Details
 
-Second edit after rebuild to keep index intentionally stale.
+Initial details text after manual drift without rebuild.
 {/details}

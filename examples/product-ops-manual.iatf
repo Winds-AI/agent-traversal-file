@@ -1,0 +1,122 @@
+:::IATF
+@title: Product Operations Manual
+@purpose: Larger retrieval fixture for evaluating progressive disclosure in agent workflows
+
+===INDEX===
+<!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
+<!-- Generated: 2026-02-17T09:16:35Z -->
+<!-- Content-Hash: sha256:fff77bc -->
+
+# Scope and Ownership {#scope | lines:53-59 | words:24}
+> Scope boundaries and ownership model for product operations
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: d27887f
+
+# Onboarding {#onboarding | lines:61-68 | words:26}
+> New operator onboarding sequence and competency checkpoints
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: dacd1a7
+
+# Release Gates {#release-gates | lines:70-79 | words:25}
+> Required checks before production rollout approval
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: e55913b
+
+# Incident Command {#incident-command | lines:81-87 | words:19}
+> Incident command responsibilities and response cadence
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: a8a4604
+
+# Escalation {#escalation | lines:89-99 | words:33}
+> Escalation tree for technical, operational, and leadership paths
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: 1679ad6
+
+# SLA Policy {#sla-policy | lines:101-107 | words:24}
+> SLA commitments and breach management process
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: 7f90671
+
+# Customer Updates {#customer-updates | lines:109-115 | words:24}
+> Customer communication templates and send cadence rules
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: a99d5ef
+
+# Post Incident Audit {#post-incident-audit | lines:117-122 | words:23}
+> Audit checklist for closure quality and preventive actions
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: ac636d0
+
+
+===CONTENT===
+
+{#scope}
+@summary: Scope boundaries and ownership model for product operations
+# Scope and Ownership
+
+This manual defines release governance, SLA policy, escalation routing, and customer updates.
+Teams onboarding should start at {@onboarding} and {@release-gates}.
+{/scope}
+
+{#onboarding}
+@summary: New operator onboarding sequence and competency checkpoints
+# Onboarding
+
+Week 1 covers tooling and dashboard orientation.
+Week 2 includes shadowing incident command in {@incident-command}.
+Week 3 requires a supervised escalation drill from {@escalation}.
+{/onboarding}
+
+{#release-gates}
+@summary: Required checks before production rollout approval
+# Release Gates
+
+All production releases require:
+- integration test pass
+- rollback rehearsal
+- communication draft from {@customer-updates}
+- SLA risk review against {@sla-policy}
+{/release-gates}
+
+{#incident-command}
+@summary: Incident command responsibilities and response cadence
+# Incident Command
+
+The incident commander manages prioritization, stakeholder sync, and mitigation strategy.
+Escalate unresolved ownership conflicts through {@escalation}.
+{/incident-command}
+
+{#escalation}
+@summary: Escalation tree for technical, operational, and leadership paths
+# Escalation
+
+Severity-based escalation:
+- Sev1: VP Engineering in 15 minutes.
+- Sev2: Director on-call in 30 minutes.
+- Sev3: Team lead within business hours.
+
+When customer impact is sustained, activate {@customer-updates} immediately.
+{/escalation}
+
+{#sla-policy}
+@summary: SLA commitments and breach management process
+# SLA Policy
+
+Core availability target is 99.95 percent monthly.
+If projected breach risk exceeds threshold, notify {@escalation} and prepare external messaging via {@customer-updates}.
+{/sla-policy}
+
+{#customer-updates}
+@summary: Customer communication templates and send cadence rules
+# Customer Updates
+
+Templates must include impact statement, remediation ETA, and next update time.
+For major incidents, pair this section with {@incident-command} and {@post-incident-audit}.
+{/customer-updates}
+
+{#post-incident-audit}
+@summary: Audit checklist for closure quality and preventive actions
+# Post Incident Audit
+
+Verify that action items are assigned, SLA implications are recorded against {@sla-policy}, and onboarding lessons feed back into {@onboarding}.
+{/post-incident-audit}

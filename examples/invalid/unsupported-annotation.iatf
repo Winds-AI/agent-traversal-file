@@ -1,0 +1,11 @@
+:::IATF
+@title: Invalid - Unsupported Annotation
+
+===CONTENT===
+
+{#sample}
+@created: 2026-02-17
+# Sample
+
+Unsupported section-header annotation should fail validation.
+{/sample}

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestRebuildPreservesSectionMetadataWhenContentUnchanged(t *testing.T) {
@@ -88,8 +89,8 @@ func TestRebuildUpdatesOnlyChangedSectionModified(t *testing.T) {
 	// Change a line in the "intro" section only.
 	replaced := false
 	for i := range lines {
-		if strings.Contains(lines[i], "IATF (Indexed Agent Traversal Format) is a document format designed for AI agents.") {
-			lines[i] = strings.ReplaceAll(lines[i], "IATF (Indexed Agent Traversal Format) is a document format designed for AI agents.", "IATF (Indexed Agent Traversal Format) is a document format designed for AI agents!!")
+		if strings.Contains(lines[i], "IATF keeps an INDEX cache and CONTENT source-of-truth in one file.") {
+			lines[i] = strings.ReplaceAll(lines[i], "IATF keeps an INDEX cache and CONTENT source-of-truth in one file.", "IATF keeps an INDEX cache and CONTENT source-of-truth in one file. Updated.")
 			replaced = true
 			break
 		}
@@ -116,6 +117,7 @@ func TestRebuildUpdatesOnlyChangedSectionModified(t *testing.T) {
 	}
 	afterLines, _ := splitNormalizedLines(after)
 	afterMeta := parseIndexMetadata(afterLines)
+	today := time.Now().Format("2006-01-02")
 
 	// "intro" should update, the other sections should not.
 	for id, before := range beforeMeta {
@@ -125,8 +127,8 @@ func TestRebuildUpdatesOnlyChangedSectionModified(t *testing.T) {
 			if afterEntry.Hash == before.Hash {
 				t.Fatalf("expected intro hash to change, but did not")
 			}
-			if afterEntry.Modified == before.Modified {
-				t.Fatalf("expected intro modified to change, but did not (still %q)", afterEntry.Modified)
+			if afterEntry.Modified != today {
+				t.Fatalf("expected intro modified to be today's date (%s), got %q", today, afterEntry.Modified)
 			}
 		default:
 			if afterEntry.Hash != before.Hash {

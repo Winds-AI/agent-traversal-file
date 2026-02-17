@@ -1,11 +1,11 @@
 :::IATF
-@title: Invalid Self Reference
+@title: Invalid - Self Reference
 
 ===CONTENT===
 
 {#loop}
-@summary: Section incorrectly references itself
+@summary: Section references itself
 # Loop
 
-This section contains a self reference {@loop} and should fail.
+This should fail: {@loop}.
 {/loop}

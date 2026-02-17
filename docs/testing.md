@@ -1,6 +1,8 @@
 # Testing Guidelines
 
-## No Automated Test Suite (Yet)
+## Automated Coverage Status
+
+The project has a small Go unit test suite in `go/main_test.go`, but most behavior is still validated via manual CLI testing.
 
 Validate changes by manually running all commands on files in `examples/`:
 - `examples/` and `examples/valid/` for expected-pass behavior
@@ -65,4 +67,10 @@ Test task requirements by building, running, and validating with the Go CLI.
 
 ## Go Tests
 
-Go tests are noted as TODO. If you add tests, ensure `go test` remains clean.
+Run the existing test suite from `go/`:
+
+```bash
+go test ./...
+```
+
+If you add tests, keep `go test` clean and update this document with any new coverage areas.

@@ -128,7 +128,7 @@ iatf watch --list
 
 **What it does:**
 1. Lists all files currently being monitored
-2. Shows no output if nothing is being watched
+2. Prints `No files are being watched` when the list is empty
 
 ---
 
@@ -148,6 +148,8 @@ iatf find my-doc.iatf "vendor approval workflow"
 3. Returns ranked section IDs to guide targeted `iatf read` calls
 
 **Best for:** Fast section discovery without writing ad-hoc grep loops.
+
+**Requirement:** INDEX must exist (`===INDEX===` section present).
 
 ---
 
@@ -169,6 +171,49 @@ iatf index my-doc.iatf --with-dates
    - INDEX generated timestamp
    - per-section Created/Modified dates
 
+**Requirement:** INDEX must exist (`===INDEX===` section present).
+
+---
+
+### `iatf read <file> <section-id>`
+
+Reads a single section by ID and prints section content without wrapper tags (`{#id}` and `{/id}`).
+
+**Usage:**
+```bash
+iatf read my-doc.iatf rollback
+iatf read my-doc.iatf --title "Rollback Steps"
+```
+
+**What it does:**
+1. Parses CONTENT sections
+2. Locates section by ID (or title via `--title`)
+3. Prints section body for agent-friendly consumption
+
+**Requirement:** INDEX must exist (`===INDEX===` section present).
+
+---
+
+### `iatf graph <file> [--show-incoming]`
+
+Shows section reference relationships from CONTENT using `{@section-id}` links.
+
+**Usage:**
+```bash
+iatf graph my-doc.iatf
+iatf graph my-doc.iatf --show-incoming
+```
+
+**What it does:**
+1. Parses sections from CONTENT
+2. Extracts references (ignores fenced code blocks delimited by lines that are exactly three backticks on their own line)
+3. Prints outgoing references by default (`a -> b, c`)
+4. With `--show-incoming`, prints reverse edges (`b <- a`)
+
+**Notes:**
+- INDEX is **not required** for `graph`.
+- CONTENT and valid nesting are required.
+
 ---
 
 ### `iatf validate <file>`
@@ -185,7 +230,11 @@ iatf validate my-doc.iatf
 2. Validates section-header annotations (`@summary` is the only allowed annotation after `{#section-id}`)
 3. Checks for malformed section tags
 4. Reports errors and warnings
-5. Returns exit code 0 if valid, 1 if errors found
+5. Returns exit code 0 if valid (including warning-only cases), 1 if errors found
+
+**Important behavior:**
+- Missing INDEX is a warning, not an error.
+- INDEX consistency checks run only when INDEX is present.
 
 ---
 
@@ -273,6 +322,26 @@ Watch paths (2):
 
 OS Service: installed (systemd)
 ```
+
+---
+
+### `iatf daemon run [--debug]`
+
+Runs the daemon in the foreground (primarily used internally by `daemon start` and OS services).
+
+**Usage:**
+```bash
+iatf daemon run
+iatf daemon run --debug
+```
+
+**What it does:**
+1. Loads watch paths from `~/.iatf/daemon.json`
+2. Watches all configured directories
+3. Logs output to `~/.iatf/daemon.log`
+4. Rebuilds changed `.iatf` files after validation and debounce
+
+**Best for:** Direct debugging of daemon behavior without background detaching.
 
 ---
 

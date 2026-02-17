@@ -1,5 +1,5 @@
 :::IATF
-@title: Simple Smoke Fixture
+@title: Invalid - INDEX Content Mismatch
 @purpose: Minimal fixture for sanity-checking the full command flow
 
 ===INDEX===
@@ -7,7 +7,7 @@
 <!-- Generated: 2026-02-17T09:16:35Z -->
 <!-- Content-Hash: sha256:b2985cc -->
 
-# Introduction {#intro | lines:28-34 | words:21}
+# Introduction {#intro | lines:29-34 | words:21}
 > What IATF is and why the split index model exists
   Created: 2026-02-17 | Modified: 2026-02-17
   Hash: ffff91c

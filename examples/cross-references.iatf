@@ -1,69 +1,83 @@
 :::IATF
-@title: Cross Reference Navigation
-@purpose: Validate find/read/graph behavior and fenced-code reference handling
+@title: Cross Reference Fixture
+@purpose: Validate graph traversal and fenced-code reference ignore behavior
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-02-17T06:08:25Z -->
-<!-- Content-Hash: sha256:c6d8b19 -->
+<!-- Generated: 2026-02-17T09:16:35Z -->
+<!-- Content-Hash: sha256:5f8f94b -->
 
-# Overview {#overview | lines:33-39 | words:22}
-> High-level orientation for the document
+# Overview {#overview | lines:38-44 | words:14}
+> Starting point and high-level navigation hints
   Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: b237d5a
+  Hash: ceadbee
 
-# Authentication {#authentication | lines:41-47 | words:19}
-> How credentials are issued and rotated
+# Identity {#identity | lines:46-51 | words:9}
+> AuthN and token lifecycle guidance
   Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 76eae90
+  Hash: 554e33b
 
-# This should NOT be parsed as a real reference because it is fenced code. {#incident-flow | lines:49-61 | words:40}
-> Steps for triage and remediation
+# Triage {#triage | lines:53-69 | words:50}
+> Incident triage process and decision points
   Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: f0de3b8
+  Hash: 5912396
 
-# FAQ {#faq | lines:63-69 | words:17}
-> Frequently asked troubleshooting questions
+# Hardening {#hardening | lines:71-76 | words:12}
+> Security follow-ups and audit preparation
   Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 650df14
+  Hash: e11e606
+
+# FAQ {#faq | lines:78-83 | words:11}
+> Common questions and navigation map
+  Created: 2026-02-17 | Modified: 2026-02-17
+  Hash: aa1318b
 
 
 ===CONTENT===
 
 {#overview}
-@summary: High-level orientation for the document
+@summary: Starting point and high-level navigation hints
 # Overview
 
-This guide explains navigation flow, authentication expectations, and failure handling.
-Read {@authentication} before operating workflows and use {@incident-flow} for escalations.
+Read {@identity} before touching access flows.
+Then inspect {@triage} for incident handling.
 {/overview}
 
-{#authentication}
-@summary: How credentials are issued and rotated
-# Authentication
+{#identity}
+@summary: AuthN and token lifecycle guidance
+# Identity
 
-Operators use short-lived access tokens and quarterly key rotation.
-If login fails after rotation, jump to {@incident-flow}.
-{/authentication}
+Token rotation policy is documented in {@hardening}.
+{/identity}
 
-{#incident-flow}
-@summary: Steps for triage and remediation
-# Incident Flow
+{#triage}
+@summary: Incident triage process and decision points
+# Triage
 
-When an incident starts, verify scope and severity.
-If root cause is unclear, consult {@faq}.
+If cause is unknown, collect artifacts and consult {@faq}.
 
-Example script:
+``` 
+# fake fenced example marker with trailing space should not open fence in CLI
+echo "Potential literal reference {@not-real-a}"
 ```
-# This should NOT be parsed as a real reference because it is fenced code.
-echo "See {@fake-target}"
+
 ```
-{/incident-flow}
+# Proper fence opener
+# This literal should be ignored by CLI reference extraction:
+echo "{@not-real-b}"
+```
+{/triage}
+
+{#hardening}
+@summary: Security follow-ups and audit preparation
+# Hardening
+
+Run monthly review and notify {@faq} owners about policy deltas.
+{/hardening}
 
 {#faq}
-@summary: Frequently asked troubleshooting questions
+@summary: Common questions and navigation map
 # FAQ
 
-Q: Where should new engineers start?
-A: Start from {@overview}, then review {@authentication} and {@incident-flow}.
+Start at {@overview}, then check {@identity}, {@triage}, and {@hardening}.
 {/faq}

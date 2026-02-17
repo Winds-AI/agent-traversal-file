@@ -1,75 +1,62 @@
 :::IATF
-@title: Nested Runbook Example
-@purpose: Validate two-level nesting, summaries, and line-range generation
+@title: Nested Runbook
+@purpose: Valid two-level nesting fixture for hierarchy testing
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-02-17T06:08:25Z -->
-<!-- Content-Hash: sha256:c00a30f -->
+<!-- Generated: 2026-02-17T09:16:35Z -->
+<!-- Content-Hash: sha256:9950c7d -->
 
-# Release Runbook {#release-runbook | lines:38-68 | words:12}
-> End-to-end release runbook used by platform engineering
+# Release Runbook {#release-runbook | lines:33-55 | words:7}
+> Parent runbook section that contains child blocks
   Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 66698ae
+  Hash: 17fa4eb
 
-## Preflight Checks {#preflight | lines:44-51 | words:20}
-> Checks completed before deployment starts
+## Preflight {#preflight | lines:39-46 | words:14}
+> Pre-deploy checks executed before rollout
   Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 5e1ecdd
+  Hash: 48a7ff9
 
-## Deployment Steps {#deployment | lines:53-60 | words:17}
-> Controlled rollout steps for the service
+## Rollout {#rollout | lines:48-54 | words:13}
+> Rollout execution details and guardrails
   Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 794da7d
+  Hash: 4af5d9f
 
-## Rollback Plan {#rollback | lines:62-67 | words:15}
-> Recovery plan when rollout fails
+# Rollback Guide {#rollback-guide | lines:57-62 | words:16}
+> Standalone rollback reference used by nested sections
   Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 5c52daa
-
-# Post Release Review {#post-release-review | lines:70-75 | words:13}
-> Post-release checklist and follow-up tasks
-  Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 25aec7e
+  Hash: 83322cd
 
 
 ===CONTENT===
 
 {#release-runbook}
-@summary: End-to-end release runbook used by platform engineering
+@summary: Parent runbook section that contains child blocks
 # Release Runbook
 
-This runbook coordinates preflight checks, deployment steps, and rollback.
+Top-level release orchestration notes.
 
 {#preflight}
-@summary: Checks completed before deployment starts
-# Preflight Checks
+@summary: Pre-deploy checks executed before rollout
+# Preflight
 
-- Confirm CI is green.
-- Confirm migration window is open.
-- Confirm pager owner is assigned.
+- Verify CI status
+- Verify pager ownership
+- Verify migration window
 {/preflight}
 
-{#deployment}
-@summary: Controlled rollout steps for the service
-# Deployment Steps
+{#rollout}
+@summary: Rollout execution details and guardrails
+# Rollout
 
-1. Deploy canary.
-2. Monitor error budget and latency.
-3. Promote to full rollout.
-{/deployment}
-
-{#rollback}
-@summary: Recovery plan when rollout fails
-# Rollback Plan
-
-If canary fails, revert to last known good release and follow {@post-release-review}.
-{/rollback}
+Deploy canary first, then widen traffic.
+Fallback instructions are in {@rollback-guide}.
+{/rollout}
 {/release-runbook}
 
-{#post-release-review}
-@summary: Post-release checklist and follow-up tasks
-# Post Release Review
+{#rollback-guide}
+@summary: Standalone rollback reference used by nested sections
+# Rollback Guide
 
-Document incidents, open action items, and confirm metric stabilization.
-{/post-release-review}
+Revert to the prior stable build and monitor error rates for 30 minutes.
+{/rollback-guide}

@@ -1,42 +1,42 @@
 :::IATF
-@title: Invalid Nesting Depth
+@title: Invalid - Nesting Depth 3
 
 ===INDEX===
 <!-- AUTO-GENERATED - DO NOT EDIT MANUALLY -->
-<!-- Generated: 2026-02-17T06:08:25Z -->
-<!-- Content-Hash: sha256:02ec738 -->
+<!-- Generated: 2026-02-17T09:16:35Z -->
+<!-- Content-Hash: sha256:4d14860 -->
 
-# Level One {#level-one | lines:27-42 | words:3}
-> First level section
+# Root {#root | lines:27-42 | words:2}
+> Level one
   Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: e2d1de5
+  Hash: c508528
 
-## Level Two {#level-two | lines:31-41 | words:3}
-> Second level section
+## Child {#child | lines:31-41 | words:2}
+> Level two
   Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: b8e346d
+  Hash: b74c832
 
-### Level Three {#level-three | lines:35-40 | words:12}
-> Third level should violate validator depth limit
+### Grandchild {#grandchild | lines:35-40 | words:5}
+> Level three should violate depth limit when INDEX exists
   Created: 2026-02-17 | Modified: 2026-02-17
-  Hash: 3182c6c
+  Hash: cc29ccc
 
 
 ===CONTENT===
 
-{#level-one}
-@summary: First level section
-# Level One
+{#root}
+@summary: Level one
+# Root
 
-{#level-two}
-@summary: Second level section
-# Level Two
+{#child}
+@summary: Level two
+# Child
 
-{#level-three}
-@summary: Third level should violate validator depth limit
-# Level Three
+{#grandchild}
+@summary: Level three should violate depth limit when INDEX exists
+# Grandchild
 
-This third nested level should be rejected by validate.
-{/level-three}
-{/level-two}
-{/level-one}
+Depth three content.
+{/grandchild}
+{/child}
+{/root}
