@@ -1,0 +1,257 @@
+questions:
+  - id: q01
+    type: needle
+    question: "For delegated approvals, what fields must be recorded and how quickly must permission changes propagate?"
+    expected_answer: >-
+      Delegated approval records must store the delegator, delegate, reason, and effective date range. Permission changes must become effective within 2 minutes and invalidate stale sessions.
+    must_include:
+      - delegator
+      - effective date range
+      - 2 minutes
+      - invalidate stale sessions
+    reference_sections:
+      - permission-model
+
+  - id: q02
+    type: needle
+    question: "What global form behaviors prevent duplicate submissions and enforce consistent date and currency handling?"
+    expected_answer: >-
+      Forms must autosave draft changes every 30 seconds and include an idempotency key on every submission to prevent duplicate creates on retries. Date fields are stored in UTC with local display formatting, and currency inputs must capture both amount and currency code. Precision is capped at 2 decimals for currency and 4 for quantity conversions.
+    must_include:
+      - 30 seconds
+      - idempotency key
+      - UTC
+      - currency code
+    reference_sections:
+      - global-form-standards
+
+  - id: q03
+    type: needle
+    question: "What are the support SLA targets for S1 and S2 incidents, including response, workaround, and communication cadence?"
+    expected_answer: >-
+      S1 covers production outage or blocked payment release across multiple entities, with a 15-minute response target and 4-hour workaround target. S2 covers major degradation with workaround available, with a 1-hour response target and 1 business day workaround target. Customer updates are hourly for S1 and every 4 hours for S2.
+    must_include:
+      - 15 minutes
+      - 4 hours
+      - 1 hour
+      - 1 business day
+    reference_sections:
+      - support-sla
+
+  - id: q04
+    type: needle
+    question: "State the disaster recovery targets and cadence for backups and DR testing."
+    expected_answer: >-
+      The DR objectives are RTO <= 4 hours and RPO <= 15 minutes for transactional data. Backups must be encrypted and verified daily. A full DR failover drill is required at least twice per year.
+    must_include:
+      - RTO <= 4 hours
+      - RPO <= 15 minutes
+      - verified daily
+      - twice per year
+    reference_sections:
+      - nfr-disaster-recovery
+
+  - id: q05
+    type: needle
+    question: "In the Integration Hub module, what is the primary object, what lifecycle states are defined, and which connector families are core dependencies?"
+    expected_answer: >-
+      The primary object is Connector Profile. Its default states are Draft, Configured, Validated, Active, Degraded, Paused, and Retired. The module lists ERP, tax, OCR, IdP, and messaging connectors as primary dependencies.
+    must_include:
+      - Connector Profile
+      - Draft
+      - Retired
+      - ERP
+    reference_sections:
+      - module-integration-hub-functional
+
+  - id: q06
+    type: needle
+    question: "How does the rollout sequence move from pilot to global deployment, and what meeting cadence governs it?"
+    expected_answer: >-
+      Rollout follows a pilot-first path: R1 internal sandbox/admin readiness, R2 pilot with one legal entity and limited departments, R3 expansion to similar entities, and R4 global rollout with localization packs. Governance meetings are weekly during active rollout and biweekly after stabilization.
+    must_include:
+      - Phase R2
+      - one legal entity
+      - Phase R4
+      - weekly during active rollout
+    reference_sections:
+      - rollout-plan
+
+  - id: q07
+    type: multihop
+    question: "How do role assignments and SoD controls separate invoice processing from payment release authority?"
+    expected_answer: >-
+      Role R4 AP Processor handles invoices, matching queues, and payment proposal preparation, while Role R5 Finance Controller approves payment batches and policy exceptions. The SoD rule REQ-PERM-004 blocks users with invoice-entry rights from releasing payment batches without secondary approval. This creates a deliberate separation between invoice handling and final payment release.
+    must_include:
+      - AP Processor
+      - Finance Controller
+      - REQ-PERM-004
+      - secondary approval
+    reference_sections:
+      - role-catalog
+      - permission-model
+      - module-payment-runs-functional
+
+  - id: q08
+    type: multihop
+    question: "After a requisition is submitted, what checks and routing logic occur before it can become a purchase order?"
+    expected_answer: >-
+      The process first runs policy checks for catalog compliance, budget availability, and mandatory fields. Then routing is determined by amount, category, and organizational hierarchy for approval decisions. Requisition validation also enforces server-side checks and duplicate detection, and only an approved requisition can convert to a PO.
+    must_include:
+      - catalog compliance
+      - budget availability
+      - organizational hierarchy
+      - Approved requisition converts to PO
+    reference_sections:
+      - process-map
+      - module-requisition-management-functional
+
+  - id: q09
+    type: multihop
+    question: "Describe the workflow from invoice intake through matching exceptions and dispute handling."
+    expected_answer: >-
+      Invoices are ingested through OCR, EDI, portal upload, or email capture, then normalized for matching. The matching engine executes 2-way or 3-way matching and assigns exception codes when discrepancies exist. AP then resolves exceptions directly or routes disputes for further handling.
+    must_include:
+      - OCR
+      - EDI
+      - 2-way or 3-way match
+      - exception codes
+    reference_sections:
+      - process-map
+      - module-invoice-intake-functional
+      - module-match-exception-functional
+
+  - id: q10
+    type: multihop
+    question: "What cross-module response is required when an integration sync job fails?"
+    expected_answer: >-
+      Integration operations must expose run history, row-level errors, and replay controls, then emit the failure event integration.job.failed. The notification catalog routes that event to the connector owner and support operations, while the Integration Hub module requires an operational incident in the support console with retry handling. Support cases must capture tenant, module, severity, impact, and reproducibility for triage.
+    must_include:
+      - run history
+      - replay controls
+      - integration.job.failed
+      - support console
+    reference_sections:
+      - integration-principles
+      - module-integration-hub-functional
+      - notification-catalog
+      - support-operations
+
+  - id: q11
+    type: multihop
+    question: "How are rollout gate criteria tied to hypercare monitoring and KPI accountability after each wave?"
+    expected_answer: >-
+      Each rollout phase requires gate checks on training completion, KPI baseline, integration stability, and support readiness. Hypercare then runs for 4 weeks per major wave with daily incident/SLA triage and twice-weekly KPI review against the success metrics. Exit requires a stable KPI trend and manageable support volume.
+    must_include:
+      - training completion
+      - 4 weeks
+      - twice-weekly KPI review
+      - stable KPI trend
+    reference_sections:
+      - rollout-plan
+      - post-go-live-hypercare
+      - success-metrics
+
+  - id: q12
+    type: multihop
+    question: "When exporting analytics and audit evidence, how do privacy and audit controls combine?"
+    expected_answer: >-
+      Personal data must be masked in logs and exports unless authorization exists, and reports containing PII require export masking unless a privileged role has unmask permission. Audit evidence exports also require cryptographic integrity context, including hash references for attachments and a signed event digest with manifest linkage. Together these controls protect privacy while preserving audit traceability.
+    must_include:
+      - export masking
+      - unmask permission
+      - hash references
+      - signed event digest
+    reference_sections:
+      - privacy-regulatory
+      - report-catalog
+      - audit-traceability
+
+  - id: q13
+    type: aggregation
+    question: "Summarize notification reliability behavior across channels, digest rules, retry timing, and final-failure handling."
+    expected_answer: >-
+      Notification channels are in-app, email, and webhook callback, with SMS optional and off by default. Critical events bypass digest and quiet-hour settings, and critical finance notifications require at least two channels unless the user opted out of non-essential email. Delivery retries run at 1 min, 5 min, 30 min, and 2 hr, and final failure opens a support case with an attached payload snapshot.
+    must_include:
+      - in-app
+      - webhook callback
+      - 1 min
+      - 2 hr
+      - support case
+    reference_sections:
+      - notification-principles
+      - notification-catalog
+
+  - id: q14
+    type: aggregation
+    question: "What are the six integration packages and their primary inbound/outbound data directions?"
+    expected_answer: >-
+      I-001 Identity Integration ingests user/group/status data from IdP; I-002 ERP/Accounting exchanges inbound master/period data and outbound approved PO, accrual, and payment status postings. I-003 OCR/E-Invoice ingests extracted invoice candidates and sends correction feedback, while I-004 Tax Engine sends taxable context outward and receives tax/exemption results inbound. I-005 Messaging sends templated messages and receives delivery/bounce receipts, and I-006 ITSM sends incidents/support cases while receiving ticket status updates.
+    must_include:
+      - I-001 Identity Integration
+      - I-002 ERP/Accounting Integration
+      - I-003 OCR/E-Invoice Integration
+      - I-004 Tax Engine Integration
+      - I-005 Messaging Integration
+      - I-006 ITSM Integration
+    reference_sections:
+      - integration-packages
+
+  - id: q15
+    type: aggregation
+    question: "List the core performance targets for UX latency, API latency, bulk processing, matching throughput, reporting, and search."
+    expected_answer: >-
+      P95 list-page load is <= 2.5 seconds and detail-page load is <= 3.5 seconds. P95 API response is <= 800 ms for reads and <= 1200 ms for writes, while bulk import validation must reach >= 20,000 rows/hour per tenant. Matching must process at least 50,000 invoice lines/hour, standard monthly reports must complete within 10 minutes for 24 months, and indexed search must return first page within 2 seconds.
+    must_include:
+      - 2.5 seconds
+      - 800 ms
+      - 20,000 rows per hour
+      - 50,000 invoice lines per hour
+      - 10 minutes
+      - 2 seconds
+    reference_sections:
+      - nfr-performance
+
+  - id: q16
+    type: aggregation
+    question: "What migration phases and data-quality controls are required from initial profiling through post-load reconciliation?"
+    expected_answer: >-
+      The migration sequence is M1 mapping/profiling, M2 dry run in staging, M3 business validation signoff, M4 production cutover load, and M5 post-load reconciliation/remediation. Blocking issues include missing legal entity codes, invalid currency codes, and orphan references, while files must include checksum and schema version metadata. Reconciliation must compare record counts, totals by currency, and status distributions, with audit logs linking each imported record to source row and import batch id.
+    must_include:
+      - Phase M1
+      - Phase M5
+      - missing legal entity codes
+      - invalid currency codes
+      - record counts
+      - import batch id
+    reference_sections:
+      - data-migration-strategy
+
+  - id: q17
+    type: aggregation
+    question: "Which go-live checklist controls verify identity, integration, migration, reporting, and support readiness?"
+    expected_answer: >-
+      Identity readiness is validated by GL-002 through live SSO and role-mapping tests. Integration and data readiness are covered by GL-003 connector credential rotation plus smoke tests and GL-004 migration reconciliation signoff. Reporting and support readiness are confirmed by GL-006 schedule/recipient verification and GL-007 on-call roster confirmation for hypercare.
+    must_include:
+      - GL-002
+      - GL-003
+      - GL-004
+      - GL-006
+      - GL-007
+    reference_sections:
+      - go-live-checklist
+
+  - id: q18
+    type: aggregation
+    question: "Summarize the support operating model by tiers, intake channels, mandatory case data, and severity communication cadence."
+    expected_answer: >-
+      Support is structured as Tier 1 customer helpdesk, Tier 2 product support, and Tier 3 engineering escalation. Intake channels are in-app form, email, and integrated ITSM ticket creation, and each case must capture tenant, module, severity, impact, and reproducibility. Escalation runs through Support Manager, Product Ops Lead, and Engineering On-call, with customer updates hourly for S1, every 4 hours for S2, and daily for S3.
+    must_include:
+      - Tier 1 customer helpdesk
+      - Tier 3 engineering escalation
+      - integrated ITSM ticket creation
+      - severity
+      - S1 hourly
+    reference_sections:
+      - support-operations
+      - support-sla

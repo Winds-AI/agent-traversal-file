@@ -1,0 +1,37 @@
+answers:
+  - id: q01
+    answer: "Delegated approvals must record delegator, delegate, reason, and effective start/end date range; permission changes must take effect within 2 minutes and invalidate stale sessions."
+  - id: q02
+    answer: "Forms prevent duplicates by requiring an idempotency key on submission (with retry-safe behavior). For consistency, date fields are stored in UTC with local display formatting, and currency inputs must capture amount plus currency code (2-decimal currency precision)."
+  - id: q03
+    answer: "S1 (production outage or multi-entity payment release blocked): 15-minute response, 4-hour workaround, hourly customer updates. S2 (major degradation with workaround): 1-hour response, 1-business-day workaround, updates every 4 hours."
+  - id: q04
+    answer: "DR targets are RTO <= 4 hours and RPO <= 15 minutes. Backups must be encrypted and verified daily, and DR failover drills run at least twice per year."
+  - id: q05
+    answer: "Integration Hub's primary object is Connector Profile. Lifecycle states: Draft, Configured, Validated, Active, Degraded, Paused, Retired. Core connector families: ERP, tax, OCR, IdP, and messaging connectors."
+  - id: q06
+    answer: "Rollout is pilot-first: R1 internal sandbox + IT admin readiness, R2 pilot in one legal entity/limited departments, R3 expansion to similar entities, R4 global rollout with regional localization packs. Governance meetings are weekly during active rollout, then biweekly after stabilization."
+  - id: q07
+    answer: "SoD separates duties by role and rule: AP Processor handles invoice entry/matching/payment proposal prep, while Finance Controller approves payment batches and policy exceptions. A user with invoice-entry rights cannot release payment batches without secondary approval."
+  - id: q08
+    answer: "After requisition submission, policy checks run first (catalog compliance, budget availability, mandatory fields, plus fiscal-period lock/date validations). Then approval routing is computed by amount, category, and organizational hierarchy. Only after approval does it convert to a PO or contract release."
+  - id: q09
+    answer: "Invoice intake captures invoices via OCR, EDI, portal upload, or email and normalizes header/line data. The matching engine then runs 2-way/3-way rules, assigns exception codes, and creates/updates Match Cases (including dispute reason codes). AP resolves exceptions or routes disputes; if invoice arrives before receipt, a pending-receipt match exception is created."
+  - id: q10
+    answer: "When a sync job fails, the system retries per policy (including backoff/idempotent keys), records run history with row-level errors, and supports replay. It must also raise integration.job.failed notifications to connector owner/support operations and create an operational incident in the support console for correlated triage."
+  - id: q11
+    answer: "Each rollout phase gate requires training completion, KPI baseline, integration stability, and support readiness. After each major wave, 4-week hypercare runs with daily triage plus twice-weekly KPI reviews against success metrics/KPI owners; exit requires stable KPI trends and manageable support volume."
+  - id: q12
+    answer: "Analytics and audit exports combine permission, privacy, and audit controls: export rights are separate from dashboard view rights; PII must be masked in exports unless authorized/privileged unmask is granted; and audit evidence exports must include immutable event data with signed digests and hash-linked attachment manifests."
+  - id: q13
+    answer: "Notifications use in-app, email, and webhook channels (SMS optional/disabled by default). Non-critical events may use immediate/hourly/daily digest and quiet hours, while critical events bypass both and require operational alerting on delivery failure within 5 minutes. Retries occur at 1 min, 5 min, 30 min, and 2 hr; after final failure, a support case is opened with payload snapshot."
+  - id: q14
+    answer: "I-001 Identity: inbound users/groups/status from IdP, outbound none. I-002 ERP/Accounting: outbound approved POs/receipt accruals/payment statuses; inbound vendor master/chart of accounts/cost centers/fiscal periods. I-003 OCR/E-Invoice: inbound extracted invoice candidates/confidence; outbound correction feedback. I-004 Tax Engine: outbound taxable-line/jurisdiction context; inbound tax calculations/exemption validation. I-005 Messaging: outbound templated emails/webhooks; inbound delivery receipts/bounces. I-006 ITSM: outbound incidents/support cases; inbound ticket status updates."
+  - id: q15
+    answer: "Targets are: P95 page load <= 2.5s (list) and <= 3.5s (detail); P95 API <= 800ms (reads) and <= 1200ms (writes); bulk import validation >= 20,000 rows/hour/tenant; matching throughput >= 50,000 invoice lines/hour; standard monthly report pack <= 10 minutes (24-month window); search first page <= 2 seconds."
+  - id: q16
+    answer: "Migration phases are M1 mapping/profiling, M2 staging dry run + reconciliation, M3 business signoff, M4 production cutover load, M5 post-load reconciliation + remediation. Controls include per-file checksum/schema version, blocking checks (missing legal entity, invalid currency, orphan references), warning checks (truncation/oversized unsupported attachments), and reconciliation of counts, currency totals, and status distributions with source-row/batch audit linkage."
+  - id: q17
+    answer: "Go-live controls include GL-002 identity (SSO + role mapping with live users), GL-003 integration (connector credential rotation + smoke tests), GL-004 migration (load complete + reconciliation signoff), GL-006 reporting (schedules/recipients verified), and GL-007 support readiness (on-call roster confirmed for hypercare)."
+  - id: q18
+    answer: "Support runs in three tiers (Tier 1 helpdesk, Tier 2 product support, Tier 3 engineering escalation) with intake via in-app form, email, and ITSM tickets. Mandatory case data is tenant, module, severity, impact, and reproducibility. Communication cadence is S1 hourly, S2 every 4 hours, and S3 daily, with SLA response/workaround targets by severity."

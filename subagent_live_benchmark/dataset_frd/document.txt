@@ -1,0 +1,1990 @@
+# 1. FRD Overview
+This FRD defines functional and non-functional requirements for ProcureSphere Cloud, a SaaS procurement and AP automation product.
+The product target is multi-entity organizations with centralized finance and distributed requesters.
+The document is written for product managers, engineering teams, QA, implementation consultants, and customer success teams.
+Every module section includes page layout, form fields, workflow behavior, permissions, validations, edge cases, notifications, reports, and integration impacts.
+All requirements are for web application v1 unless explicitly labeled as future scope.
+The baseline process map is described in {@process-map}.
+Core role semantics are defined in {@role-catalog} and enforcement rules in {@permission-model}.
+Cross-cutting field and validation conventions are centralized in {@global-form-standards}.
+Cross-cutting NFR requirements are defined from {@nfr-performance} through {@nfr-disaster-recovery}.
+Migration, rollout, and support requirements are covered in {@data-migration-strategy}, {@rollout-plan}, and {@support-operations}.
+The document uses requirement labels in the format REQ-<AREA>-<NUMBER> to support traceability.
+
+
+# 2. Product Domain Context
+ProcureSphere Cloud is a B2B SaaS platform for source-to-pay operations.
+Typical customer profile is 500 to 20,000 employee organizations with 2 to 80 legal entities.
+Target industries include healthcare networks, manufacturing groups, retail chains, and technology services firms.
+Customers typically run ERP or accounting systems that are strong in GL but weak in operational procurement controls.
+The platform provides a policy-governed workflow from request to payment with full auditability.
+The product must support central procurement teams and local site-level cost center owners.
+The platform assumes customers have an existing identity provider and downstream finance system.
+The platform does not replace ERP as the financial system of record; it orchestrates operational controls and syncs accounting postings.
+Supplier collaboration in v1 is portal-based with email fallback.
+Mobile app is out of v1 scope; responsive web is required.
+Regional tax requirements must be configurable by locale.
+All monetary values must be stored with amount, currency, and exchange-rate context.
+
+
+# 3. Business Objectives
+REQ-BIZ-001: Reduce maverick spend by enforcing catalog and approval policies before PO creation.
+REQ-BIZ-002: Reduce requisition-to-PO cycle time from baseline median by at least 35 percent.
+REQ-BIZ-003: Improve first-pass invoice match rate by at least 20 percentage points.
+REQ-BIZ-004: Provide complete traceability from requester action to payment release decision.
+REQ-BIZ-005: Standardize procurement workflows across entities while allowing localized policy controls.
+REQ-BIZ-006: Provide real-time visibility into budget consumption by cost center and project.
+REQ-BIZ-007: Improve supplier onboarding lead time through guided data collection and compliance checks.
+REQ-BIZ-008: Reduce manual AP processing by supporting OCR and matching automation.
+REQ-BIZ-009: Improve policy adherence by making policy checks visible at point of entry.
+REQ-BIZ-010: Provide executive reporting for committed, accrued, and paid spend.
+Objective fulfillment metrics are defined in {@success-metrics}.
+
+
+# 4. Success Metrics and KPI Ownership
+KPI-001: Median requisition approval turnaround time.
+Target: <= 8 business hours for standard requests and <= 24 hours for high-value requests.
+Owner: Procurement Operations Lead.
+KPI-002: Percentage of spend with approved PO before invoice arrival.
+Target: >= 92 percent within 2 quarters post-rollout.
+Owner: Finance Controller.
+KPI-003: First-pass three-way match rate.
+Target: >= 80 percent for catalog-based goods invoices.
+Owner: AP Manager.
+KPI-004: User completion rate for requisition form without support intervention.
+Target: >= 95 percent.
+Owner: Product Operations.
+KPI-005: Supplier onboarding completion within SLA.
+Target: >= 90 percent completed within 5 business days.
+Owner: Supplier Enablement Manager.
+KPI-006: Data sync success rate to ERP connectors.
+Target: >= 99.5 percent daily success, excluding customer-side outages.
+Owner: Integration Operations.
+KPI-007: Notification delivery success (email + in-app).
+Target: >= 99 percent delivery, excluding invalid recipient addresses.
+Owner: Platform Operations.
+
+
+# 5. In-Scope Functional Areas
+In scope includes tenant setup, identity federation, and role-based workspace management.
+In scope includes supplier master, catalog management, requisition intake, approvals, budgets, PO generation, receiving, invoice intake, matching, payment release orchestration, and reporting.
+In scope includes integrations with identity provider, ERP/accounting, tax service, OCR provider, and messaging providers.
+In scope includes configurable workflows, policy engine, and notification templates.
+In scope includes support operations console, audit log, and operational health monitoring.
+In scope includes data migration utilities for supplier master, open POs, and open invoices.
+In scope includes single-tenant data isolation at customer-tenant level within shared SaaS control plane.
+In scope includes English UI with configurable locale formats for date, number, and currency display.
+In scope includes standard dashboard and downloadable report packs.
+In scope includes rollout tooling for pilot and phased entity activation.
+
+
+# 6. Out-of-Scope for v1
+Out of scope: Native mobile applications.
+Out of scope: Supplier negotiation chat with real-time co-authoring.
+Out of scope: Autonomous sourcing optimization recommendations.
+Out of scope: Embedded payment execution as money transmitter.
+Out of scope: Marketplace procurement from external punchout catalogs beyond approved connectors.
+Out of scope: OCR model training UI for customer administrators.
+Out of scope: Offline-first field receiving app.
+Out of scope: Country-specific e-invoicing mandates beyond configured pilot countries.
+Out of scope: Full contract authoring redline editor; v1 includes storage, metadata, milestones, and obligation tracking.
+Out of scope: Predictive anomaly scoring as hard-block controls; only informational risk signals in v1.
+
+
+# 7. Personas
+Persona P1 Requester: Creates requisitions and tracks status.
+Persona P2 Department Approver: Approves spend within authority.
+Persona P3 Procurement Analyst: Maintains catalog, suppliers, and sourcing events.
+Persona P4 AP Specialist: Processes invoices, resolves exceptions, and prepares payment runs.
+Persona P5 Finance Controller: Owns budget policies, approvals, and reporting signoff.
+Persona P6 Supplier Contact: Maintains supplier profile and receives PO/invoice communications.
+Persona P7 IT Administrator: Configures identity federation, connectors, and operational controls.
+Persona P8 Internal Auditor: Reviews audit logs, policy overrides, and evidence trails.
+Persona P9 Support Agent: Handles incidents, user issues, and data corrections under governance.
+Persona goals map directly to permissions in {@role-catalog}.
+
+
+# 8. Role Catalog
+Role R1 Employee Requester: create and submit requisitions for assigned cost centers.
+Role R2 Budget Owner: approve or reject requests against owned budgets.
+Role R3 Procurement Admin: manage supplier master, catalog rules, and sourcing templates.
+Role R4 AP Processor: manage invoices, matching queues, and payment proposal preparation.
+Role R5 Finance Controller: approve payment batches and policy exceptions.
+Role R6 IT Workspace Admin: manage identity, connectors, API keys, and environment-level settings.
+Role R7 Auditor Read-Only: access reports, logs, and immutable event trails without mutation rights.
+Role R8 Support Operations: execute guided corrective actions with ticket linkage and reason codes.
+Role R9 Supplier Portal User: maintain supplier profile and respond to PO/invoice requests.
+Role R10 Executive Viewer: view dashboards and scheduled reports only.
+Dual-role users must inherit union of permissions unless explicit deny rule exists.
+Approval delegation is temporary and must be start/end-dated.
+Role assignment events are audited as defined in {@audit-traceability}.
+
+
+# 9. Permission and SoD Model
+REQ-PERM-001: Access control must enforce tenant boundary at every API and query path.
+REQ-PERM-002: Row-level restrictions must enforce legal-entity and cost-center scope.
+REQ-PERM-003: Users cannot approve their own requisitions unless explicit emergency override is granted.
+REQ-PERM-004: Users with invoice-entry rights cannot release payment batches without secondary approval.
+REQ-PERM-005: Supplier profile bank detail changes require dual control and out-of-band verification.
+REQ-PERM-006: Delegated approval must record delegator, delegate, reason, and effective date range.
+REQ-PERM-007: Permission changes become effective within 2 minutes and invalidate stale sessions.
+REQ-PERM-008: Emergency override usage requires mandatory incident ticket reference.
+REQ-PERM-009: Data export rights are separate from dashboard view rights.
+REQ-PERM-010: API tokens inherit least privilege scopes; wildcard write scopes are prohibited.
+Permission model applies to all modules, including generated sections beginning at {@module-tenant-onboarding-functional}.
+
+
+# 10. End-to-End Process Map
+Step 1: User creates requisition with item, quantity, cost center, project, and needed-by date.
+Step 2: Policy engine validates catalog compliance, budget availability, and mandatory fields.
+Step 3: Workflow engine routes approval based on amount, category, and organizational hierarchy.
+Step 4: Approved requisition converts to PO or release against frame contract.
+Step 5: Supplier receives PO via portal and/or email.
+Step 6: Receiving team records goods receipt or service entry.
+Step 7: AP ingests invoice via OCR, EDI, portal upload, or email capture.
+Step 8: Matching engine performs 2-way or 3-way match and assigns exception codes as needed.
+Step 9: AP resolves exceptions or routes for dispute handling.
+Step 10: Payment proposal is generated, reviewed, and approved.
+Step 11: Payment status and remittance details sync to ERP.
+Step 12: Reports update with committed, accrued, and paid spend states.
+State machine baselines are defined in {@global-workflow-states}.
+
+
+# 11. Information Architecture
+Top navigation areas: Home Dashboard, Procurement, AP Operations, Suppliers, Contracts, Analytics, Administration, Support.
+Left navigation per area exposes module-specific pages with badge counts for pending actions.
+Global header includes tenant switcher, legal entity switcher, search, notification bell, help menu, and user menu.
+Search supports entity-aware global lookup for requisitions, POs, invoices, suppliers, and contracts.
+Each transactional page uses list + detail panel pattern to minimize context switching.
+List pages support saved views with filter presets and column personalization.
+Detail pages include summary cards, activity timeline, attachments, and action panel.
+Form pages use progressive disclosure with sectioned accordions.
+Admin pages separate configuration (slow changing) from operations (frequent actions).
+Notification center provides in-app timeline and delivery status audit.
+Layout conventions are binding for module sections in this FRD.
+
+
+# 12. Standard Page Layout Patterns
+Pattern A List Workspace:
+Header row with title, quick actions, and status legend.
+Filter bar with searchable chips for status, owner, legal entity, and date range.
+Table region with sticky header and row-level quick actions.
+Detail drawer triggered by row click with key metadata and timeline.
+Pattern B Create/Edit Form:
+Breadcrumb, page title, save status, and validation summary panel.
+Sectioned form groups with inline guidance and required indicators.
+Right rail containing policy hints, related records, and calculated totals.
+Pattern C Review and Approve:
+Side-by-side comparison pane for proposed vs baseline values.
+Decision action footer with Approve, Reject, Request Changes, Delegate.
+Pattern D Analytics Dashboard:
+KPI cards, trend charts, pivot table area, and export actions.
+All pages must support responsive behavior down to 1280x720 without losing critical controls.
+
+
+# 13. Global Form Standards
+Every form must persist draft state every 30 seconds when data has changed.
+Required fields must be marked with asterisk and included in top validation summary.
+Field-level errors must appear inline and include actionable remediation text.
+Date fields must store UTC with local display formatting.
+Currency inputs must capture amount and currency code explicitly.
+Amount precision: max 2 decimal places for currency, 4 for quantity conversions.
+Lookup fields must support typeahead and keyboard navigation.
+Attachment controls must enforce allowed file types and size limits.
+Rich text fields must sanitize script tags and unsafe HTML attributes.
+Phone fields must normalize to E.164 where country code is known.
+Address forms must support country-specific postal code validation.
+All form submissions require idempotency key to avoid duplicate creation on retries.
+
+
+# 14. Master Data and Entity Model
+Master entities: Tenant, Legal Entity, Department, Cost Center, Project, User, Role, Supplier, Item, Category, Contract.
+Transactional entities: Requisition, Approval Task, Purchase Order, Receipt, Invoice, Match Case, Payment Batch, Support Case.
+Relationship examples:
+One Legal Entity has many Cost Centers.
+One Supplier has many Banking Profiles with effective dating.
+One Requisition can generate one or many Purchase Orders.
+One Purchase Order has many PO Lines.
+One PO Line can have many Receipts.
+One Invoice can reference many PO Lines and many Receipt Lines.
+One Match Case links one Invoice to many PO/Receipt artifacts.
+One Payment Batch contains many Payment Instructions.
+Entity dictionaries must include CreatedBy, CreatedAt, UpdatedBy, UpdatedAt, and SourceSystem metadata.
+
+
+# 15. Data Governance and Stewardship
+Each tenant must assign Data Stewards for Supplier, Item, and Cost Center domains.
+Master data changes require reason codes when editing critical fields.
+Critical fields include tax identifiers, bank account details, and payment terms.
+Soft delete is prohibited for financial transaction entities.
+Correction workflow must use versioning with previous values preserved.
+Duplicate detection checks include fuzzy name + tax identifier + country match for suppliers.
+Data import jobs must provide pre-validation report with blocking and warning categories.
+Retention default for financial documents is 7 years unless tenant policy extends it.
+Attachment retention follows document retention class.
+Archived records must remain queryable for auditors with read-only access.
+
+
+# 16. Security Baseline
+All traffic must use TLS 1.2+ with HSTS.
+Data at rest must be encrypted with cloud KMS-managed keys.
+Authentication must support SAML 2.0 and OIDC for enterprise SSO.
+MFA enforcement policy can be delegated to IdP with fallback local policy for break-glass accounts.
+Session timeout default is 30 minutes idle, configurable up to 8 hours.
+Privileged actions require step-up authentication challenge.
+File uploads must pass malware scanning before becoming downloadable.
+API keys must be hashed at rest and shown once at creation.
+Security event logs must stream to SIEM integration endpoint.
+Quarterly access review export must be available for compliance teams.
+
+
+# 17. Privacy and Regulatory Constraints
+PII must be classified and masked in logs and exported files unless authorized.
+Field masking rules apply to personal phone, personal email, and bank account numbers.
+Right-to-access requests must produce user profile and related activity export within configured SLA.
+Right-to-erasure applies only where legal retention obligations do not override deletion.
+Consent records for supplier communication preferences must be maintained.
+Cross-border data transfer controls must support region pinning where contracted.
+Tax and invoicing records must preserve immutable transaction trails.
+Audit evidence exports must include hash references for attached documents.
+Data processing addendum and subprocessors list must be visible in admin documentation.
+
+
+# 18. Audit and Traceability Model
+Every create, update, delete, approve, reject, and override action must emit an audit event.
+Audit event payload includes actor, role, timestamp, tenant, entity type, entity id, changed fields, previous values hash, new values hash.
+Audit events must be immutable and append-only.
+Audit queries must support filters by actor, date range, module, and entity id.
+Evidence packet generation must include signed event digest and linked attachments manifest.
+Policy override events require ticket id and approver comment.
+Integration-triggered events must identify source system and correlation id.
+Bulk update actions must include child event expansion for each impacted record.
+Audit API must support pagination and deterministic sorting.
+Retention and export rules align with {@data-governance}.
+
+
+# 19. Canonical Workflow States
+Draft: Record is editable by creator and not yet submitted.
+Submitted: Record is locked for key fields and awaiting workflow action.
+In Review: Record is under active review or external validation.
+Approved: Record passed required approvals and may trigger downstream creation.
+Rejected: Record is closed as rejected with mandatory reason.
+Returned for Changes: Record requires creator edits and resubmission.
+On Hold: Processing paused due to external dependency or dispute.
+Completed: Processing reached final successful business outcome.
+Cancelled: User or system cancelled with reason and policy check.
+Failed: Technical or business failure requiring operator intervention.
+Modules can extend with domain-specific states but may not redefine semantics.
+Transition rules and permission checks are module-specific.
+
+
+# 20. Notification Principles
+Notification channels: in-app, email, webhook callback.
+SMS is optional and disabled by default.
+Every notification template must have event trigger, audience rule, channel policy, and retry policy.
+Critical finance events require at least two channels unless user opted out of non-essential emails.
+Notification delivery attempts must be observable with status timeline.
+Template versioning must preserve old render for already-sent notifications.
+User-level quiet hours and digest mode must apply only to non-critical events.
+Failure to deliver critical notification must raise operational alert within 5 minutes.
+Notification catalog is enumerated in {@notification-catalog}.
+
+
+# 21. Reporting Principles
+Operational dashboards refresh every 15 minutes.
+Financial reconciliation reports refresh hourly.
+Ad-hoc exports support CSV and XLSX.
+PDF export is supported for predefined executive packs only.
+Report filters must include tenant, legal entity, department, and date range where applicable.
+All report definitions must include metric formulas and source entity mappings.
+Snapshot reports for period close must be immutable after signoff.
+Scheduled reports support recipient groups and secure link expiration.
+Comprehensive report inventory is listed in {@report-catalog}.
+
+
+# 22. Integration Principles
+Integrations use connector framework with pull, push, and event-driven patterns.
+Supported transport: REST API, SFTP batch, message queue webhook callbacks.
+All integrations require mapping profiles per tenant.
+Sync jobs must expose run history, row-level errors, and replay controls.
+Outbound calls use exponential backoff with idempotent request keys.
+Inbound payloads must pass schema validation before persistence.
+Reference data sync frequency must be configurable by connector.
+Financial posting sync must guarantee ordering per legal entity and accounting period.
+Connector packages are detailed in {@integration-packages}.
+
+
+# 23. Release and Environment Strategy
+Environments: Development, QA, Staging, Production.
+Release cadence: biweekly minor releases, quarterly capability releases.
+Feature flags must support tenant-level rollout and instant rollback.
+Schema migrations must be backward compatible for at least one release cycle.
+Release notes must identify changed modules, migration impact, and support playbooks.
+Canary rollout is required for high-risk changes in matching and payments modules.
+Production deployment window defaults to low-traffic regional times.
+Hotfix process must include post-incident retrospective in support ops.
+
+
+# 24. Assumptions and Dependencies
+Customers provide accurate organizational hierarchy and cost center mappings.
+Customers own IdP integration setup and user lifecycle policy.
+Customers provide ERP connectivity credentials and testing windows.
+OCR provider SLA is assumed at 99.9 percent monthly availability.
+Email deliverability depends on customer domain SPF/DKIM setup for branded sending.
+Tax engine integration requires maintained jurisdiction tables.
+Supplier participation in portal workflows is assumed for at least 70 percent of spend.
+Legacy open transactions are available for migration in agreed templates.
+Data quality risks in source systems may delay go-live.
+Dependencies are tracked in rollout governance and described in {@rollout-plan}.
+
+
+# Module: Tenant Onboarding and Workspace Provisioning
+REQ-TENANT_ONBOARDING-001: The module must support configure business calendar and fiscal defaults as a first-class user action.
+REQ-TENANT_ONBOARDING-002: The module must support activate first legal entity and admin roster without requiring direct database access.
+REQ-TENANT_ONBOARDING-003: Page layouts must follow standards defined in {@ui-page-patterns}.
+REQ-TENANT_ONBOARDING-004: All forms must follow field behavior in {@global-form-standards}.
+REQ-TENANT_ONBOARDING-005: Permission checks must enforce rules from {@permission-model}.
+Primary object for this module: Workspace.
+Upstream data dependencies include master records from {@master-data-entities}.
+Downstream reporting obligations are linked to Onboarding Completion Funnel and cataloged in {@report-catalog}.
+## Page Layout Requirements
+List Page Layout: Header with module KPIs, saved filters, table grid, and bulk action toolbar.
+Detail Page Layout: Summary cards, timeline, attachments panel, related records panel, action footer.
+Create/Edit Page Layout: Sectioned form, policy hint rail, validation summary, draft autosave indicator.
+Review Page Layout: Approver context, change diff panel, comments thread, decision actions.
+## Form Fields
+Field A: Workspace ID (system-generated, immutable after creation).
+Field B: Workspace Name (required, 3 to 120 characters).
+Field C: Status (required, enumeration aligned with module state model).
+Field D: Legal Entity (required, scope-limited by role assignment).
+Field E: Cost Center (conditionally required based on spend type).
+Field F: Effective Start Date (required).
+Field G: Effective End Date (optional, must be >= start date).
+Field H: Workspace Name (module-specific required unless marked optional by policy).
+Field I: Primary Time Zone.
+Field J: Default Currency.
+Field K: Fiscal Year Start.
+Field L: Country of Incorporation.
+Field M: External Reference ID (optional but unique when present).
+Field N: Notes (optional, max 2000 chars).
+Attachment Requirements: Up to 10 files, each <= 25 MB, file types PDF/XLSX/PNG/JPG/CSV.
+## Workflow Behavior
+Default states for Tenant Onboarding and Workspace Provisioning: Draft,Submitted,In Review,Approved,Active,On Hold,Failed.
+Submit action must run policy validations before state transition.
+Approve and reject actions must require user comment when amount exceeds configured threshold.
+Returned-for-changes state must preserve prior approver comments.
+On-hold state requires hold reason code and expected resume date.
+## Roles and Permissions
+Requester-facing actions: create, edit draft, submit, view own records.
+Approver-facing actions: review, approve, reject, request changes, delegate.
+Admin-facing actions: configure settings, override blocked records with reason code.
+Auditor-facing actions: read-only access to records and audit timeline.
+## Validation Rules
+Server-side validation is mandatory even when client-side validation passes.
+Duplicate detection key combines Workspace Name + Legal Entity + Effective Start Date.
+Dates cannot violate fiscal period locks from budgeting controls.
+Amount and quantity precision rules inherit standards from {@global-form-standards}.
+Mandatory fields are configurable only by workspace admin and cannot be disabled for regulatory controls.
+## Edge Cases
+If network interruption occurs during save, client retries with idempotency key.
+If user loses permission mid-session, the action must fail gracefully with access revoked message.
+If referenced master data is deactivated after draft creation, submit must block with remediation guidance.
+If integration callback arrives out of order, system must apply version checks and queue reconciliation task.
+## Notifications
+Trigger topic: tenant.onboarding.completed.
+Notify creator on submission, notify approvers on pending actions, notify creator on final decision.
+Escalation notification after SLA breach by 4 business hours.
+Digest mode allowed only for non-critical pending reminders.
+## Reports and Analytics
+Primary report: Onboarding Completion Funnel.
+The module contributes operational counts, cycle time metrics, and exception rates.
+Report rows must include legal entity, department, owner, and status dimensions.
+## Integration Dependencies
+Primary connector dependency: Okta SCIM, Salesforce onboarding webhook.
+Integration failures must create operational incident in support console and retry per policy.
+
+
+
+# Module: Organization Structure and Cost Center Hierarchy
+REQ-ORG_STRUCTURE-001: The module must support create and maintain legal entities and departments as a first-class user action.
+REQ-ORG_STRUCTURE-002: The module must support publish hierarchy versions to workflow engine without requiring direct database access.
+REQ-ORG_STRUCTURE-003: Page layouts must follow standards defined in {@ui-page-patterns}.
+REQ-ORG_STRUCTURE-004: All forms must follow field behavior in {@global-form-standards}.
+REQ-ORG_STRUCTURE-005: Permission checks must enforce rules from {@permission-model}.
+Primary object for this module: Organization Node.
+Upstream data dependencies include master records from {@master-data-entities}.
+Downstream reporting obligations are linked to Hierarchy Change Impact Report and cataloged in {@report-catalog}.
+## Page Layout Requirements
+List Page Layout: Header with module KPIs, saved filters, table grid, and bulk action toolbar.
+Detail Page Layout: Summary cards, timeline, attachments panel, related records panel, action footer.
+Create/Edit Page Layout: Sectioned form, policy hint rail, validation summary, draft autosave indicator.
+Review Page Layout: Approver context, change diff panel, comments thread, decision actions.
+## Form Fields
+Field A: Organization Node ID (system-generated, immutable after creation).
+Field B: Organization Node Name (required, 3 to 120 characters).
+Field C: Status (required, enumeration aligned with module state model).
+Field D: Legal Entity (required, scope-limited by role assignment).
+Field E: Cost Center (conditionally required based on spend type).
+Field F: Effective Start Date (required).
+Field G: Effective End Date (optional, must be >= start date).
+Field H: Legal Entity Code (module-specific required unless marked optional by policy).
+Field I: Department Type.
+Field J: Parent Node.
+Field K: Cost Center Range.
+Field L: Effective Version Label.
+Field M: External Reference ID (optional but unique when present).
+Field N: Notes (optional, max 2000 chars).
+Attachment Requirements: Up to 10 files, each <= 25 MB, file types PDF/XLSX/PNG/JPG/CSV.
+## Workflow Behavior
+Default states for Organization Structure and Cost Center Hierarchy: Draft,In Review,Approved,Active,Archived.
+Submit action must run policy validations before state transition.
+Approve and reject actions must require user comment when amount exceeds configured threshold.
+Returned-for-changes state must preserve prior approver comments.
+On-hold state requires hold reason code and expected resume date.
+## Roles and Permissions
+Requester-facing actions: create, edit draft, submit, view own records.
+Approver-facing actions: review, approve, reject, request changes, delegate.
+Admin-facing actions: configure settings, override blocked records with reason code.
+Auditor-facing actions: read-only access to records and audit timeline.
+## Validation Rules
+Server-side validation is mandatory even when client-side validation passes.
+Duplicate detection key combines Organization Node Name + Legal Entity + Effective Start Date.
+Dates cannot violate fiscal period locks from budgeting controls.
+Amount and quantity precision rules inherit standards from {@global-form-standards}.
+Mandatory fields are configurable only by workspace admin and cannot be disabled for regulatory controls.
+## Edge Cases
+If network interruption occurs during save, client retries with idempotency key.
+If user loses permission mid-session, the action must fail gracefully with access revoked message.
+If referenced master data is deactivated after draft creation, submit must block with remediation guidance.
+If integration callback arrives out of order, system must apply version checks and queue reconciliation task.
+## Notifications
+Trigger topic: org.hierarchy.version.published.
+Notify creator on submission, notify approvers on pending actions, notify creator on final decision.
+Escalation notification after SLA breach by 4 business hours.
+Digest mode allowed only for non-critical pending reminders.
+## Reports and Analytics
+Primary report: Hierarchy Change Impact Report.
+The module contributes operational counts, cycle time metrics, and exception rates.
+Report rows must include legal entity, department, owner, and status dimensions.
+## Integration Dependencies
+Primary connector dependency: ERP master data sync.
+Integration failures must create operational incident in support console and retry per policy.
+
+
+
+# Module: Identity and Access Administration
+REQ-IDENTITY_ACCESS-001: The module must support map SSO groups to application roles as a first-class user action.
+REQ-IDENTITY_ACCESS-002: The module must support manage delegated approvals and access recertification without requiring direct database access.
+REQ-IDENTITY_ACCESS-003: Page layouts must follow standards defined in {@ui-page-patterns}.
+REQ-IDENTITY_ACCESS-004: All forms must follow field behavior in {@global-form-standards}.
+REQ-IDENTITY_ACCESS-005: Permission checks must enforce rules from {@permission-model}.
+Primary object for this module: Access Policy.
+Upstream data dependencies include master records from {@master-data-entities}.
+Downstream reporting obligations are linked to Access Review and Segregation Report and cataloged in {@report-catalog}.
+## Page Layout Requirements
+List Page Layout: Header with module KPIs, saved filters, table grid, and bulk action toolbar.
+Detail Page Layout: Summary cards, timeline, attachments panel, related records panel, action footer.
+Create/Edit Page Layout: Sectioned form, policy hint rail, validation summary, draft autosave indicator.
+Review Page Layout: Approver context, change diff panel, comments thread, decision actions.
+## Form Fields
+Field A: Access Policy ID (system-generated, immutable after creation).
+Field B: Access Policy Name (required, 3 to 120 characters).
+Field C: Status (required, enumeration aligned with module state model).
+Field D: Legal Entity (required, scope-limited by role assignment).
+Field E: Cost Center (conditionally required based on spend type).
+Field F: Effective Start Date (required).
+Field G: Effective End Date (optional, must be >= start date).
+Field H: SSO Group Mapping (module-specific required unless marked optional by policy).
+Field I: Role Bundle.
+Field J: Delegation Window.
+Field K: Step-up Policy.
+Field L: Recertification Cycle.
+Field M: External Reference ID (optional but unique when present).
+Field N: Notes (optional, max 2000 chars).
+Attachment Requirements: Up to 10 files, each <= 25 MB, file types PDF/XLSX/PNG/JPG/CSV.
+## Workflow Behavior
+Default states for Identity and Access Administration: Draft,Submitted,Approved,Active,Suspended,Retired.
+Submit action must run policy validations before state transition.
+Approve and reject actions must require user comment when amount exceeds configured threshold.
+Returned-for-changes state must preserve prior approver comments.
+On-hold state requires hold reason code and expected resume date.
+## Roles and Permissions
+Requester-facing actions: create, edit draft, submit, view own records.
+Approver-facing actions: review, approve, reject, request changes, delegate.
+Admin-facing actions: configure settings, override blocked records with reason code.
+Auditor-facing actions: read-only access to records and audit timeline.
+## Validation Rules
+Server-side validation is mandatory even when client-side validation passes.
+Duplicate detection key combines Access Policy Name + Legal Entity + Effective Start Date.
+Dates cannot violate fiscal period locks from budgeting controls.
+Amount and quantity precision rules inherit standards from {@global-form-standards}.
+Mandatory fields are configurable only by workspace admin and cannot be disabled for regulatory controls.
+## Edge Cases
+If network interruption occurs during save, client retries with idempotency key.
+If user loses permission mid-session, the action must fail gracefully with access revoked message.
+If referenced master data is deactivated after draft creation, submit must block with remediation guidance.
+If integration callback arrives out of order, system must apply version checks and queue reconciliation task.
+## Notifications
+Trigger topic: access.policy.changed.
+Notify creator on submission, notify approvers on pending actions, notify creator on final decision.
+Escalation notification after SLA breach by 4 business hours.
+Digest mode allowed only for non-critical pending reminders.
+## Reports and Analytics
+Primary report: Access Review and Segregation Report.
+The module contributes operational counts, cycle time metrics, and exception rates.
+Report rows must include legal entity, department, owner, and status dimensions.
+## Integration Dependencies
+Primary connector dependency: SAML/OIDC IdP connector.
+Integration failures must create operational incident in support console and retry per policy.
+
+
+
+# Module: Supplier Master and Risk Profile
+REQ-SUPPLIER_MASTER-001: The module must support register and onboard suppliers with compliance checks as a first-class user action.
+REQ-SUPPLIER_MASTER-002: The module must support manage supplier bank and tax profile updates without requiring direct database access.
+REQ-SUPPLIER_MASTER-003: Page layouts must follow standards defined in {@ui-page-patterns}.
+REQ-SUPPLIER_MASTER-004: All forms must follow field behavior in {@global-form-standards}.
+REQ-SUPPLIER_MASTER-005: Permission checks must enforce rules from {@permission-model}.
+Primary object for this module: Supplier Record.
+Upstream data dependencies include master records from {@master-data-entities}.
+Downstream reporting obligations are linked to Supplier Lifecycle and Risk Report and cataloged in {@report-catalog}.
+## Page Layout Requirements
+List Page Layout: Header with module KPIs, saved filters, table grid, and bulk action toolbar.
+Detail Page Layout: Summary cards, timeline, attachments panel, related records panel, action footer.
+Create/Edit Page Layout: Sectioned form, policy hint rail, validation summary, draft autosave indicator.
+Review Page Layout: Approver context, change diff panel, comments thread, decision actions.
+## Form Fields
+Field A: Supplier Record ID (system-generated, immutable after creation).
+Field B: Supplier Record Name (required, 3 to 120 characters).
+Field C: Status (required, enumeration aligned with module state model).
+Field D: Legal Entity (required, scope-limited by role assignment).
+Field E: Cost Center (conditionally required based on spend type).
+Field F: Effective Start Date (required).
+Field G: Effective End Date (optional, must be >= start date).
+Field H: Tax Identifier (module-specific required unless marked optional by policy).
+Field I: Bank Account Verification.
+Field J: Payment Terms.
+Field K: Risk Tier.
+Field L: Insurance Expiry Date.
+Field M: External Reference ID (optional but unique when present).
+Field N: Notes (optional, max 2000 chars).
+Attachment Requirements: Up to 10 files, each <= 25 MB, file types PDF/XLSX/PNG/JPG/CSV.
+## Workflow Behavior
+Default states for Supplier Master and Risk Profile: Draft,Submitted,In Review,Approved,Active,On Hold,Blocked.
+Submit action must run policy validations before state transition.
+Approve and reject actions must require user comment when amount exceeds configured threshold.
+Returned-for-changes state must preserve prior approver comments.
+On-hold state requires hold reason code and expected resume date.
+## Roles and Permissions
+Requester-facing actions: create, edit draft, submit, view own records.
+Approver-facing actions: review, approve, reject, request changes, delegate.
+Admin-facing actions: configure settings, override blocked records with reason code.
+Auditor-facing actions: read-only access to records and audit timeline.
+## Validation Rules
+Server-side validation is mandatory even when client-side validation passes.
+Duplicate detection key combines Supplier Record Name + Legal Entity + Effective Start Date.
+Dates cannot violate fiscal period locks from budgeting controls.
+Amount and quantity precision rules inherit standards from {@global-form-standards}.
+Mandatory fields are configurable only by workspace admin and cannot be disabled for regulatory controls.
+## Edge Cases
+If network interruption occurs during save, client retries with idempotency key.
+If user loses permission mid-session, the action must fail gracefully with access revoked message.
+If referenced master data is deactivated after draft creation, submit must block with remediation guidance.
+If integration callback arrives out of order, system must apply version checks and queue reconciliation task.
+## Notifications
+Trigger topic: supplier.profile.updated.
+Notify creator on submission, notify approvers on pending actions, notify creator on final decision.
+Escalation notification after SLA breach by 4 business hours.
+Digest mode allowed only for non-critical pending reminders.
+## Reports and Analytics
+Primary report: Supplier Lifecycle and Risk Report.
+The module contributes operational counts, cycle time metrics, and exception rates.
+Report rows must include legal entity, department, owner, and status dimensions.
+## Integration Dependencies
+Primary connector dependency: Vendor screening API and ERP vendor sync.
+Integration failures must create operational incident in support console and retry per policy.
+
+
+
+# Module: Catalog and Item Master Management
+REQ-CATALOG_MANAGEMENT-001: The module must support maintain approved items and service templates as a first-class user action.
+REQ-CATALOG_MANAGEMENT-002: The module must support control pricing, UOM, and preferred supplier associations without requiring direct database access.
+REQ-CATALOG_MANAGEMENT-003: Page layouts must follow standards defined in {@ui-page-patterns}.
+REQ-CATALOG_MANAGEMENT-004: All forms must follow field behavior in {@global-form-standards}.
+REQ-CATALOG_MANAGEMENT-005: Permission checks must enforce rules from {@permission-model}.
+Primary object for this module: Catalog Item.
+Upstream data dependencies include master records from {@master-data-entities}.
+Downstream reporting obligations are linked to Catalog Coverage and Compliance Report and cataloged in {@report-catalog}.
+## Page Layout Requirements
+List Page Layout: Header with module KPIs, saved filters, table grid, and bulk action toolbar.
+Detail Page Layout: Summary cards, timeline, attachments panel, related records panel, action footer.
+Create/Edit Page Layout: Sectioned form, policy hint rail, validation summary, draft autosave indicator.
+Review Page Layout: Approver context, change diff panel, comments thread, decision actions.
+## Form Fields
+Field A: Catalog Item ID (system-generated, immutable after creation).
+Field B: Catalog Item Name (required, 3 to 120 characters).
+Field C: Status (required, enumeration aligned with module state model).
+Field D: Legal Entity (required, scope-limited by role assignment).
+Field E: Cost Center (conditionally required based on spend type).
+Field F: Effective Start Date (required).
+Field G: Effective End Date (optional, must be >= start date).
+Field H: Item Category (module-specific required unless marked optional by policy).
+Field I: Unit of Measure.
+Field J: Contract Reference.
+Field K: Preferred Supplier.
+Field L: Price Valid Through.
+Field M: External Reference ID (optional but unique when present).
+Field N: Notes (optional, max 2000 chars).
+Attachment Requirements: Up to 10 files, each <= 25 MB, file types PDF/XLSX/PNG/JPG/CSV.
+## Workflow Behavior
+Default states for Catalog and Item Master Management: Draft,Submitted,Approved,Active,Deprecated,Archived.
+Submit action must run policy validations before state transition.
+Approve and reject actions must require user comment when amount exceeds configured threshold.
+Returned-for-changes state must preserve prior approver comments.
+On-hold state requires hold reason code and expected resume date.
+## Roles and Permissions
+Requester-facing actions: create, edit draft, submit, view own records.
+Approver-facing actions: review, approve, reject, request changes, delegate.
+Admin-facing actions: configure settings, override blocked records with reason code.
+Auditor-facing actions: read-only access to records and audit timeline.
+## Validation Rules
+Server-side validation is mandatory even when client-side validation passes.
+Duplicate detection key combines Catalog Item Name + Legal Entity + Effective Start Date.
+Dates cannot violate fiscal period locks from budgeting controls.
+Amount and quantity precision rules inherit standards from {@global-form-standards}.
+Mandatory fields are configurable only by workspace admin and cannot be disabled for regulatory controls.
+## Edge Cases
+If network interruption occurs during save, client retries with idempotency key.
+If user loses permission mid-session, the action must fail gracefully with access revoked message.
+If referenced master data is deactivated after draft creation, submit must block with remediation guidance.
+If integration callback arrives out of order, system must apply version checks and queue reconciliation task.
+## Notifications
+Trigger topic: catalog.item.published.
+Notify creator on submission, notify approvers on pending actions, notify creator on final decision.
+Escalation notification after SLA breach by 4 business hours.
+Digest mode allowed only for non-critical pending reminders.
+## Reports and Analytics
+Primary report: Catalog Coverage and Compliance Report.
+The module contributes operational counts, cycle time metrics, and exception rates.
+Report rows must include legal entity, department, owner, and status dimensions.
+## Integration Dependencies
+Primary connector dependency: ERP item sync and punchout connector.
+Integration failures must create operational incident in support console and retry per policy.
+
+
+
+# Module: Requisition Intake and Requester Experience
+REQ-REQUISITION_MANAGEMENT-001: The module must support create requisitions for goods and services as a first-class user action.
+REQ-REQUISITION_MANAGEMENT-002: The module must support split requisition lines by cost center or project without requiring direct database access.
+REQ-REQUISITION_MANAGEMENT-003: Page layouts must follow standards defined in {@ui-page-patterns}.
+REQ-REQUISITION_MANAGEMENT-004: All forms must follow field behavior in {@global-form-standards}.
+REQ-REQUISITION_MANAGEMENT-005: Permission checks must enforce rules from {@permission-model}.
+Primary object for this module: Requisition.
+Upstream data dependencies include master records from {@master-data-entities}.
+Downstream reporting obligations are linked to Requisition Throughput and Leakage Report and cataloged in {@report-catalog}.
+## Page Layout Requirements
+List Page Layout: Header with module KPIs, saved filters, table grid, and bulk action toolbar.
+Detail Page Layout: Summary cards, timeline, attachments panel, related records panel, action footer.
+Create/Edit Page Layout: Sectioned form, policy hint rail, validation summary, draft autosave indicator.
+Review Page Layout: Approver context, change diff panel, comments thread, decision actions.
+## Form Fields
+Field A: Requisition ID (system-generated, immutable after creation).
+Field B: Requisition Name (required, 3 to 120 characters).
+Field C: Status (required, enumeration aligned with module state model).
+Field D: Legal Entity (required, scope-limited by role assignment).
+Field E: Cost Center (conditionally required based on spend type).
+Field F: Effective Start Date (required).
+Field G: Effective End Date (optional, must be >= start date).
+Field H: Needed By Date (module-specific required unless marked optional by policy).
+Field I: Spend Category.
+Field J: Project Code.
+Field K: Business Justification.
+Field L: Delivery Location.
+Field M: External Reference ID (optional but unique when present).
+Field N: Notes (optional, max 2000 chars).
+Attachment Requirements: Up to 10 files, each <= 25 MB, file types PDF/XLSX/PNG/JPG/CSV.
+## Workflow Behavior
+Default states for Requisition Intake and Requester Experience: Draft,Submitted,In Review,Approved,Rejected,Cancelled,Completed.
+Submit action must run policy validations before state transition.
+Approve and reject actions must require user comment when amount exceeds configured threshold.
+Returned-for-changes state must preserve prior approver comments.
+On-hold state requires hold reason code and expected resume date.
+## Roles and Permissions
+Requester-facing actions: create, edit draft, submit, view own records.
+Approver-facing actions: review, approve, reject, request changes, delegate.
+Admin-facing actions: configure settings, override blocked records with reason code.
+Auditor-facing actions: read-only access to records and audit timeline.
+## Validation Rules
+Server-side validation is mandatory even when client-side validation passes.
+Duplicate detection key combines Requisition Name + Legal Entity + Effective Start Date.
+Dates cannot violate fiscal period locks from budgeting controls.
+Amount and quantity precision rules inherit standards from {@global-form-standards}.
+Mandatory fields are configurable only by workspace admin and cannot be disabled for regulatory controls.
+## Edge Cases
+If network interruption occurs during save, client retries with idempotency key.
+If user loses permission mid-session, the action must fail gracefully with access revoked message.
+If referenced master data is deactivated after draft creation, submit must block with remediation guidance.
+If integration callback arrives out of order, system must apply version checks and queue reconciliation task.
+## Notifications
+Trigger topic: requisition.submitted.
+Notify creator on submission, notify approvers on pending actions, notify creator on final decision.
+Escalation notification after SLA breach by 4 business hours.
+Digest mode allowed only for non-critical pending reminders.
+## Reports and Analytics
+Primary report: Requisition Throughput and Leakage Report.
+The module contributes operational counts, cycle time metrics, and exception rates.
+Report rows must include legal entity, department, owner, and status dimensions.
+## Integration Dependencies
+Primary connector dependency: Policy engine and budget service.
+Integration failures must create operational incident in support console and retry per policy.
+
+
+
+# Module: Approval Workflow Builder and Routing Rules
+REQ-APPROVAL_WORKFLOWS-001: The module must support configure multi-step routing based on spend policy as a first-class user action.
+REQ-APPROVAL_WORKFLOWS-002: The module must support simulate and publish approval paths safely without requiring direct database access.
+REQ-APPROVAL_WORKFLOWS-003: Page layouts must follow standards defined in {@ui-page-patterns}.
+REQ-APPROVAL_WORKFLOWS-004: All forms must follow field behavior in {@global-form-standards}.
+REQ-APPROVAL_WORKFLOWS-005: Permission checks must enforce rules from {@permission-model}.
+Primary object for this module: Approval Rule.
+Upstream data dependencies include master records from {@master-data-entities}.
+Downstream reporting obligations are linked to Approval Latency and Escalation Report and cataloged in {@report-catalog}.
+## Page Layout Requirements
+List Page Layout: Header with module KPIs, saved filters, table grid, and bulk action toolbar.
+Detail Page Layout: Summary cards, timeline, attachments panel, related records panel, action footer.
+Create/Edit Page Layout: Sectioned form, policy hint rail, validation summary, draft autosave indicator.
+Review Page Layout: Approver context, change diff panel, comments thread, decision actions.
+## Form Fields
+Field A: Approval Rule ID (system-generated, immutable after creation).
+Field B: Approval Rule Name (required, 3 to 120 characters).
+Field C: Status (required, enumeration aligned with module state model).
+Field D: Legal Entity (required, scope-limited by role assignment).
+Field E: Cost Center (conditionally required based on spend type).
+Field F: Effective Start Date (required).
+Field G: Effective End Date (optional, must be >= start date).
+Field H: Approval Threshold (module-specific required unless marked optional by policy).
+Field I: Routing Condition.
+Field J: Fallback Approver.
+Field K: Escalation Timer.
+Field L: Delegation Allowed.
+Field M: External Reference ID (optional but unique when present).
+Field N: Notes (optional, max 2000 chars).
+Attachment Requirements: Up to 10 files, each <= 25 MB, file types PDF/XLSX/PNG/JPG/CSV.
+## Workflow Behavior
+Default states for Approval Workflow Builder and Routing Rules: Draft,In Review,Approved,Published,Suspended,Retired.
+Submit action must run policy validations before state transition.
+Approve and reject actions must require user comment when amount exceeds configured threshold.
+Returned-for-changes state must preserve prior approver comments.
+On-hold state requires hold reason code and expected resume date.
+## Roles and Permissions
+Requester-facing actions: create, edit draft, submit, view own records.
+Approver-facing actions: review, approve, reject, request changes, delegate.
+Admin-facing actions: configure settings, override blocked records with reason code.
+Auditor-facing actions: read-only access to records and audit timeline.
+## Validation Rules
+Server-side validation is mandatory even when client-side validation passes.
+Duplicate detection key combines Approval Rule Name + Legal Entity + Effective Start Date.
+Dates cannot violate fiscal period locks from budgeting controls.
+Amount and quantity precision rules inherit standards from {@global-form-standards}.
+Mandatory fields are configurable only by workspace admin and cannot be disabled for regulatory controls.
+## Edge Cases
+If network interruption occurs during save, client retries with idempotency key.
+If user loses permission mid-session, the action must fail gracefully with access revoked message.
+If referenced master data is deactivated after draft creation, submit must block with remediation guidance.
+If integration callback arrives out of order, system must apply version checks and queue reconciliation task.
+## Notifications
+Trigger topic: approval.route.evaluated.
+Notify creator on submission, notify approvers on pending actions, notify creator on final decision.
+Escalation notification after SLA breach by 4 business hours.
+Digest mode allowed only for non-critical pending reminders.
+## Reports and Analytics
+Primary report: Approval Latency and Escalation Report.
+The module contributes operational counts, cycle time metrics, and exception rates.
+Report rows must include legal entity, department, owner, and status dimensions.
+## Integration Dependencies
+Primary connector dependency: Org hierarchy service and policy engine.
+Integration failures must create operational incident in support console and retry per policy.
+
+
+
+# Module: Budget Allocation and Funds Availability Control
+REQ-BUDGET_CONTROLS-001: The module must support define annual and monthly budgets by owner as a first-class user action.
+REQ-BUDGET_CONTROLS-002: The module must support reserve and release funds across lifecycle events without requiring direct database access.
+REQ-BUDGET_CONTROLS-003: Page layouts must follow standards defined in {@ui-page-patterns}.
+REQ-BUDGET_CONTROLS-004: All forms must follow field behavior in {@global-form-standards}.
+REQ-BUDGET_CONTROLS-005: Permission checks must enforce rules from {@permission-model}.
+Primary object for this module: Budget Ledger.
+Upstream data dependencies include master records from {@master-data-entities}.
+Downstream reporting obligations are linked to Budget Utilization and Forecast Variance Report and cataloged in {@report-catalog}.
+## Page Layout Requirements
+List Page Layout: Header with module KPIs, saved filters, table grid, and bulk action toolbar.
+Detail Page Layout: Summary cards, timeline, attachments panel, related records panel, action footer.
+Create/Edit Page Layout: Sectioned form, policy hint rail, validation summary, draft autosave indicator.
+Review Page Layout: Approver context, change diff panel, comments thread, decision actions.
+## Form Fields
+Field A: Budget Ledger ID (system-generated, immutable after creation).
+Field B: Budget Ledger Name (required, 3 to 120 characters).
+Field C: Status (required, enumeration aligned with module state model).
+Field D: Legal Entity (required, scope-limited by role assignment).
+Field E: Cost Center (conditionally required based on spend type).
+Field F: Effective Start Date (required).
+Field G: Effective End Date (optional, must be >= start date).
+Field H: Budget Type (module-specific required unless marked optional by policy).
+Field I: Fiscal Period.
+Field J: Commitment Amount.
+Field K: Accrual Amount.
+Field L: Tolerance Percentage.
+Field M: External Reference ID (optional but unique when present).
+Field N: Notes (optional, max 2000 chars).
+Attachment Requirements: Up to 10 files, each <= 25 MB, file types PDF/XLSX/PNG/JPG/CSV.
+## Workflow Behavior
+Default states for Budget Allocation and Funds Availability Control: Draft,Submitted,Approved,Active,Locked,Closed.
+Submit action must run policy validations before state transition.
+Approve and reject actions must require user comment when amount exceeds configured threshold.
+Returned-for-changes state must preserve prior approver comments.
+On-hold state requires hold reason code and expected resume date.
+## Roles and Permissions
+Requester-facing actions: create, edit draft, submit, view own records.
+Approver-facing actions: review, approve, reject, request changes, delegate.
+Admin-facing actions: configure settings, override blocked records with reason code.
+Auditor-facing actions: read-only access to records and audit timeline.
+## Validation Rules
+Server-side validation is mandatory even when client-side validation passes.
+Duplicate detection key combines Budget Ledger Name + Legal Entity + Effective Start Date.
+Dates cannot violate fiscal period locks from budgeting controls.
+Amount and quantity precision rules inherit standards from {@global-form-standards}.
+Mandatory fields are configurable only by workspace admin and cannot be disabled for regulatory controls.
+## Edge Cases
+If network interruption occurs during save, client retries with idempotency key.
+If user loses permission mid-session, the action must fail gracefully with access revoked message.
+If referenced master data is deactivated after draft creation, submit must block with remediation guidance.
+If integration callback arrives out of order, system must apply version checks and queue reconciliation task.
+## Notifications
+Trigger topic: budget.availability.checked.
+Notify creator on submission, notify approvers on pending actions, notify creator on final decision.
+Escalation notification after SLA breach by 4 business hours.
+Digest mode allowed only for non-critical pending reminders.
+## Reports and Analytics
+Primary report: Budget Utilization and Forecast Variance Report.
+The module contributes operational counts, cycle time metrics, and exception rates.
+Report rows must include legal entity, department, owner, and status dimensions.
+## Integration Dependencies
+Primary connector dependency: ERP budget import/export.
+Integration failures must create operational incident in support console and retry per policy.
+
+
+
+# Module: Purchase Order Authoring and Dispatch
+REQ-PURCHASE_ORDERS-001: The module must support generate PO from approved demand as a first-class user action.
+REQ-PURCHASE_ORDERS-002: The module must support dispatch PO revisions and acknowledgements without requiring direct database access.
+REQ-PURCHASE_ORDERS-003: Page layouts must follow standards defined in {@ui-page-patterns}.
+REQ-PURCHASE_ORDERS-004: All forms must follow field behavior in {@global-form-standards}.
+REQ-PURCHASE_ORDERS-005: Permission checks must enforce rules from {@permission-model}.
+Primary object for this module: Purchase Order.
+Upstream data dependencies include master records from {@master-data-entities}.
+Downstream reporting obligations are linked to PO Cycle Time and Revision Report and cataloged in {@report-catalog}.
+## Page Layout Requirements
+List Page Layout: Header with module KPIs, saved filters, table grid, and bulk action toolbar.
+Detail Page Layout: Summary cards, timeline, attachments panel, related records panel, action footer.
+Create/Edit Page Layout: Sectioned form, policy hint rail, validation summary, draft autosave indicator.
+Review Page Layout: Approver context, change diff panel, comments thread, decision actions.
+## Form Fields
+Field A: Purchase Order ID (system-generated, immutable after creation).
+Field B: Purchase Order Name (required, 3 to 120 characters).
+Field C: Status (required, enumeration aligned with module state model).
+Field D: Legal Entity (required, scope-limited by role assignment).
+Field E: Cost Center (conditionally required based on spend type).
+Field F: Effective Start Date (required).
+Field G: Effective End Date (optional, must be >= start date).
+Field H: PO Type (module-specific required unless marked optional by policy).
+Field I: Incoterms.
+Field J: Ship To Location.
+Field K: Bill To Location.
+Field L: Supplier Acknowledgement Due.
+Field M: External Reference ID (optional but unique when present).
+Field N: Notes (optional, max 2000 chars).
+Attachment Requirements: Up to 10 files, each <= 25 MB, file types PDF/XLSX/PNG/JPG/CSV.
+## Workflow Behavior
+Default states for Purchase Order Authoring and Dispatch: Draft,Submitted,Approved,Dispatched,Acknowledged,Closed,Cancelled.
+Submit action must run policy validations before state transition.
+Approve and reject actions must require user comment when amount exceeds configured threshold.
+Returned-for-changes state must preserve prior approver comments.
+On-hold state requires hold reason code and expected resume date.
+## Roles and Permissions
+Requester-facing actions: create, edit draft, submit, view own records.
+Approver-facing actions: review, approve, reject, request changes, delegate.
+Admin-facing actions: configure settings, override blocked records with reason code.
+Auditor-facing actions: read-only access to records and audit timeline.
+## Validation Rules
+Server-side validation is mandatory even when client-side validation passes.
+Duplicate detection key combines Purchase Order Name + Legal Entity + Effective Start Date.
+Dates cannot violate fiscal period locks from budgeting controls.
+Amount and quantity precision rules inherit standards from {@global-form-standards}.
+Mandatory fields are configurable only by workspace admin and cannot be disabled for regulatory controls.
+## Edge Cases
+If network interruption occurs during save, client retries with idempotency key.
+If user loses permission mid-session, the action must fail gracefully with access revoked message.
+If referenced master data is deactivated after draft creation, submit must block with remediation guidance.
+If integration callback arrives out of order, system must apply version checks and queue reconciliation task.
+## Notifications
+Trigger topic: po.dispatched.
+Notify creator on submission, notify approvers on pending actions, notify creator on final decision.
+Escalation notification after SLA breach by 4 business hours.
+Digest mode allowed only for non-critical pending reminders.
+## Reports and Analytics
+Primary report: PO Cycle Time and Revision Report.
+The module contributes operational counts, cycle time metrics, and exception rates.
+Report rows must include legal entity, department, owner, and status dimensions.
+## Integration Dependencies
+Primary connector dependency: ERP PO posting and supplier portal.
+Integration failures must create operational incident in support console and retry per policy.
+
+
+
+# Module: Goods Receipt and Service Entry Tracking
+REQ-GOODS_RECEIVING-001: The module must support capture goods receipts and service confirmations as a first-class user action.
+REQ-GOODS_RECEIVING-002: The module must support record partial receipts and quality holds without requiring direct database access.
+REQ-GOODS_RECEIVING-003: Page layouts must follow standards defined in {@ui-page-patterns}.
+REQ-GOODS_RECEIVING-004: All forms must follow field behavior in {@global-form-standards}.
+REQ-GOODS_RECEIVING-005: Permission checks must enforce rules from {@permission-model}.
+Primary object for this module: Receipt Record.
+Upstream data dependencies include master records from {@master-data-entities}.
+Downstream reporting obligations are linked to Receiving Accuracy and Delay Report and cataloged in {@report-catalog}.
+## Page Layout Requirements
+List Page Layout: Header with module KPIs, saved filters, table grid, and bulk action toolbar.
+Detail Page Layout: Summary cards, timeline, attachments panel, related records panel, action footer.
+Create/Edit Page Layout: Sectioned form, policy hint rail, validation summary, draft autosave indicator.
+Review Page Layout: Approver context, change diff panel, comments thread, decision actions.
+## Form Fields
+Field A: Receipt Record ID (system-generated, immutable after creation).
+Field B: Receipt Record Name (required, 3 to 120 characters).
+Field C: Status (required, enumeration aligned with module state model).
+Field D: Legal Entity (required, scope-limited by role assignment).
+Field E: Cost Center (conditionally required based on spend type).
+Field F: Effective Start Date (required).
+Field G: Effective End Date (optional, must be >= start date).
+Field H: Receipt Type (module-specific required unless marked optional by policy).
+Field I: Quantity Received.
+Field J: Quality Check Status.
+Field K: Inspection Notes.
+Field L: Service Completion Date.
+Field M: External Reference ID (optional but unique when present).
+Field N: Notes (optional, max 2000 chars).
+Attachment Requirements: Up to 10 files, each <= 25 MB, file types PDF/XLSX/PNG/JPG/CSV.
+## Workflow Behavior
+Default states for Goods Receipt and Service Entry Tracking: Draft,Submitted,Approved,Posted,On Hold,Reversed.
+Submit action must run policy validations before state transition.
+Approve and reject actions must require user comment when amount exceeds configured threshold.
+Returned-for-changes state must preserve prior approver comments.
+On-hold state requires hold reason code and expected resume date.
+## Roles and Permissions
+Requester-facing actions: create, edit draft, submit, view own records.
+Approver-facing actions: review, approve, reject, request changes, delegate.
+Admin-facing actions: configure settings, override blocked records with reason code.
+Auditor-facing actions: read-only access to records and audit timeline.
+## Validation Rules
+Server-side validation is mandatory even when client-side validation passes.
+Duplicate detection key combines Receipt Record Name + Legal Entity + Effective Start Date.
+Dates cannot violate fiscal period locks from budgeting controls.
+Amount and quantity precision rules inherit standards from {@global-form-standards}.
+Mandatory fields are configurable only by workspace admin and cannot be disabled for regulatory controls.
+## Edge Cases
+If network interruption occurs during save, client retries with idempotency key.
+If user loses permission mid-session, the action must fail gracefully with access revoked message.
+If referenced master data is deactivated after draft creation, submit must block with remediation guidance.
+If integration callback arrives out of order, system must apply version checks and queue reconciliation task.
+## Notifications
+Trigger topic: receipt.recorded.
+Notify creator on submission, notify approvers on pending actions, notify creator on final decision.
+Escalation notification after SLA breach by 4 business hours.
+Digest mode allowed only for non-critical pending reminders.
+## Reports and Analytics
+Primary report: Receiving Accuracy and Delay Report.
+The module contributes operational counts, cycle time metrics, and exception rates.
+Report rows must include legal entity, department, owner, and status dimensions.
+## Integration Dependencies
+Primary connector dependency: Warehouse system integration.
+Integration failures must create operational incident in support console and retry per policy.
+
+
+
+# Module: Invoice Intake, OCR, and Normalization
+REQ-INVOICE_INTAKE-001: The module must support ingest invoices from multiple channels as a first-class user action.
+REQ-INVOICE_INTAKE-002: The module must support normalize header and line data for matching without requiring direct database access.
+REQ-INVOICE_INTAKE-003: Page layouts must follow standards defined in {@ui-page-patterns}.
+REQ-INVOICE_INTAKE-004: All forms must follow field behavior in {@global-form-standards}.
+REQ-INVOICE_INTAKE-005: Permission checks must enforce rules from {@permission-model}.
+Primary object for this module: Invoice Document.
+Upstream data dependencies include master records from {@master-data-entities}.
+Downstream reporting obligations are linked to Invoice Capture Quality Report and cataloged in {@report-catalog}.
+## Page Layout Requirements
+List Page Layout: Header with module KPIs, saved filters, table grid, and bulk action toolbar.
+Detail Page Layout: Summary cards, timeline, attachments panel, related records panel, action footer.
+Create/Edit Page Layout: Sectioned form, policy hint rail, validation summary, draft autosave indicator.
+Review Page Layout: Approver context, change diff panel, comments thread, decision actions.
+## Form Fields
+Field A: Invoice Document ID (system-generated, immutable after creation).
+Field B: Invoice Document Name (required, 3 to 120 characters).
+Field C: Status (required, enumeration aligned with module state model).
+Field D: Legal Entity (required, scope-limited by role assignment).
+Field E: Cost Center (conditionally required based on spend type).
+Field F: Effective Start Date (required).
+Field G: Effective End Date (optional, must be >= start date).
+Field H: Invoice Number (module-specific required unless marked optional by policy).
+Field I: Invoice Date.
+Field J: Supplier Invoice Currency.
+Field K: Tax Amount.
+Field L: Due Date.
+Field M: External Reference ID (optional but unique when present).
+Field N: Notes (optional, max 2000 chars).
+Attachment Requirements: Up to 10 files, each <= 25 MB, file types PDF/XLSX/PNG/JPG/CSV.
+## Workflow Behavior
+Default states for Invoice Intake, OCR, and Normalization: Draft,Submitted,In Review,Validated,On Hold,Rejected,Completed.
+Submit action must run policy validations before state transition.
+Approve and reject actions must require user comment when amount exceeds configured threshold.
+Returned-for-changes state must preserve prior approver comments.
+On-hold state requires hold reason code and expected resume date.
+## Roles and Permissions
+Requester-facing actions: create, edit draft, submit, view own records.
+Approver-facing actions: review, approve, reject, request changes, delegate.
+Admin-facing actions: configure settings, override blocked records with reason code.
+Auditor-facing actions: read-only access to records and audit timeline.
+## Validation Rules
+Server-side validation is mandatory even when client-side validation passes.
+Duplicate detection key combines Invoice Document Name + Legal Entity + Effective Start Date.
+Dates cannot violate fiscal period locks from budgeting controls.
+Amount and quantity precision rules inherit standards from {@global-form-standards}.
+Mandatory fields are configurable only by workspace admin and cannot be disabled for regulatory controls.
+## Edge Cases
+If network interruption occurs during save, client retries with idempotency key.
+If user loses permission mid-session, the action must fail gracefully with access revoked message.
+If referenced master data is deactivated after draft creation, submit must block with remediation guidance.
+If integration callback arrives out of order, system must apply version checks and queue reconciliation task.
+## Notifications
+Trigger topic: invoice.ingested.
+Notify creator on submission, notify approvers on pending actions, notify creator on final decision.
+Escalation notification after SLA breach by 4 business hours.
+Digest mode allowed only for non-critical pending reminders.
+## Reports and Analytics
+Primary report: Invoice Capture Quality Report.
+The module contributes operational counts, cycle time metrics, and exception rates.
+Report rows must include legal entity, department, owner, and status dimensions.
+## Integration Dependencies
+Primary connector dependency: OCR provider and e-invoice gateway.
+Integration failures must create operational incident in support console and retry per policy.
+
+
+
+# Module: Two-Way and Three-Way Matching with Exceptions
+REQ-MATCH_EXCEPTION-001: The module must support run configurable match rules against invoice and PO as a first-class user action.
+REQ-MATCH_EXCEPTION-002: The module must support manage discrepancy workflows and dispute outcomes without requiring direct database access.
+REQ-MATCH_EXCEPTION-003: Page layouts must follow standards defined in {@ui-page-patterns}.
+REQ-MATCH_EXCEPTION-004: All forms must follow field behavior in {@global-form-standards}.
+REQ-MATCH_EXCEPTION-005: Permission checks must enforce rules from {@permission-model}.
+Primary object for this module: Match Case.
+Upstream data dependencies include master records from {@master-data-entities}.
+Downstream reporting obligations are linked to Match Rate and Exception Aging Report and cataloged in {@report-catalog}.
+## Page Layout Requirements
+List Page Layout: Header with module KPIs, saved filters, table grid, and bulk action toolbar.
+Detail Page Layout: Summary cards, timeline, attachments panel, related records panel, action footer.
+Create/Edit Page Layout: Sectioned form, policy hint rail, validation summary, draft autosave indicator.
+Review Page Layout: Approver context, change diff panel, comments thread, decision actions.
+## Form Fields
+Field A: Match Case ID (system-generated, immutable after creation).
+Field B: Match Case Name (required, 3 to 120 characters).
+Field C: Status (required, enumeration aligned with module state model).
+Field D: Legal Entity (required, scope-limited by role assignment).
+Field E: Cost Center (conditionally required based on spend type).
+Field F: Effective Start Date (required).
+Field G: Effective End Date (optional, must be >= start date).
+Field H: Match Rule Set (module-specific required unless marked optional by policy).
+Field I: Price Variance.
+Field J: Quantity Variance.
+Field K: Tax Variance.
+Field L: Dispute Reason Code.
+Field M: External Reference ID (optional but unique when present).
+Field N: Notes (optional, max 2000 chars).
+Attachment Requirements: Up to 10 files, each <= 25 MB, file types PDF/XLSX/PNG/JPG/CSV.
+## Workflow Behavior
+Default states for Two-Way and Three-Way Matching with Exceptions: Pending,In Review,Auto Matched,Exception,Resolved,Escalated,Closed.
+Submit action must run policy validations before state transition.
+Approve and reject actions must require user comment when amount exceeds configured threshold.
+Returned-for-changes state must preserve prior approver comments.
+On-hold state requires hold reason code and expected resume date.
+## Roles and Permissions
+Requester-facing actions: create, edit draft, submit, view own records.
+Approver-facing actions: review, approve, reject, request changes, delegate.
+Admin-facing actions: configure settings, override blocked records with reason code.
+Auditor-facing actions: read-only access to records and audit timeline.
+## Validation Rules
+Server-side validation is mandatory even when client-side validation passes.
+Duplicate detection key combines Match Case Name + Legal Entity + Effective Start Date.
+Dates cannot violate fiscal period locks from budgeting controls.
+Amount and quantity precision rules inherit standards from {@global-form-standards}.
+Mandatory fields are configurable only by workspace admin and cannot be disabled for regulatory controls.
+## Edge Cases
+If network interruption occurs during save, client retries with idempotency key.
+If user loses permission mid-session, the action must fail gracefully with access revoked message.
+If referenced master data is deactivated after draft creation, submit must block with remediation guidance.
+If integration callback arrives out of order, system must apply version checks and queue reconciliation task.
+## Notifications
+Trigger topic: match.case.created.
+Notify creator on submission, notify approvers on pending actions, notify creator on final decision.
+Escalation notification after SLA breach by 4 business hours.
+Digest mode allowed only for non-critical pending reminders.
+## Reports and Analytics
+Primary report: Match Rate and Exception Aging Report.
+The module contributes operational counts, cycle time metrics, and exception rates.
+Report rows must include legal entity, department, owner, and status dimensions.
+## Integration Dependencies
+Primary connector dependency: PO/Receipt services and tax engine.
+Integration failures must create operational incident in support console and retry per policy.
+
+
+
+# Module: Payment Proposal, Approval, and Remittance Tracking
+REQ-PAYMENT_RUNS-001: The module must support assemble payment batches by due date and priority as a first-class user action.
+REQ-PAYMENT_RUNS-002: The module must support approve remittance files and update settlement status without requiring direct database access.
+REQ-PAYMENT_RUNS-003: Page layouts must follow standards defined in {@ui-page-patterns}.
+REQ-PAYMENT_RUNS-004: All forms must follow field behavior in {@global-form-standards}.
+REQ-PAYMENT_RUNS-005: Permission checks must enforce rules from {@permission-model}.
+Primary object for this module: Payment Batch.
+Upstream data dependencies include master records from {@master-data-entities}.
+Downstream reporting obligations are linked to Payment Timeliness and Failure Report and cataloged in {@report-catalog}.
+## Page Layout Requirements
+List Page Layout: Header with module KPIs, saved filters, table grid, and bulk action toolbar.
+Detail Page Layout: Summary cards, timeline, attachments panel, related records panel, action footer.
+Create/Edit Page Layout: Sectioned form, policy hint rail, validation summary, draft autosave indicator.
+Review Page Layout: Approver context, change diff panel, comments thread, decision actions.
+## Form Fields
+Field A: Payment Batch ID (system-generated, immutable after creation).
+Field B: Payment Batch Name (required, 3 to 120 characters).
+Field C: Status (required, enumeration aligned with module state model).
+Field D: Legal Entity (required, scope-limited by role assignment).
+Field E: Cost Center (conditionally required based on spend type).
+Field F: Effective Start Date (required).
+Field G: Effective End Date (optional, must be >= start date).
+Field H: Payment Method (module-specific required unless marked optional by policy).
+Field I: Value Date.
+Field J: Bank Account Profile.
+Field K: Payment Priority.
+Field L: Remittance Advice Template.
+Field M: External Reference ID (optional but unique when present).
+Field N: Notes (optional, max 2000 chars).
+Attachment Requirements: Up to 10 files, each <= 25 MB, file types PDF/XLSX/PNG/JPG/CSV.
+## Workflow Behavior
+Default states for Payment Proposal, Approval, and Remittance Tracking: Draft,Submitted,In Review,Approved,Released,Settled,Failed.
+Submit action must run policy validations before state transition.
+Approve and reject actions must require user comment when amount exceeds configured threshold.
+Returned-for-changes state must preserve prior approver comments.
+On-hold state requires hold reason code and expected resume date.
+## Roles and Permissions
+Requester-facing actions: create, edit draft, submit, view own records.
+Approver-facing actions: review, approve, reject, request changes, delegate.
+Admin-facing actions: configure settings, override blocked records with reason code.
+Auditor-facing actions: read-only access to records and audit timeline.
+## Validation Rules
+Server-side validation is mandatory even when client-side validation passes.
+Duplicate detection key combines Payment Batch Name + Legal Entity + Effective Start Date.
+Dates cannot violate fiscal period locks from budgeting controls.
+Amount and quantity precision rules inherit standards from {@global-form-standards}.
+Mandatory fields are configurable only by workspace admin and cannot be disabled for regulatory controls.
+## Edge Cases
+If network interruption occurs during save, client retries with idempotency key.
+If user loses permission mid-session, the action must fail gracefully with access revoked message.
+If referenced master data is deactivated after draft creation, submit must block with remediation guidance.
+If integration callback arrives out of order, system must apply version checks and queue reconciliation task.
+## Notifications
+Trigger topic: payment.batch.approval.requested.
+Notify creator on submission, notify approvers on pending actions, notify creator on final decision.
+Escalation notification after SLA breach by 4 business hours.
+Digest mode allowed only for non-critical pending reminders.
+## Reports and Analytics
+Primary report: Payment Timeliness and Failure Report.
+The module contributes operational counts, cycle time metrics, and exception rates.
+Report rows must include legal entity, department, owner, and status dimensions.
+## Integration Dependencies
+Primary connector dependency: Bank file gateway and ERP payment posting.
+Integration failures must create operational incident in support console and retry per policy.
+
+
+
+# Module: Contract Repository and Obligation Milestones
+REQ-CONTRACT_LIFECYCLE-001: The module must support store contracts and commercial metadata as a first-class user action.
+REQ-CONTRACT_LIFECYCLE-002: The module must support track renewals, obligations, and pricing amendments without requiring direct database access.
+REQ-CONTRACT_LIFECYCLE-003: Page layouts must follow standards defined in {@ui-page-patterns}.
+REQ-CONTRACT_LIFECYCLE-004: All forms must follow field behavior in {@global-form-standards}.
+REQ-CONTRACT_LIFECYCLE-005: Permission checks must enforce rules from {@permission-model}.
+Primary object for this module: Contract Record.
+Upstream data dependencies include master records from {@master-data-entities}.
+Downstream reporting obligations are linked to Contract Coverage and Expiry Risk Report and cataloged in {@report-catalog}.
+## Page Layout Requirements
+List Page Layout: Header with module KPIs, saved filters, table grid, and bulk action toolbar.
+Detail Page Layout: Summary cards, timeline, attachments panel, related records panel, action footer.
+Create/Edit Page Layout: Sectioned form, policy hint rail, validation summary, draft autosave indicator.
+Review Page Layout: Approver context, change diff panel, comments thread, decision actions.
+## Form Fields
+Field A: Contract Record ID (system-generated, immutable after creation).
+Field B: Contract Record Name (required, 3 to 120 characters).
+Field C: Status (required, enumeration aligned with module state model).
+Field D: Legal Entity (required, scope-limited by role assignment).
+Field E: Cost Center (conditionally required based on spend type).
+Field F: Effective Start Date (required).
+Field G: Effective End Date (optional, must be >= start date).
+Field H: Contract Type (module-specific required unless marked optional by policy).
+Field I: Counterparty.
+Field J: Renewal Notice Period.
+Field K: Auto Renewal Flag.
+Field L: Obligation Owner.
+Field M: External Reference ID (optional but unique when present).
+Field N: Notes (optional, max 2000 chars).
+Attachment Requirements: Up to 10 files, each <= 25 MB, file types PDF/XLSX/PNG/JPG/CSV.
+## Workflow Behavior
+Default states for Contract Repository and Obligation Milestones: Draft,In Review,Approved,Active,Expiring,Expired,Terminated.
+Submit action must run policy validations before state transition.
+Approve and reject actions must require user comment when amount exceeds configured threshold.
+Returned-for-changes state must preserve prior approver comments.
+On-hold state requires hold reason code and expected resume date.
+## Roles and Permissions
+Requester-facing actions: create, edit draft, submit, view own records.
+Approver-facing actions: review, approve, reject, request changes, delegate.
+Admin-facing actions: configure settings, override blocked records with reason code.
+Auditor-facing actions: read-only access to records and audit timeline.
+## Validation Rules
+Server-side validation is mandatory even when client-side validation passes.
+Duplicate detection key combines Contract Record Name + Legal Entity + Effective Start Date.
+Dates cannot violate fiscal period locks from budgeting controls.
+Amount and quantity precision rules inherit standards from {@global-form-standards}.
+Mandatory fields are configurable only by workspace admin and cannot be disabled for regulatory controls.
+## Edge Cases
+If network interruption occurs during save, client retries with idempotency key.
+If user loses permission mid-session, the action must fail gracefully with access revoked message.
+If referenced master data is deactivated after draft creation, submit must block with remediation guidance.
+If integration callback arrives out of order, system must apply version checks and queue reconciliation task.
+## Notifications
+Trigger topic: contract.milestone.due.
+Notify creator on submission, notify approvers on pending actions, notify creator on final decision.
+Escalation notification after SLA breach by 4 business hours.
+Digest mode allowed only for non-critical pending reminders.
+## Reports and Analytics
+Primary report: Contract Coverage and Expiry Risk Report.
+The module contributes operational counts, cycle time metrics, and exception rates.
+Report rows must include legal entity, department, owner, and status dimensions.
+## Integration Dependencies
+Primary connector dependency: CLM import and e-sign provider.
+Integration failures must create operational incident in support console and retry per policy.
+
+
+
+# Module: Sourcing Events, RFQ, and Bid Evaluation
+REQ-SOURCING_RFX-001: The module must support launch RFQ and collect supplier bids as a first-class user action.
+REQ-SOURCING_RFX-002: The module must support score bids and publish award recommendations without requiring direct database access.
+REQ-SOURCING_RFX-003: Page layouts must follow standards defined in {@ui-page-patterns}.
+REQ-SOURCING_RFX-004: All forms must follow field behavior in {@global-form-standards}.
+REQ-SOURCING_RFX-005: Permission checks must enforce rules from {@permission-model}.
+Primary object for this module: Sourcing Event.
+Upstream data dependencies include master records from {@master-data-entities}.
+Downstream reporting obligations are linked to Sourcing Savings and Participation Report and cataloged in {@report-catalog}.
+## Page Layout Requirements
+List Page Layout: Header with module KPIs, saved filters, table grid, and bulk action toolbar.
+Detail Page Layout: Summary cards, timeline, attachments panel, related records panel, action footer.
+Create/Edit Page Layout: Sectioned form, policy hint rail, validation summary, draft autosave indicator.
+Review Page Layout: Approver context, change diff panel, comments thread, decision actions.
+## Form Fields
+Field A: Sourcing Event ID (system-generated, immutable after creation).
+Field B: Sourcing Event Name (required, 3 to 120 characters).
+Field C: Status (required, enumeration aligned with module state model).
+Field D: Legal Entity (required, scope-limited by role assignment).
+Field E: Cost Center (conditionally required based on spend type).
+Field F: Effective Start Date (required).
+Field G: Effective End Date (optional, must be >= start date).
+Field H: Event Category (module-specific required unless marked optional by policy).
+Field I: Bid Deadline.
+Field J: Evaluation Criteria.
+Field K: Award Strategy.
+Field L: Incumbent Supplier.
+Field M: External Reference ID (optional but unique when present).
+Field N: Notes (optional, max 2000 chars).
+Attachment Requirements: Up to 10 files, each <= 25 MB, file types PDF/XLSX/PNG/JPG/CSV.
+## Workflow Behavior
+Default states for Sourcing Events, RFQ, and Bid Evaluation: Draft,Published,In Review,Shortlisted,Awarded,Cancelled,Closed.
+Submit action must run policy validations before state transition.
+Approve and reject actions must require user comment when amount exceeds configured threshold.
+Returned-for-changes state must preserve prior approver comments.
+On-hold state requires hold reason code and expected resume date.
+## Roles and Permissions
+Requester-facing actions: create, edit draft, submit, view own records.
+Approver-facing actions: review, approve, reject, request changes, delegate.
+Admin-facing actions: configure settings, override blocked records with reason code.
+Auditor-facing actions: read-only access to records and audit timeline.
+## Validation Rules
+Server-side validation is mandatory even when client-side validation passes.
+Duplicate detection key combines Sourcing Event Name + Legal Entity + Effective Start Date.
+Dates cannot violate fiscal period locks from budgeting controls.
+Amount and quantity precision rules inherit standards from {@global-form-standards}.
+Mandatory fields are configurable only by workspace admin and cannot be disabled for regulatory controls.
+## Edge Cases
+If network interruption occurs during save, client retries with idempotency key.
+If user loses permission mid-session, the action must fail gracefully with access revoked message.
+If referenced master data is deactivated after draft creation, submit must block with remediation guidance.
+If integration callback arrives out of order, system must apply version checks and queue reconciliation task.
+## Notifications
+Trigger topic: sourcing.event.awarded.
+Notify creator on submission, notify approvers on pending actions, notify creator on final decision.
+Escalation notification after SLA breach by 4 business hours.
+Digest mode allowed only for non-critical pending reminders.
+## Reports and Analytics
+Primary report: Sourcing Savings and Participation Report.
+The module contributes operational counts, cycle time metrics, and exception rates.
+Report rows must include legal entity, department, owner, and status dimensions.
+## Integration Dependencies
+Primary connector dependency: Supplier portal and scoring API.
+Integration failures must create operational incident in support console and retry per policy.
+
+
+
+# Module: Analytics Workspace and Executive Reporting
+REQ-ANALYTICS_REPORTING-001: The module must support compose KPI dashboards from governed datasets as a first-class user action.
+REQ-ANALYTICS_REPORTING-002: The module must support schedule and distribute report packs securely without requiring direct database access.
+REQ-ANALYTICS_REPORTING-003: Page layouts must follow standards defined in {@ui-page-patterns}.
+REQ-ANALYTICS_REPORTING-004: All forms must follow field behavior in {@global-form-standards}.
+REQ-ANALYTICS_REPORTING-005: Permission checks must enforce rules from {@permission-model}.
+Primary object for this module: Analytics View.
+Upstream data dependencies include master records from {@master-data-entities}.
+Downstream reporting obligations are linked to Executive Spend and Working Capital Pack and cataloged in {@report-catalog}.
+## Page Layout Requirements
+List Page Layout: Header with module KPIs, saved filters, table grid, and bulk action toolbar.
+Detail Page Layout: Summary cards, timeline, attachments panel, related records panel, action footer.
+Create/Edit Page Layout: Sectioned form, policy hint rail, validation summary, draft autosave indicator.
+Review Page Layout: Approver context, change diff panel, comments thread, decision actions.
+## Form Fields
+Field A: Analytics View ID (system-generated, immutable after creation).
+Field B: Analytics View Name (required, 3 to 120 characters).
+Field C: Status (required, enumeration aligned with module state model).
+Field D: Legal Entity (required, scope-limited by role assignment).
+Field E: Cost Center (conditionally required based on spend type).
+Field F: Effective Start Date (required).
+Field G: Effective End Date (optional, must be >= start date).
+Field H: KPI Definition (module-specific required unless marked optional by policy).
+Field I: Data Freshness SLA.
+Field J: Recipient Group.
+Field K: Export Policy.
+Field L: Snapshot Lock Period.
+Field M: External Reference ID (optional but unique when present).
+Field N: Notes (optional, max 2000 chars).
+Attachment Requirements: Up to 10 files, each <= 25 MB, file types PDF/XLSX/PNG/JPG/CSV.
+## Workflow Behavior
+Default states for Analytics Workspace and Executive Reporting: Draft,Submitted,Approved,Published,Deprecated,Archived.
+Submit action must run policy validations before state transition.
+Approve and reject actions must require user comment when amount exceeds configured threshold.
+Returned-for-changes state must preserve prior approver comments.
+On-hold state requires hold reason code and expected resume date.
+## Roles and Permissions
+Requester-facing actions: create, edit draft, submit, view own records.
+Approver-facing actions: review, approve, reject, request changes, delegate.
+Admin-facing actions: configure settings, override blocked records with reason code.
+Auditor-facing actions: read-only access to records and audit timeline.
+## Validation Rules
+Server-side validation is mandatory even when client-side validation passes.
+Duplicate detection key combines Analytics View Name + Legal Entity + Effective Start Date.
+Dates cannot violate fiscal period locks from budgeting controls.
+Amount and quantity precision rules inherit standards from {@global-form-standards}.
+Mandatory fields are configurable only by workspace admin and cannot be disabled for regulatory controls.
+## Edge Cases
+If network interruption occurs during save, client retries with idempotency key.
+If user loses permission mid-session, the action must fail gracefully with access revoked message.
+If referenced master data is deactivated after draft creation, submit must block with remediation guidance.
+If integration callback arrives out of order, system must apply version checks and queue reconciliation task.
+## Notifications
+Trigger topic: report.schedule.executed.
+Notify creator on submission, notify approvers on pending actions, notify creator on final decision.
+Escalation notification after SLA breach by 4 business hours.
+Digest mode allowed only for non-critical pending reminders.
+## Reports and Analytics
+Primary report: Executive Spend and Working Capital Pack.
+The module contributes operational counts, cycle time metrics, and exception rates.
+Report rows must include legal entity, department, owner, and status dimensions.
+## Integration Dependencies
+Primary connector dependency: Data warehouse connector.
+Integration failures must create operational incident in support console and retry per policy.
+
+
+
+# Module: Integration Hub and Connector Operations
+REQ-INTEGRATION_HUB-001: The module must support configure inbound and outbound connector mappings as a first-class user action.
+REQ-INTEGRATION_HUB-002: The module must support monitor sync runs and replay failed jobs without requiring direct database access.
+REQ-INTEGRATION_HUB-003: Page layouts must follow standards defined in {@ui-page-patterns}.
+REQ-INTEGRATION_HUB-004: All forms must follow field behavior in {@global-form-standards}.
+REQ-INTEGRATION_HUB-005: Permission checks must enforce rules from {@permission-model}.
+Primary object for this module: Connector Profile.
+Upstream data dependencies include master records from {@master-data-entities}.
+Downstream reporting obligations are linked to Integration Health and Throughput Report and cataloged in {@report-catalog}.
+## Page Layout Requirements
+List Page Layout: Header with module KPIs, saved filters, table grid, and bulk action toolbar.
+Detail Page Layout: Summary cards, timeline, attachments panel, related records panel, action footer.
+Create/Edit Page Layout: Sectioned form, policy hint rail, validation summary, draft autosave indicator.
+Review Page Layout: Approver context, change diff panel, comments thread, decision actions.
+## Form Fields
+Field A: Connector Profile ID (system-generated, immutable after creation).
+Field B: Connector Profile Name (required, 3 to 120 characters).
+Field C: Status (required, enumeration aligned with module state model).
+Field D: Legal Entity (required, scope-limited by role assignment).
+Field E: Cost Center (conditionally required based on spend type).
+Field F: Effective Start Date (required).
+Field G: Effective End Date (optional, must be >= start date).
+Field H: Connector Type (module-specific required unless marked optional by policy).
+Field I: Authentication Mode.
+Field J: Sync Frequency.
+Field K: Retry Policy.
+Field L: Dead Letter Queue.
+Field M: External Reference ID (optional but unique when present).
+Field N: Notes (optional, max 2000 chars).
+Attachment Requirements: Up to 10 files, each <= 25 MB, file types PDF/XLSX/PNG/JPG/CSV.
+## Workflow Behavior
+Default states for Integration Hub and Connector Operations: Draft,Configured,Validated,Active,Degraded,Paused,Retired.
+Submit action must run policy validations before state transition.
+Approve and reject actions must require user comment when amount exceeds configured threshold.
+Returned-for-changes state must preserve prior approver comments.
+On-hold state requires hold reason code and expected resume date.
+## Roles and Permissions
+Requester-facing actions: create, edit draft, submit, view own records.
+Approver-facing actions: review, approve, reject, request changes, delegate.
+Admin-facing actions: configure settings, override blocked records with reason code.
+Auditor-facing actions: read-only access to records and audit timeline.
+## Validation Rules
+Server-side validation is mandatory even when client-side validation passes.
+Duplicate detection key combines Connector Profile Name + Legal Entity + Effective Start Date.
+Dates cannot violate fiscal period locks from budgeting controls.
+Amount and quantity precision rules inherit standards from {@global-form-standards}.
+Mandatory fields are configurable only by workspace admin and cannot be disabled for regulatory controls.
+## Edge Cases
+If network interruption occurs during save, client retries with idempotency key.
+If user loses permission mid-session, the action must fail gracefully with access revoked message.
+If referenced master data is deactivated after draft creation, submit must block with remediation guidance.
+If integration callback arrives out of order, system must apply version checks and queue reconciliation task.
+## Notifications
+Trigger topic: integration.job.failed.
+Notify creator on submission, notify approvers on pending actions, notify creator on final decision.
+Escalation notification after SLA breach by 4 business hours.
+Digest mode allowed only for non-critical pending reminders.
+## Reports and Analytics
+Primary report: Integration Health and Throughput Report.
+The module contributes operational counts, cycle time metrics, and exception rates.
+Report rows must include legal entity, department, owner, and status dimensions.
+## Integration Dependencies
+Primary connector dependency: ERP, tax, OCR, IdP, and messaging connectors.
+Integration failures must create operational incident in support console and retry per policy.
+
+
+
+# Module: Notification Template and Delivery Operations
+REQ-NOTIFICATION_CENTER-001: The module must support author event-driven notifications by audience as a first-class user action.
+REQ-NOTIFICATION_CENTER-002: The module must support monitor delivery status and retry outcomes without requiring direct database access.
+REQ-NOTIFICATION_CENTER-003: Page layouts must follow standards defined in {@ui-page-patterns}.
+REQ-NOTIFICATION_CENTER-004: All forms must follow field behavior in {@global-form-standards}.
+REQ-NOTIFICATION_CENTER-005: Permission checks must enforce rules from {@permission-model}.
+Primary object for this module: Notification Template.
+Upstream data dependencies include master records from {@master-data-entities}.
+Downstream reporting obligations are linked to Notification Delivery and SLA Report and cataloged in {@report-catalog}.
+## Page Layout Requirements
+List Page Layout: Header with module KPIs, saved filters, table grid, and bulk action toolbar.
+Detail Page Layout: Summary cards, timeline, attachments panel, related records panel, action footer.
+Create/Edit Page Layout: Sectioned form, policy hint rail, validation summary, draft autosave indicator.
+Review Page Layout: Approver context, change diff panel, comments thread, decision actions.
+## Form Fields
+Field A: Notification Template ID (system-generated, immutable after creation).
+Field B: Notification Template Name (required, 3 to 120 characters).
+Field C: Status (required, enumeration aligned with module state model).
+Field D: Legal Entity (required, scope-limited by role assignment).
+Field E: Cost Center (conditionally required based on spend type).
+Field F: Effective Start Date (required).
+Field G: Effective End Date (optional, must be >= start date).
+Field H: Channel Strategy (module-specific required unless marked optional by policy).
+Field I: Template Locale.
+Field J: Retry Limit.
+Field K: Escalation Recipient.
+Field L: Quiet Hours Policy.
+Field M: External Reference ID (optional but unique when present).
+Field N: Notes (optional, max 2000 chars).
+Attachment Requirements: Up to 10 files, each <= 25 MB, file types PDF/XLSX/PNG/JPG/CSV.
+## Workflow Behavior
+Default states for Notification Template and Delivery Operations: Draft,In Review,Approved,Active,Paused,Retired.
+Submit action must run policy validations before state transition.
+Approve and reject actions must require user comment when amount exceeds configured threshold.
+Returned-for-changes state must preserve prior approver comments.
+On-hold state requires hold reason code and expected resume date.
+## Roles and Permissions
+Requester-facing actions: create, edit draft, submit, view own records.
+Approver-facing actions: review, approve, reject, request changes, delegate.
+Admin-facing actions: configure settings, override blocked records with reason code.
+Auditor-facing actions: read-only access to records and audit timeline.
+## Validation Rules
+Server-side validation is mandatory even when client-side validation passes.
+Duplicate detection key combines Notification Template Name + Legal Entity + Effective Start Date.
+Dates cannot violate fiscal period locks from budgeting controls.
+Amount and quantity precision rules inherit standards from {@global-form-standards}.
+Mandatory fields are configurable only by workspace admin and cannot be disabled for regulatory controls.
+## Edge Cases
+If network interruption occurs during save, client retries with idempotency key.
+If user loses permission mid-session, the action must fail gracefully with access revoked message.
+If referenced master data is deactivated after draft creation, submit must block with remediation guidance.
+If integration callback arrives out of order, system must apply version checks and queue reconciliation task.
+## Notifications
+Trigger topic: notification.delivery.failed.
+Notify creator on submission, notify approvers on pending actions, notify creator on final decision.
+Escalation notification after SLA breach by 4 business hours.
+Digest mode allowed only for non-critical pending reminders.
+## Reports and Analytics
+Primary report: Notification Delivery and SLA Report.
+The module contributes operational counts, cycle time metrics, and exception rates.
+Report rows must include legal entity, department, owner, and status dimensions.
+## Integration Dependencies
+Primary connector dependency: Email provider and webhook gateway.
+Integration failures must create operational incident in support console and retry per policy.
+
+
+
+# Module: Compliance Controls and Audit Evidence Workspace
+REQ-COMPLIANCE_AUDIT-001: The module must support define compliance controls and review cadence as a first-class user action.
+REQ-COMPLIANCE_AUDIT-002: The module must support assemble evidence packets for audits without requiring direct database access.
+REQ-COMPLIANCE_AUDIT-003: Page layouts must follow standards defined in {@ui-page-patterns}.
+REQ-COMPLIANCE_AUDIT-004: All forms must follow field behavior in {@global-form-standards}.
+REQ-COMPLIANCE_AUDIT-005: Permission checks must enforce rules from {@permission-model}.
+Primary object for this module: Control Record.
+Upstream data dependencies include master records from {@master-data-entities}.
+Downstream reporting obligations are linked to Control Effectiveness and Audit Findings Report and cataloged in {@report-catalog}.
+## Page Layout Requirements
+List Page Layout: Header with module KPIs, saved filters, table grid, and bulk action toolbar.
+Detail Page Layout: Summary cards, timeline, attachments panel, related records panel, action footer.
+Create/Edit Page Layout: Sectioned form, policy hint rail, validation summary, draft autosave indicator.
+Review Page Layout: Approver context, change diff panel, comments thread, decision actions.
+## Form Fields
+Field A: Control Record ID (system-generated, immutable after creation).
+Field B: Control Record Name (required, 3 to 120 characters).
+Field C: Status (required, enumeration aligned with module state model).
+Field D: Legal Entity (required, scope-limited by role assignment).
+Field E: Cost Center (conditionally required based on spend type).
+Field F: Effective Start Date (required).
+Field G: Effective End Date (optional, must be >= start date).
+Field H: Control Category (module-specific required unless marked optional by policy).
+Field I: Review Frequency.
+Field J: Evidence Owner.
+Field K: Exception Expiry.
+Field L: Regulatory Mapping.
+Field M: External Reference ID (optional but unique when present).
+Field N: Notes (optional, max 2000 chars).
+Attachment Requirements: Up to 10 files, each <= 25 MB, file types PDF/XLSX/PNG/JPG/CSV.
+## Workflow Behavior
+Default states for Compliance Controls and Audit Evidence Workspace: Draft,Submitted,In Review,Approved,Active,Exception,Closed.
+Submit action must run policy validations before state transition.
+Approve and reject actions must require user comment when amount exceeds configured threshold.
+Returned-for-changes state must preserve prior approver comments.
+On-hold state requires hold reason code and expected resume date.
+## Roles and Permissions
+Requester-facing actions: create, edit draft, submit, view own records.
+Approver-facing actions: review, approve, reject, request changes, delegate.
+Admin-facing actions: configure settings, override blocked records with reason code.
+Auditor-facing actions: read-only access to records and audit timeline.
+## Validation Rules
+Server-side validation is mandatory even when client-side validation passes.
+Duplicate detection key combines Control Record Name + Legal Entity + Effective Start Date.
+Dates cannot violate fiscal period locks from budgeting controls.
+Amount and quantity precision rules inherit standards from {@global-form-standards}.
+Mandatory fields are configurable only by workspace admin and cannot be disabled for regulatory controls.
+## Edge Cases
+If network interruption occurs during save, client retries with idempotency key.
+If user loses permission mid-session, the action must fail gracefully with access revoked message.
+If referenced master data is deactivated after draft creation, submit must block with remediation guidance.
+If integration callback arrives out of order, system must apply version checks and queue reconciliation task.
+## Notifications
+Trigger topic: compliance.control.failed.
+Notify creator on submission, notify approvers on pending actions, notify creator on final decision.
+Escalation notification after SLA breach by 4 business hours.
+Digest mode allowed only for non-critical pending reminders.
+## Reports and Analytics
+Primary report: Control Effectiveness and Audit Findings Report.
+The module contributes operational counts, cycle time metrics, and exception rates.
+Report rows must include legal entity, department, owner, and status dimensions.
+## Integration Dependencies
+Primary connector dependency: SIEM and GRC export connector.
+Integration failures must create operational incident in support console and retry per policy.
+
+
+
+# Module: Support Operations Console and Incident Governance
+REQ-SUPPORT_OPERATIONS-001: The module must support triage operational issues and user tickets as a first-class user action.
+REQ-SUPPORT_OPERATIONS-002: The module must support execute governed data correction playbooks without requiring direct database access.
+REQ-SUPPORT_OPERATIONS-003: Page layouts must follow standards defined in {@ui-page-patterns}.
+REQ-SUPPORT_OPERATIONS-004: All forms must follow field behavior in {@global-form-standards}.
+REQ-SUPPORT_OPERATIONS-005: Permission checks must enforce rules from {@permission-model}.
+Primary object for this module: Support Case.
+Upstream data dependencies include master records from {@master-data-entities}.
+Downstream reporting obligations are linked to Support Volume and Resolution SLA Report and cataloged in {@report-catalog}.
+## Page Layout Requirements
+List Page Layout: Header with module KPIs, saved filters, table grid, and bulk action toolbar.
+Detail Page Layout: Summary cards, timeline, attachments panel, related records panel, action footer.
+Create/Edit Page Layout: Sectioned form, policy hint rail, validation summary, draft autosave indicator.
+Review Page Layout: Approver context, change diff panel, comments thread, decision actions.
+## Form Fields
+Field A: Support Case ID (system-generated, immutable after creation).
+Field B: Support Case Name (required, 3 to 120 characters).
+Field C: Status (required, enumeration aligned with module state model).
+Field D: Legal Entity (required, scope-limited by role assignment).
+Field E: Cost Center (conditionally required based on spend type).
+Field F: Effective Start Date (required).
+Field G: Effective End Date (optional, must be >= start date).
+Field H: Incident Severity (module-specific required unless marked optional by policy).
+Field I: Impact Scope.
+Field J: Playbook Reference.
+Field K: Root Cause Category.
+Field L: Customer Communication Status.
+Field M: External Reference ID (optional but unique when present).
+Field N: Notes (optional, max 2000 chars).
+Attachment Requirements: Up to 10 files, each <= 25 MB, file types PDF/XLSX/PNG/JPG/CSV.
+## Workflow Behavior
+Default states for Support Operations Console and Incident Governance: New,Triaged,In Progress,Pending Customer,Resolved,Closed,Reopened.
+Submit action must run policy validations before state transition.
+Approve and reject actions must require user comment when amount exceeds configured threshold.
+Returned-for-changes state must preserve prior approver comments.
+On-hold state requires hold reason code and expected resume date.
+## Roles and Permissions
+Requester-facing actions: create, edit draft, submit, view own records.
+Approver-facing actions: review, approve, reject, request changes, delegate.
+Admin-facing actions: configure settings, override blocked records with reason code.
+Auditor-facing actions: read-only access to records and audit timeline.
+## Validation Rules
+Server-side validation is mandatory even when client-side validation passes.
+Duplicate detection key combines Support Case Name + Legal Entity + Effective Start Date.
+Dates cannot violate fiscal period locks from budgeting controls.
+Amount and quantity precision rules inherit standards from {@global-form-standards}.
+Mandatory fields are configurable only by workspace admin and cannot be disabled for regulatory controls.
+## Edge Cases
+If network interruption occurs during save, client retries with idempotency key.
+If user loses permission mid-session, the action must fail gracefully with access revoked message.
+If referenced master data is deactivated after draft creation, submit must block with remediation guidance.
+If integration callback arrives out of order, system must apply version checks and queue reconciliation task.
+## Notifications
+Trigger topic: support.case.escalated.
+Notify creator on submission, notify approvers on pending actions, notify creator on final decision.
+Escalation notification after SLA breach by 4 business hours.
+Digest mode allowed only for non-critical pending reminders.
+## Reports and Analytics
+Primary report: Support Volume and Resolution SLA Report.
+The module contributes operational counts, cycle time metrics, and exception rates.
+Report rows must include legal entity, department, owner, and status dimensions.
+## Integration Dependencies
+Primary connector dependency: ITSM ticket connector and status webhook.
+Integration failures must create operational incident in support console and retry per policy.
+
+
+
+# 25. Cross-Module Edge Cases
+Edge Case EC-001: Supplier merged while open requisitions exist.
+Expected behavior: Preserve historical supplier reference on old records; new transactions default to merged supplier id.
+Edge Case EC-002: Budget reduced below already committed amount.
+Expected behavior: Allow existing commitments, block new submissions, and alert budget owner.
+Edge Case EC-003: Invoice arrives before receipt posting.
+Expected behavior: Create match exception case with pending receipt follow-up.
+Edge Case EC-004: User removed from IdP but still has active delegated approvals.
+Expected behavior: Revoke access immediately and reroute tasks to fallback approver.
+Edge Case EC-005: ERP connector outage during payment release window.
+Expected behavior: Keep payment batch in approved-not-posted status and prevent duplicate release.
+Edge Case EC-006: Duplicate invoice number across different suppliers.
+Expected behavior: Allow if supplier differs; block if supplier + invoice number + currency + date window matches.
+Edge Case EC-007: Fiscal period closed after requisition approval but before PO dispatch.
+Expected behavior: Prompt requester to choose open period or request controller override.
+Edge Case EC-008: Contract expires between requisition creation and approval.
+Expected behavior: Revalidate contract linkage during approval and require renewal or alternate supplier.
+Edge Case EC-009: Tax jurisdiction changes after invoice capture.
+Expected behavior: Recompute tax estimate and flag variance for AP review.
+Edge Case EC-010: Attachment malware detected after initial upload success callback delay.
+Expected behavior: Quarantine file, redact preview links, and notify uploader + support ops.
+
+
+# 26. Notification Catalog
+Event N-001 requisition.submitted: Notify assigned approver and requester (in-app + email).
+Event N-002 requisition.rejected: Notify requester with rejection reason and remediation link.
+Event N-003 po.dispatched: Notify supplier contact and procurement owner.
+Event N-004 receipt.overdue: Notify receiving owner and escalate to department manager after SLA breach.
+Event N-005 invoice.ingested: Notify AP queue owner for initial review.
+Event N-006 match.case.created: Notify AP specialist and requisition owner for discrepancy context.
+Event N-007 payment.batch.approval.requested: Notify finance controller.
+Event N-008 payment.batch.failed: Notify AP lead, finance controller, and support operations.
+Event N-009 supplier.bank.change.pending: Notify dual-approval group and security mailbox.
+Event N-010 integration.job.failed: Notify connector owner and support operations.
+Event N-011 compliance.control.failed: Notify compliance lead and internal audit.
+Event N-012 support.case.escalated: Notify on-call support manager.
+Digest schedule options: immediate, hourly digest, daily digest.
+Critical event categories bypass digest and quiet hour settings.
+Delivery failures retry at 1 min, 5 min, 30 min, and 2 hr intervals.
+After final failure, system opens support case and attaches payload snapshot.
+
+
+# 27. Report Catalog
+Report R-001 Requisition Throughput and Leakage: count, cycle time, off-catalog spend ratio.
+Report R-002 Approval Latency and Escalation: median approval time by approver group.
+Report R-003 Budget Utilization and Forecast Variance: committed vs budget by period.
+Report R-004 PO Cycle Time and Revision: draft-to-dispatch timing and revision counts.
+Report R-005 Receiving Accuracy and Delay: expected vs received quantities and aging.
+Report R-006 Invoice Capture Quality: OCR confidence and manual correction rates.
+Report R-007 Match Rate and Exception Aging: auto-match ratio and unresolved exception backlog.
+Report R-008 Payment Timeliness and Failure: due-date adherence and settlement failures.
+Report R-009 Supplier Lifecycle and Risk: onboarding lead time and risk score distribution.
+Report R-010 Contract Coverage and Expiry Risk: spend under contract and expiring agreements.
+Report R-011 Sourcing Savings and Participation: awarded savings and supplier participation.
+Report R-012 Integration Health and Throughput: success rates, retries, and queue depth.
+Report R-013 Notification Delivery and SLA: sends, failures, retries, and latency.
+Report R-014 Control Effectiveness and Audit Findings: failed controls and remediation status.
+Report R-015 Support Volume and Resolution SLA: ticket inflow, MTTR, reopen rate.
+All reports must allow legal-entity and date-range filters.
+Financial reports must support month-end snapshot locking.
+Reports with PII require export masking unless privileged role has unmask permission.
+
+
+# 28. Integration Packages
+Package I-001 Identity Integration:
+Inbound: users, groups, status changes from IdP.
+Outbound: none.
+Key safeguards: deprovision priority, stale-session revocation, audit sync.
+Package I-002 ERP/Accounting Integration:
+Outbound: approved POs, receipt accruals, payment statuses.
+Inbound: vendor master, chart of accounts, cost centers, fiscal periods.
+Key safeguards: posting order by legal entity and period lock checks.
+Package I-003 OCR/E-Invoice Integration:
+Inbound: extracted invoice header/line candidates and confidence scores.
+Outbound: correction feedback for provider quality tracking.
+Key safeguards: attachment hash verification and duplicate detection.
+Package I-004 Tax Engine Integration:
+Outbound: taxable line context and jurisdiction metadata.
+Inbound: tax calculation and exemption validation.
+Key safeguards: fail-safe behavior with manual review queue.
+Package I-005 Messaging Integration:
+Outbound: templated emails, webhook events.
+Inbound: delivery receipts and bounce events.
+Key safeguards: retry policy and dead-letter inspection.
+Package I-006 ITSM Integration:
+Outbound: incidents and support cases.
+Inbound: ticket status updates.
+Key safeguards: ticket correlation ID required for override actions.
+
+
+# 29. NFR Performance
+NFR-PERF-001: P95 page load time <= 2.5 seconds for list pages with default columns and <= 3.5 seconds for detail pages.
+NFR-PERF-002: P95 API response <= 800 ms for read operations and <= 1200 ms for write operations under normal load.
+NFR-PERF-003: Bulk import validation throughput >= 20,000 rows per hour per tenant.
+NFR-PERF-004: Matching engine must process at least 50,000 invoice lines per hour in batch mode.
+NFR-PERF-005: Report generation for standard monthly pack must complete within 10 minutes for 24-month window.
+NFR-PERF-006: Search results must return first page within 2 seconds for indexed entities.
+Performance tests must include concurrent tenant workloads and noisy-neighbor protections.
+
+
+# 30. NFR Availability
+NFR-AVAIL-001: Monthly uptime target 99.9 percent excluding planned maintenance windows.
+NFR-AVAIL-002: Planned maintenance windows require at least 7 days notice.
+NFR-AVAIL-003: Critical modules for approvals and payment releases require graceful degradation mode during partial outages.
+NFR-AVAIL-004: Queue-based processing must persist jobs through service restarts.
+NFR-AVAIL-005: Scheduled reports delayed by outage must auto-retry when services recover.
+NFR-AVAIL-006: Customer status page must reflect incident states within 10 minutes of declaration.
+
+
+# 31. NFR Scalability
+NFR-SCALE-001: Platform must support at least 1,000 active tenants in shared control plane.
+NFR-SCALE-002: Single tenant data volume target supports 10 million invoices and 20 million PO lines.
+NFR-SCALE-003: Horizontal scaling must not require customer downtime.
+NFR-SCALE-004: Background workers must autoscale based on queue depth and SLA class.
+NFR-SCALE-005: Report and export workloads must be isolated from transactional workload pools.
+NFR-SCALE-006: Tenant data partitioning strategy must preserve query performance at scale.
+
+
+# 32. NFR Observability
+NFR-OBS-001: Every API request must include correlation id and actor context in logs.
+NFR-OBS-002: Distributed tracing required across workflow, integration, and notification services.
+NFR-OBS-003: Metrics must include request rates, error rates, latency, queue depth, and job success ratios.
+NFR-OBS-004: Alerting thresholds must be configurable by severity and business impact.
+NFR-OBS-005: Synthetic health checks must run every 5 minutes for critical user journeys.
+NFR-OBS-006: On-call runbooks must be linked from alert payload.
+
+
+# 33. NFR Accessibility
+NFR-A11Y-001: UI must meet WCAG 2.1 AA standards for color contrast, keyboard access, and screen-reader compatibility.
+NFR-A11Y-002: All actionable controls require accessible labels and focus indicators.
+NFR-A11Y-003: Error messages must be announced to assistive technologies.
+NFR-A11Y-004: Data tables must support keyboard navigation and column header associations.
+NFR-A11Y-005: Modal dialogs must trap focus and return focus to invoking element on close.
+NFR-A11Y-006: Accessibility checks are required in CI for major workflows.
+
+
+# 34. NFR Localization and Regionalization
+NFR-L10N-001: Support configurable locale for date, number, and currency formatting.
+NFR-L10N-002: Support multi-currency transactions with exchange-rate timestamping.
+NFR-L10N-003: Notification templates support locale variants with fallback language.
+NFR-L10N-004: Tax and invoice fields support region-specific labels.
+NFR-L10N-005: Week start day and public holiday calendars are tenant-configurable.
+NFR-L10N-006: Exported files include locale metadata for downstream interpretation.
+
+
+# 35. NFR Disaster Recovery
+NFR-DR-001: Recovery Time Objective (RTO) <= 4 hours for platform-wide disruption.
+NFR-DR-002: Recovery Point Objective (RPO) <= 15 minutes for transactional data.
+NFR-DR-003: Backups must be encrypted and verified daily.
+NFR-DR-004: DR failover drill must be conducted at least twice per year.
+NFR-DR-005: Tenant-level restore request workflow must support point-in-time recovery validation.
+NFR-DR-006: Post-DR reconciliation report must confirm integration queue consistency.
+
+
+# 36. Data Migration Strategy
+Migration wave includes supplier master, open contracts, open requisitions, open POs, open receipts, open invoices, and active users.
+Historical closed transactions older than agreed cutoff remain in legacy system with report federation option.
+Migration phases:
+Phase M1 Template mapping and source profiling.
+Phase M2 Dry run in staging with reconciliation reports.
+Phase M3 Business validation signoff.
+Phase M4 Production cutover load.
+Phase M5 Post-load reconciliation and defect remediation.
+Each migration file requires checksum and schema version.
+Blocking data issues include missing legal entity codes, invalid currency codes, and orphan references.
+Warning-level issues include optional text truncation and unsupported attachments over size limit.
+Reconciliation must compare record counts, totals by currency, and key status distributions.
+Migration audit logs must link each imported record to source row and import batch id.
+
+
+# 37. Rollout Plan
+Rollout follows pilot-first approach with controlled expansion.
+Phase R1 Internal sandbox and IT admin readiness.
+Phase R2 Pilot with one legal entity and limited departments.
+Phase R3 Expansion to additional entities with similar process complexity.
+Phase R4 Global rollout with regional localization packs.
+Gate criteria for each phase include training completion, KPI baseline, integration stability, and support readiness.
+Feature flags control release of high-impact features like payment approvals and exception automation.
+Rollback plan must exist per phase and include data handling instructions.
+Governance meetings occur weekly during active rollout and biweekly post-stabilization.
+Decision log for go/no-go must be recorded in implementation workspace.
+
+
+# 38. Support Operations Model
+Support tiers: Tier 1 customer helpdesk, Tier 2 product support, Tier 3 engineering escalation.
+Intake channels: in-app support form, email, and integrated ITSM ticket creation.
+Every support case must capture tenant, module, severity, impact, and reproducibility.
+Support console must surface correlated events from audit logs, integration runs, and notification history.
+Guided remediation playbooks must exist for common incidents including sync failure, stuck approvals, and payment batch errors.
+Data correction actions require reason code and linked ticket id.
+High-severity incidents trigger incident commander assignment and communication cadence.
+Support knowledge base must link to module-specific troubleshooting sections.
+Support metrics feed report R-015 from {@report-catalog}.
+
+
+# 39. Support SLA and Escalation
+Severity S1: Production outage or payment release blocked for multiple entities.
+S1 response target: 15 minutes, workaround target: 4 hours.
+Severity S2: Major feature degradation with business workaround available.
+S2 response target: 1 hour, workaround target: 1 business day.
+Severity S3: Functional defect with limited user impact.
+S3 response target: 4 business hours, resolution target: next planned release.
+Severity S4: Minor defect or enhancement request.
+S4 response target: 1 business day.
+Escalation ladder includes Support Manager, Product Ops Lead, and Engineering On-call.
+Customer communication frequency: S1 hourly, S2 every 4 hours, S3 daily.
+
+
+# 40. Training and Change Management
+Training tracks: requester, approver, procurement admin, AP specialist, finance controller, IT admin, support agent.
+Each track includes role-based demos, hands-on labs, and job aids.
+Training completion must be measurable and tied to rollout gate in {@rollout-plan}.
+In-app walkthroughs required for first-time requisition and invoice review experiences.
+Change communications must include what changed, why, who is affected, and where to get help.
+Adoption dashboard tracks active users, completion rates, and abandoned workflows.
+Super-user network per department should be established for peer support.
+Periodic refresher training required after major feature releases.
+
+
+# 41. Test Strategy
+Testing layers include unit, integration, end-to-end, and user acceptance testing.
+Mandatory end-to-end flows: requisition-to-PO, receipt-to-invoice match, and payment release.
+Negative tests must cover permission violations, stale data conflicts, and failed integrations.
+Regression pack must include at least one scenario per module section.
+Data migration testing must validate imports and reconciliation outputs.
+Performance testing includes peak-day simulations and sustained load tests.
+Security testing includes SAST, DAST, and role-abuse scenario testing.
+Accessibility testing includes automated and manual audits.
+Test evidence must be linked to requirement IDs for traceability.
+
+
+# 42. Global Acceptance Criteria
+AC-001: All P0 and P1 defects are closed or accepted with documented workaround.
+AC-002: Core end-to-end flows pass in staging with production-like integrations.
+AC-003: Reconciliation report for migration pilot is signed by business and IT.
+AC-004: Role and permission matrix validated by security and audit stakeholders.
+AC-005: Notification templates for critical events validated in each active locale.
+AC-006: Scheduled executive reports run successfully for two consecutive cycles.
+AC-007: Support playbooks validated through tabletop incident exercises.
+AC-008: Performance and availability targets from NFR sections are met.
+AC-009: Rollback plans reviewed and tested for current release scope.
+AC-010: Change communication and training artifacts published.
+
+
+# 43. Risks and Mitigations
+Risk RK-001: Poor source data quality delays migration.
+Mitigation: early profiling, validation gates, and data steward signoffs.
+Risk RK-002: Approval bottlenecks reduce user trust.
+Mitigation: SLA escalations, delegation rules, and queue analytics.
+Risk RK-003: Integration instability causes posting delays.
+Mitigation: replay queues, circuit breakers, and integration on-call ownership.
+Risk RK-004: Overly strict policies increase exception volume.
+Mitigation: staged policy rollout and monitoring of false positives.
+Risk RK-005: Insufficient training increases support load.
+Mitigation: role-based training paths and super-user network.
+Risk RK-006: Security misconfiguration exposes data.
+Mitigation: least privilege defaults, access reviews, and automated policy checks.
+Risk RK-007: Supplier adoption lower than expected.
+Mitigation: portal onboarding campaigns and email fallback workflows.
+
+
+# 44. Go-Live Checklist
+Checklist GL-001: Production tenant and entity configuration validated.
+Checklist GL-002: SSO and role mapping validated with live users.
+Checklist GL-003: Connector credentials rotated and smoke tests passed.
+Checklist GL-004: Migration load completed and reconciliation signed off.
+Checklist GL-005: Critical notification templates tested in production-safe mode.
+Checklist GL-006: Reporting schedules and recipients verified.
+Checklist GL-007: Support on-call roster confirmed for hypercare window.
+Checklist GL-008: Backout and data correction procedures rehearsed.
+Checklist GL-009: Executive go/no-go signoff recorded.
+Checklist GL-010: User communication sent with support contact channels.
+
+
+# 45. Post-Go-Live Hypercare
+Hypercare duration default is 4 weeks after each major rollout wave.
+Daily triage reviews for incident queue, SLA breaches, and user blockers.
+Twice-weekly KPI review against metrics in {@success-metrics}.
+Temporary staffing uplift allowed for support tiers and integration monitoring.
+Defect triage policy prioritizes production blockers, payment impacts, and compliance risks.
+Known issue log must include workaround and expected fix release.
+Hypercare exit criteria include stable KPI trend and manageable support volume.
+Post-hypercare retrospective must produce prioritized improvement backlog.
+
+
+# 46. Post-v1 Backlog Candidates
+Roadmap item V2-001: AI-assisted coding of invoice lines and anomaly detection.
+Roadmap item V2-002: Mobile receiving app with offline support.
+Roadmap item V2-003: Supplier negotiation workspace with threaded comments.
+Roadmap item V2-004: Dynamic discounting recommendations for payment runs.
+Roadmap item V2-005: Advanced spend forecasting with seasonality models.
+Roadmap item V2-006: Contract redlining collaboration with legal playbooks.
+Roadmap item V2-007: Expanded e-invoicing country packs.
+Roadmap item V2-008: Policy simulation sandbox for what-if impact analysis.
+Roadmap item V2-009: Self-service custom report builder with governed semantic layer.
+Roadmap item V2-010: Marketplace punchout management and external catalog normalization.
+
+
+# 47. Glossary
+Term Commitments: Approved spend expected to become financial obligation.
+Term Accrual: Expense recognized before payment settlement.
+Term Three-Way Match: Invoice line comparison against PO and receipt lines.
+Term Maverick Spend: Spend outside approved procurement process.
+Term SoD: Segregation of Duties control to prevent conflicting responsibilities.
+Term RTO: Recovery Time Objective.
+Term RPO: Recovery Point Objective.
+Term SLA: Service Level Agreement.
+Term Idempotency Key: Request token ensuring duplicate submissions are safely handled.
+Term Hypercare: Stabilization period immediately after go-live.
+
