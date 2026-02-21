@@ -196,7 +196,7 @@ function parseIatfForPreview(text) {
       continue;
     }
 
-    const startMatch = line.match(/^\{#([A-Za-z][\w-]{0,63})\}$/);
+    const startMatch = line.match(/^\s*\{#([A-Za-z][\w-]{0,63})\}\s*$/);
     if (startMatch) {
       const id = startMatch[1];
       const parent = sectionStack.length > 0 ? sectionStack[sectionStack.length - 1] : null;
@@ -205,7 +205,7 @@ function parseIatfForPreview(text) {
       continue;
     }
 
-    const endMatch = line.match(/^\{\/([A-Za-z][\w-]{0,63})\}$/);
+    const endMatch = line.match(/^\s*\{\/([A-Za-z][\w-]{0,63})\}\s*$/);
     if (endMatch) {
       const expectedId = endMatch[1];
       if (sectionStack.length > 0 && sectionStack[sectionStack.length - 1].id === expectedId) {
@@ -641,17 +641,19 @@ function createPreviewHtml(document) {
         rootSubtreeCollapsed.set(rootId, collapsed);
         const subtreeSections = Array.from(document.querySelectorAll('.section'));
         for (const section of subtreeSections) {
-          const sectionId = section.id.replace(/^iatf-sec-/, '');
-          const isRoot = sectionId === rootId;
-          const isDescendant = section.getAttribute('data-top-root') === rootId && section.getAttribute('data-depth') !== '0';
-          if (!isRoot && isDescendant) {
+          const isSameSubtree = section.getAttribute('data-top-root') === rootId;
+          const depthValue = Number.parseInt(section.getAttribute('data-depth') || '0', 10);
+          const isDescendant = isSameSubtree && Number.isFinite(depthValue) && depthValue > 0;
+          if (isDescendant) {
             section.classList.toggle('subtree-hidden', collapsed);
           }
         }
 
         const tocItems = Array.from(document.querySelectorAll('.toc-item'));
         for (const item of tocItems) {
-          const isDescendant = item.getAttribute('data-top-root') === rootId && item.getAttribute('data-depth') !== '0';
+          const isSameSubtree = item.getAttribute('data-top-root') === rootId;
+          const depthValue = Number.parseInt(item.getAttribute('data-depth') || '0', 10);
+          const isDescendant = isSameSubtree && Number.isFinite(depthValue) && depthValue > 0;
           if (isDescendant) {
             item.classList.toggle('subtree-hidden', collapsed);
           }
@@ -817,6 +819,7 @@ function openPreviewForActiveEditor() {
     `IATF Preview: ${path.basename(document.fileName)}`,
     vscode.ViewColumn.Active,
     {
+      enableScripts: true,
       enableFindWidget: true,
       retainContextWhenHidden: true
     }
