@@ -21,6 +21,13 @@ Install from the marketplace:
 - **Code fences:** ` ``` ` delimiter highlighting
 - **Comments:** `<!-- -->` HTML-style comments
 
+### IATF Preview
+- Open command: **IATF: Open Preview**
+- Renders canonical IATF `INDEX` entries (`- section-id {lines... | words...}`) and `CONTENT` blocks
+- Shows section hierarchy from nested `{#id}` / `{/id}` blocks as visual levels (module/submodule)
+- Includes nested table of contents, section ID chips, level badges, and parent hints
+- Keeps cross-reference links (`{@section-id}`) clickable inside preview content
+
 ### Language Server Features (with iatf-lsp)
 
 When the IATF Language Server is installed, you get:

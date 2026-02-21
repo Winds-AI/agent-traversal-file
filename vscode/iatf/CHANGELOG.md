@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.6 - 2026-02-21
+
+### Changed
+- Preview renderer now parses canonical IATF INDEX entries (`- section-id {lines:... | words:...}`) instead of legacy markdown-style index syntax
+- Preview now detects nested CONTENT sections and renders clear module/submodule hierarchy
+- Added nested table of contents and section metadata chips (level, section ID, parent hint, and range metadata)
+- Improved section card styling so parent and child sections are visually separated and easier to scan
+
 ## 0.1.5 - 2026-02-11
 
 ### Changed

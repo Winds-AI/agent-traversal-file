@@ -101,11 +101,20 @@ function cleanupContentLines(lines) {
   return cleaned;
 }
 
+function parseIndexMetadataRange(metaRangeText) {
+  if (!metaRangeText) {
+    return '';
+  }
+  const compact = metaRangeText.replace(/\s+/g, ' ').trim();
+  return compact;
+}
+
 function parseIatfForPreview(text) {
   const lines = text.split(/\r?\n/);
   const indexById = new Map();
   const indexOrder = [];
   const contentById = new Map();
+  const contentOrder = [];
 
   let inIndex = false;
   let currentIndexId = null;
@@ -122,29 +131,63 @@ function parseIatfForPreview(text) {
       continue;
     }
 
-    const entryMatch = line.match(/^(#{1,6})\s+(.+?)\s+\{#([A-Za-z][\w-]{0,63})\b/);
+    const entryMatch = line.match(/^\s*-\s+([A-Za-z][\w-]{0,63})\b(?:\s+\{([^}]*)\})?/);
     if (entryMatch) {
-      const title = entryMatch[2].trim();
-      const id = entryMatch[3];
+      const id = entryMatch[1];
       if (!indexById.has(id)) {
         indexOrder.push(id);
       }
-      indexById.set(id, { title, summary: '' });
+      indexById.set(id, {
+        summary: '',
+        rangeMeta: parseIndexMetadataRange(entryMatch[2] || '')
+      });
       currentIndexId = id;
       continue;
     }
 
-    const summaryMatch = line.match(/^>\s+(.*)$/);
-    if (summaryMatch && currentIndexId && indexById.has(currentIndexId)) {
-      const existing = indexById.get(currentIndexId);
-      existing.summary = summaryMatch[1].trim();
+    if (!currentIndexId || !indexById.has(currentIndexId)) {
+      continue;
+    }
+
+    const trimmed = line.trim();
+    if (!trimmed) {
+      continue;
+    }
+    if (/^(Created|Modified|Hash)\s*:/i.test(trimmed)) {
+      continue;
+    }
+
+    const existing = indexById.get(currentIndexId);
+    if (!existing.summary) {
+      existing.summary = trimmed;
       indexById.set(currentIndexId, existing);
     }
   }
 
   let inContent = false;
-  let currentBlockId = null;
-  let currentBlockLines = [];
+  const sectionStack = [];
+
+  function ensureContentSection(sectionId, parentId, depth) {
+    if (!contentById.has(sectionId)) {
+      contentById.set(sectionId, {
+        id: sectionId,
+        parentId,
+        depth,
+        titleFromContent: '',
+        contentSummary: '',
+        contentLines: [],
+        rawLines: []
+      });
+      contentOrder.push(sectionId);
+      return contentById.get(sectionId);
+    }
+
+    const existing = contentById.get(sectionId);
+    existing.parentId = existing.parentId || parentId || null;
+    existing.depth = Math.min(existing.depth, depth);
+    return existing;
+  }
+
   for (const line of lines) {
     if (!inContent) {
       if (line.trim() === '===CONTENT===') {
@@ -155,44 +198,47 @@ function parseIatfForPreview(text) {
 
     const startMatch = line.match(/^\{#([A-Za-z][\w-]{0,63})\}$/);
     if (startMatch) {
-      currentBlockId = startMatch[1];
-      currentBlockLines = [];
+      const id = startMatch[1];
+      const parent = sectionStack.length > 0 ? sectionStack[sectionStack.length - 1] : null;
+      const section = ensureContentSection(id, parent ? parent.id : null, sectionStack.length);
+      sectionStack.push(section);
       continue;
     }
 
     const endMatch = line.match(/^\{\/([A-Za-z][\w-]{0,63})\}$/);
-    if (endMatch && currentBlockId && endMatch[1] === currentBlockId) {
-      let contentSummary = '';
-      for (const blockLine of currentBlockLines) {
-        const summaryMatch = blockLine.match(/^@summary\s*:\s*(.*)$/i);
-        if (summaryMatch) {
-          contentSummary = summaryMatch[1].trim();
-          break;
-        }
-      }
+    if (endMatch) {
+      const expectedId = endMatch[1];
+      if (sectionStack.length > 0 && sectionStack[sectionStack.length - 1].id === expectedId) {
+        const section = sectionStack.pop();
+        const filteredLines = cleanupContentLines(section.rawLines);
 
-      const filteredLines = cleanupContentLines(currentBlockLines);
-      let titleFromContent = '';
-      if (filteredLines.length > 0) {
-        const headingMatch = filteredLines[0].match(/^#{1,6}\s+(.*)$/);
-        if (headingMatch) {
-          titleFromContent = headingMatch[1].trim();
-          filteredLines.shift();
+        let contentSummary = '';
+        for (const blockLine of section.rawLines) {
+          const summaryMatch = blockLine.match(/^@summary\s*:\s*(.*)$/i);
+          if (summaryMatch) {
+            contentSummary = summaryMatch[1].trim();
+            break;
+          }
         }
-      }
+        section.contentSummary = contentSummary;
 
-      contentById.set(currentBlockId, {
-        titleFromContent,
-        contentSummary,
-        contentLines: cleanupContentLines(filteredLines)
-      });
-      currentBlockId = null;
-      currentBlockLines = [];
+        let titleFromContent = '';
+        if (filteredLines.length > 0) {
+          const headingMatch = filteredLines[0].match(/^#{1,6}\s+(.*)$/);
+          if (headingMatch) {
+            titleFromContent = headingMatch[1].trim();
+            filteredLines.shift();
+          }
+        }
+        section.titleFromContent = titleFromContent;
+        section.contentLines = cleanupContentLines(filteredLines);
+      }
       continue;
     }
 
-    if (currentBlockId) {
-      currentBlockLines.push(line);
+    if (sectionStack.length > 0) {
+      const activeSection = sectionStack[sectionStack.length - 1];
+      activeSection.rawLines.push(line);
     }
   }
 
@@ -202,7 +248,7 @@ function parseIatfForPreview(text) {
     seen.add(id);
     allIds.push(id);
   }
-  for (const id of contentById.keys()) {
+  for (const id of contentOrder) {
     if (!seen.has(id)) {
       allIds.push(id);
     }
@@ -211,11 +257,83 @@ function parseIatfForPreview(text) {
   return allIds.map((id) => {
     const indexEntry = indexById.get(id) || {};
     const contentEntry = contentById.get(id) || {};
-    const title = indexEntry.title || contentEntry.titleFromContent || id;
+    const title = contentEntry.titleFromContent || id;
     const summary = indexEntry.summary || contentEntry.contentSummary || '';
     const contentLines = contentEntry.contentLines || [];
-    return { id, title, summary, contentLines };
+    return {
+      id,
+      title,
+      summary,
+      contentLines,
+      depth: Number.isInteger(contentEntry.depth) ? contentEntry.depth : 0,
+      parentId: contentEntry.parentId || null,
+      rangeMeta: indexEntry.rangeMeta || ''
+    };
   });
+}
+
+function buildSectionTree(sections) {
+  const order = new Map(sections.map((section, index) => [section.id, index]));
+  const byId = new Map(
+    sections.map((section) => [section.id, { ...section, children: [] }])
+  );
+  const roots = [];
+
+  for (const section of byId.values()) {
+    if (section.parentId && byId.has(section.parentId)) {
+      byId.get(section.parentId).children.push(section);
+    } else {
+      roots.push(section);
+    }
+  }
+
+  const sortBySourceOrder = (a, b) => (order.get(a.id) || 0) - (order.get(b.id) || 0);
+  const sortTree = (nodes) => {
+    nodes.sort(sortBySourceOrder);
+    for (const node of nodes) {
+      sortTree(node.children);
+    }
+  };
+
+  sortTree(roots);
+  return roots;
+}
+
+function flattenSectionTree(roots) {
+  const flattened = [];
+  const visit = (node) => {
+    flattened.push(node);
+    for (const child of node.children) {
+      visit(child);
+    }
+  };
+
+  for (const root of roots) {
+    visit(root);
+  }
+  return flattened;
+}
+
+function createTocHtml(roots) {
+  const renderNodes = (nodes) => {
+    if (!nodes.length) {
+      return '';
+    }
+    return `<ul class="toc-list">${nodes
+      .map((node) => {
+        const parentHint = node.parentId ? ` data-parent="${escapeHtml(node.parentId)}"` : '';
+        return `<li class="toc-item depth-${Math.min(node.depth, 6)}"${parentHint}>
+          <a class="toc-link" href="#${sectionAnchorId(node.id)}">
+            <span class="toc-label">${escapeHtml(node.title)}</span>
+            <code class="toc-id">${escapeHtml(node.id)}</code>
+          </a>
+          ${renderNodes(node.children)}
+        </li>`;
+      })
+      .join('')}</ul>`;
+  };
+
+  return renderNodes(roots);
 }
 
 function formatContentForPreview(lines, knownSectionIds) {
@@ -232,14 +350,12 @@ function formatContentForPreview(lines, knownSectionIds) {
 
 function createPreviewHtml(document) {
   const sections = parseIatfForPreview(document.getText());
+  const sectionRoots = buildSectionTree(sections);
+  const orderedSections = flattenSectionTree(sectionRoots);
   const knownSectionIds = new Set(sections.map((section) => section.id));
-  const tocHtml = sections
-    .map((section) => {
-      return `<li><a class="toc-link" href="#${sectionAnchorId(section.id)}">${escapeHtml(section.title)}</a></li>`;
-    })
-    .join('\n');
+  const tocHtml = createTocHtml(sectionRoots);
 
-  const sectionHtml = sections
+  const sectionHtml = orderedSections
     .map((section) => {
       const summaryHtml = section.summary
         ? `<p class="summary">${escapeHtml(section.summary)}</p>`
@@ -247,7 +363,24 @@ function createPreviewHtml(document) {
       const contentHtml = section.contentLines.length > 0
         ? `<div class="content">${formatContentForPreview(section.contentLines, knownSectionIds)}</div>`
         : '<div class="content empty">No content in this section.</div>';
-      return `<article id="${sectionAnchorId(section.id)}" class="section"><h2>${escapeHtml(section.title)}</h2>${summaryHtml}${contentHtml}</article>`;
+      const level = section.depth + 1;
+      const parentHtml = section.parentId
+        ? `<span class="meta-pill parent">in ${escapeHtml(section.parentId)}</span>`
+        : '<span class="meta-pill root">top-level</span>';
+      const rangeHtml = section.rangeMeta
+        ? `<span class="meta-pill range">${escapeHtml(section.rangeMeta)}</span>`
+        : '';
+      return `<article id="${sectionAnchorId(section.id)}" class="section depth-${Math.min(section.depth, 6)}">
+        <div class="section-meta">
+          <span class="meta-pill level">L${level}</span>
+          <code class="section-id">${escapeHtml(section.id)}</code>
+          ${parentHtml}
+          ${rangeHtml}
+        </div>
+        <h2>${escapeHtml(section.title)}</h2>
+        ${summaryHtml}
+        ${contentHtml}
+      </article>`;
     })
     .join('\n');
 
@@ -297,15 +430,42 @@ function createPreviewHtml(document) {
       margin: 0;
       padding: 0;
       list-style: none;
-      display: grid;
-      gap: 6px;
+    }
+    .toc-item {
+      margin: 6px 0 0 0;
+    }
+    .toc-item:first-child {
+      margin-top: 0;
+    }
+    .toc-item .toc-list {
+      margin-top: 4px;
+      border-left: 1px dashed var(--vscode-editorWidget-border);
+      padding-left: 12px;
+      margin-left: 10px;
     }
     .toc-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       color: var(--vscode-textLink-foreground);
       text-decoration: none;
       border-radius: 4px;
-      padding: 2px 4px;
-      display: inline-block;
+      padding: 3px 6px;
+      width: fit-content;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+    .toc-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .toc-id {
+      color: var(--vscode-descriptionForeground);
+      font-size: 0.78rem;
+      padding: 1px 4px;
+      border-radius: 4px;
+      background: var(--vscode-editorWidget-background, var(--vscode-editor-selectionBackground));
     }
     .toc-link:hover {
       text-decoration: underline;
@@ -316,12 +476,61 @@ function createPreviewHtml(document) {
     }
     .section {
       margin: 0 0 22px 0;
-      padding: 0 0 18px 0;
-      border-bottom: 1px solid var(--vscode-editorWidget-border);
+      padding: 12px 14px 16px;
+      border: 1px solid var(--vscode-editorWidget-border);
+      border-left-width: 3px;
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--vscode-editor-background) 88%, var(--vscode-sideBar-background) 12%);
       scroll-margin-top: 12px;
     }
-    .section h2 {
+    .section.depth-0 {
+      border-left-color: var(--vscode-terminal-ansiBlue, var(--vscode-textLink-foreground));
+    }
+    .section.depth-1 {
+      margin-left: 18px;
+      border-left-color: var(--vscode-terminal-ansiGreen, var(--vscode-textLink-foreground));
+      background: color-mix(in srgb, var(--vscode-editor-background) 84%, var(--vscode-sideBar-background) 16%);
+    }
+    .section.depth-2, .section.depth-3, .section.depth-4, .section.depth-5, .section.depth-6 {
+      margin-left: 30px;
+      border-left-color: var(--vscode-terminal-ansiYellow, var(--vscode-textLink-foreground));
+      background: color-mix(in srgb, var(--vscode-editor-background) 80%, var(--vscode-sideBar-background) 20%);
+    }
+    .section-meta {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
       margin: 0 0 8px 0;
+    }
+    .meta-pill {
+      font-size: 0.74rem;
+      font-weight: 600;
+      border-radius: 999px;
+      padding: 1px 8px;
+      border: 1px solid var(--vscode-editorWidget-border);
+      color: var(--vscode-descriptionForeground);
+      background: var(--vscode-editorWidget-background, var(--vscode-editor-selectionBackground));
+    }
+    .meta-pill.level {
+      color: var(--vscode-textLink-foreground);
+    }
+    .meta-pill.root {
+      color: var(--vscode-terminal-ansiBlue, var(--vscode-descriptionForeground));
+    }
+    .meta-pill.parent {
+      color: var(--vscode-terminal-ansiGreen, var(--vscode-descriptionForeground));
+    }
+    .section-id {
+      font-size: 0.78rem;
+      border-radius: 6px;
+      padding: 1px 7px;
+      border: 1px solid var(--vscode-editorWidget-border);
+      background: var(--vscode-editorWidget-background, var(--vscode-editor-selectionBackground));
+      color: var(--vscode-foreground);
+    }
+    .section h2 {
+      margin: 0 0 10px 0;
       color: var(--vscode-textLink-foreground);
       font-size: 1.2rem;
     }
@@ -365,7 +574,7 @@ function createPreviewHtml(document) {
 </head>
 <body>
   <div class="header">Preview: ${fileName}</div>
-  ${tocHtml ? `<nav class="toc"><h3 class="toc-title">Contents</h3><ul class="toc-list">${tocHtml}</ul></nav>` : ''}
+  ${tocHtml ? `<nav class="toc"><h3 class="toc-title">Contents</h3>${tocHtml}</nav>` : ''}
   ${body}
   <script>
     (() => {
