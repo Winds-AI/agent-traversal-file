@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.7 - 2026-02-21
+
+### Changed
+- Added per-top-level section collapse/expand controls in preview so a module can hide/show all its subsections
+- Added global `Collapse All` and `Expand All` controls in preview contents panel
+- Improved navigation behavior so jumping to a hidden subsection auto-expands its parent subtree before scrolling
+
 ## 0.1.6 - 2026-02-21
 
 ### Changed

@@ -301,33 +301,34 @@ function buildSectionTree(sections) {
 
 function flattenSectionTree(roots) {
   const flattened = [];
-  const visit = (node) => {
-    flattened.push(node);
+  const visit = (node, topRootId) => {
+    flattened.push({ ...node, topRootId });
     for (const child of node.children) {
-      visit(child);
+      visit(child, topRootId);
     }
   };
 
   for (const root of roots) {
-    visit(root);
+    visit(root, root.id);
   }
   return flattened;
 }
 
 function createTocHtml(roots) {
-  const renderNodes = (nodes) => {
+  const renderNodes = (nodes, topRootId = '') => {
     if (!nodes.length) {
       return '';
     }
     return `<ul class="toc-list">${nodes
       .map((node) => {
+        const resolvedTopRootId = topRootId || node.id;
         const parentHint = node.parentId ? ` data-parent="${escapeHtml(node.parentId)}"` : '';
-        return `<li class="toc-item depth-${Math.min(node.depth, 6)}"${parentHint}>
+        return `<li class="toc-item depth-${Math.min(node.depth, 6)}" data-top-root="${escapeHtml(resolvedTopRootId)}" data-depth="${node.depth}"${parentHint}>
           <a class="toc-link" href="#${sectionAnchorId(node.id)}">
             <span class="toc-label">${escapeHtml(node.title)}</span>
             <code class="toc-id">${escapeHtml(node.id)}</code>
           </a>
-          ${renderNodes(node.children)}
+          ${renderNodes(node.children, resolvedTopRootId)}
         </li>`;
       })
       .join('')}</ul>`;
@@ -370,12 +371,16 @@ function createPreviewHtml(document) {
       const rangeHtml = section.rangeMeta
         ? `<span class="meta-pill range">${escapeHtml(section.rangeMeta)}</span>`
         : '';
-      return `<article id="${sectionAnchorId(section.id)}" class="section depth-${Math.min(section.depth, 6)}">
+      const collapseButtonHtml = section.depth === 0 && section.children.length > 0
+        ? `<button class="subtree-toggle" type="button" data-root-id="${escapeHtml(section.id)}" aria-expanded="true">Collapse Subsections</button>`
+        : '';
+      return `<article id="${sectionAnchorId(section.id)}" class="section depth-${Math.min(section.depth, 6)}" data-top-root="${escapeHtml(section.topRootId)}" data-depth="${section.depth}">
         <div class="section-meta">
           <span class="meta-pill level">L${level}</span>
           <code class="section-id">${escapeHtml(section.id)}</code>
           ${parentHtml}
           ${rangeHtml}
+          ${collapseButtonHtml}
         </div>
         <h2>${escapeHtml(section.title)}</h2>
         ${summaryHtml}
@@ -419,12 +424,38 @@ function createPreviewHtml(document) {
       background: var(--vscode-sideBar-background);
     }
     .toc-title {
-      margin: 0 0 10px 0;
+      margin: 0;
       color: var(--vscode-foreground);
       font-size: 0.85rem;
       font-weight: 700;
       letter-spacing: 0.04em;
       text-transform: uppercase;
+    }
+    .toc-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin: 0 0 10px 0;
+      flex-wrap: wrap;
+    }
+    .toc-actions {
+      display: inline-flex;
+      gap: 6px;
+    }
+    .toc-action-btn {
+      border: 1px solid var(--vscode-button-border, var(--vscode-editorWidget-border));
+      border-radius: 6px;
+      padding: 2px 8px;
+      cursor: pointer;
+      color: var(--vscode-button-foreground);
+      background: var(--vscode-button-secondaryBackground, var(--vscode-button-background));
+      font: inherit;
+      font-size: 0.72rem;
+      font-weight: 600;
+    }
+    .toc-action-btn:hover {
+      background: var(--vscode-button-secondaryHoverBackground, var(--vscode-button-hoverBackground));
     }
     .toc-list {
       margin: 0;
@@ -529,6 +560,24 @@ function createPreviewHtml(document) {
       background: var(--vscode-editorWidget-background, var(--vscode-editor-selectionBackground));
       color: var(--vscode-foreground);
     }
+    .subtree-toggle {
+      margin-left: auto;
+      border: 1px solid var(--vscode-button-border, var(--vscode-editorWidget-border));
+      border-radius: 6px;
+      padding: 3px 10px;
+      cursor: pointer;
+      color: var(--vscode-button-foreground);
+      background: var(--vscode-button-background);
+      font: inherit;
+      font-size: 0.76rem;
+      font-weight: 600;
+    }
+    .subtree-toggle:hover {
+      background: var(--vscode-button-hoverBackground);
+    }
+    .subtree-hidden {
+      display: none;
+    }
     .section h2 {
       margin: 0 0 10px 0;
       color: var(--vscode-textLink-foreground);
@@ -574,15 +623,99 @@ function createPreviewHtml(document) {
 </head>
 <body>
   <div class="header">Preview: ${fileName}</div>
-  ${tocHtml ? `<nav class="toc"><h3 class="toc-title">Contents</h3>${tocHtml}</nav>` : ''}
+  ${tocHtml ? `<nav class="toc"><div class="toc-header"><h3 class="toc-title">Contents</h3><div class="toc-actions"><button id="iatf-collapse-all" class="toc-action-btn" type="button">Collapse All</button><button id="iatf-expand-all" class="toc-action-btn" type="button">Expand All</button></div></div>${tocHtml}</nav>` : ''}
   ${body}
   <script>
     (() => {
       const tocLinks = Array.from(document.querySelectorAll('.toc-link'));
       const sectionNodes = Array.from(document.querySelectorAll('.section[id]'));
+      const subtreeToggleButtons = Array.from(document.querySelectorAll('.subtree-toggle[data-root-id]'));
+      const collapseAllButton = document.getElementById('iatf-collapse-all');
+      const expandAllButton = document.getElementById('iatf-expand-all');
       const linkByTarget = new Map(
         tocLinks.map((link) => [link.getAttribute('href')?.slice(1), link])
       );
+      const rootSubtreeCollapsed = new Map();
+
+      const setSubtreeVisibility = (rootId, collapsed) => {
+        rootSubtreeCollapsed.set(rootId, collapsed);
+        const subtreeSections = Array.from(document.querySelectorAll('.section'));
+        for (const section of subtreeSections) {
+          const sectionId = section.id.replace(/^iatf-sec-/, '');
+          const isRoot = sectionId === rootId;
+          const isDescendant = section.getAttribute('data-top-root') === rootId && section.getAttribute('data-depth') !== '0';
+          if (!isRoot && isDescendant) {
+            section.classList.toggle('subtree-hidden', collapsed);
+          }
+        }
+
+        const tocItems = Array.from(document.querySelectorAll('.toc-item'));
+        for (const item of tocItems) {
+          const isDescendant = item.getAttribute('data-top-root') === rootId && item.getAttribute('data-depth') !== '0';
+          if (isDescendant) {
+            item.classList.toggle('subtree-hidden', collapsed);
+          }
+        }
+
+        const button = subtreeToggleButtons.find((node) => node.getAttribute('data-root-id') === rootId);
+        if (button) {
+          button.setAttribute('aria-expanded', String(!collapsed));
+          button.textContent = collapsed ? 'Expand Subsections' : 'Collapse Subsections';
+        }
+      };
+
+      const ensureSectionVisible = (sectionNode) => {
+        if (!sectionNode) {
+          return;
+        }
+        const topRootId = sectionNode.getAttribute('data-top-root');
+        const depth = sectionNode.getAttribute('data-depth');
+        if (!topRootId || depth === '0') {
+          return;
+        }
+        if (rootSubtreeCollapsed.get(topRootId)) {
+          setSubtreeVisibility(topRootId, false);
+        }
+      };
+
+      for (const button of subtreeToggleButtons) {
+        const rootId = button.getAttribute('data-root-id');
+        if (!rootId) {
+          continue;
+        }
+        rootSubtreeCollapsed.set(rootId, false);
+        button.addEventListener('click', () => {
+          const current = rootSubtreeCollapsed.get(rootId) || false;
+          setSubtreeVisibility(rootId, !current);
+        });
+      }
+
+      if (collapseAllButton) {
+        collapseAllButton.addEventListener('click', () => {
+          for (const [rootId] of rootSubtreeCollapsed.entries()) {
+            setSubtreeVisibility(rootId, true);
+          }
+        });
+      }
+
+      if (expandAllButton) {
+        expandAllButton.addEventListener('click', () => {
+          for (const [rootId] of rootSubtreeCollapsed.entries()) {
+            setSubtreeVisibility(rootId, false);
+          }
+        });
+      }
+
+      if (subtreeToggleButtons.length === 0) {
+        if (collapseAllButton) {
+          collapseAllButton.disabled = true;
+          collapseAllButton.title = 'No subsections to collapse';
+        }
+        if (expandAllButton) {
+          expandAllButton.disabled = true;
+          expandAllButton.title = 'No subsections to expand';
+        }
+      }
 
       const flashTarget = (node) => {
         node.classList.remove('target-flash');
@@ -599,6 +732,7 @@ function createPreviewHtml(document) {
         if (!target) {
           return;
         }
+        ensureSectionVisible(target);
         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
         flashTarget(target);
       };
