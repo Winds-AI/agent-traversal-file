@@ -288,6 +288,154 @@ func TestReadManyFailsWhenAnySectionMissing(t *testing.T) {
 	}
 }
 
+func TestRebuildCommandRecoversFromIndexContentMismatch(t *testing.T) {
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "mismatch.iatf")
+
+	orig, err := os.ReadFile(filepath.Join("..", "examples", "invalid", "index-content-mismatch.iatf"))
+	if err != nil {
+		t.Fatalf("read fixture: %v", err)
+	}
+	if err := os.WriteFile(tmpFile, orig, 0644); err != nil {
+		t.Fatalf("write tmp fixture: %v", err)
+	}
+
+	exitCode, stdout, stderr := captureCommandOutput(t, func() int {
+		return rebuildCommand(tmpFile, false)
+	})
+	if exitCode != 0 {
+		t.Fatalf("expected rebuild to recover stale index, got exit=%d stderr=%q", exitCode, stderr)
+	}
+	if !strings.Contains(stdout, "[OK] Index rebuilt successfully") {
+		t.Fatalf("expected success output after rebuild, got stdout=%q", stdout)
+	}
+	if strings.Contains(stderr, "Rebuild aborted: file validation failed") {
+		t.Fatalf("unexpected pre-validation abort in stderr=%q", stderr)
+	}
+
+	valid, errors := validateFileQuiet(tmpFile)
+	if !valid {
+		t.Fatalf("expected file to validate after rebuild, got errors=%v", errors)
+	}
+}
+
+func TestRebuildCommandFailsWhenContentRemainsInvalid(t *testing.T) {
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "unsupported-annotation.iatf")
+
+	orig, err := os.ReadFile(filepath.Join("..", "examples", "invalid", "unsupported-annotation.iatf"))
+	if err != nil {
+		t.Fatalf("read fixture: %v", err)
+	}
+	if err := os.WriteFile(tmpFile, orig, 0644); err != nil {
+		t.Fatalf("write tmp fixture: %v", err)
+	}
+
+	exitCode, stdout, stderr := captureCommandOutput(t, func() int {
+		return rebuildCommand(tmpFile, false)
+	})
+	if exitCode == 0 {
+		t.Fatalf("expected rebuild command to fail when content is invalid")
+	}
+	if !strings.Contains(stdout, "Rebuilding index:") {
+		t.Fatalf("expected rebuild attempt output, got stdout=%q", stdout)
+	}
+	if !strings.Contains(stderr, "Index rebuilt, but file is still invalid") {
+		t.Fatalf("expected post-rebuild validation failure message, got stderr=%q", stderr)
+	}
+	if !strings.Contains(stderr, "Unsupported section annotation @created") {
+		t.Fatalf("expected unsupported annotation error in stderr=%q", stderr)
+	}
+
+	rebuilt, err := os.ReadFile(tmpFile)
+	if err != nil {
+		t.Fatalf("read rebuilt file: %v", err)
+	}
+	if !strings.Contains(string(rebuilt), "===INDEX===") {
+		t.Fatalf("expected index to be generated despite validation failure")
+	}
+}
+
+func TestRebuildCommandStrictRejectsIndexContentMismatchBeforeRebuild(t *testing.T) {
+	tmpDir := t.TempDir()
+	tmpFile := filepath.Join(tmpDir, "mismatch-strict.iatf")
+
+	orig, err := os.ReadFile(filepath.Join("..", "examples", "invalid", "index-content-mismatch.iatf"))
+	if err != nil {
+		t.Fatalf("read fixture: %v", err)
+	}
+	if err := os.WriteFile(tmpFile, orig, 0644); err != nil {
+		t.Fatalf("write tmp fixture: %v", err)
+	}
+
+	before, err := os.ReadFile(tmpFile)
+	if err != nil {
+		t.Fatalf("read before: %v", err)
+	}
+
+	exitCode, stdout, stderr := captureCommandOutput(t, func() int {
+		return rebuildCommand(tmpFile, true)
+	})
+	if exitCode == 0 {
+		t.Fatalf("expected strict rebuild to fail on pre-existing validation errors")
+	}
+	if strings.Contains(stdout, "Rebuilding index:") {
+		t.Fatalf("strict mode should fail before rebuild starts, got stdout=%q", stdout)
+	}
+	if !strings.Contains(stderr, "Rebuild aborted (--strict): file validation failed") {
+		t.Fatalf("expected strict failure banner, got stderr=%q", stderr)
+	}
+	if !strings.Contains(stderr, "CONTENT section missing from INDEX") {
+		t.Fatalf("expected index/content mismatch details in strict failure, got stderr=%q", stderr)
+	}
+
+	after, err := os.ReadFile(tmpFile)
+	if err != nil {
+		t.Fatalf("read after: %v", err)
+	}
+	if string(before) != string(after) {
+		t.Fatalf("strict mode should not modify file when pre-validation fails")
+	}
+}
+
+func TestParseRebuildArgs(t *testing.T) {
+	tests := []struct {
+		name      string
+		args      []string
+		filePath  string
+		strict    bool
+		wantError bool
+	}{
+		{name: "file only", args: []string{"doc.iatf"}, filePath: "doc.iatf", strict: false},
+		{name: "file then strict", args: []string{"doc.iatf", "--strict"}, filePath: "doc.iatf", strict: true},
+		{name: "strict then file", args: []string{"--strict", "doc.iatf"}, filePath: "doc.iatf", strict: true},
+		{name: "unknown flag", args: []string{"doc.iatf", "--force"}, wantError: true},
+		{name: "too many args", args: []string{"a.iatf", "b.iatf"}, wantError: true},
+		{name: "missing file", args: []string{"--strict"}, wantError: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			filePath, strict, errMsg := parseRebuildArgs(tt.args)
+			if tt.wantError {
+				if errMsg == "" {
+					t.Fatalf("expected error, got none (file=%q strict=%v)", filePath, strict)
+				}
+				return
+			}
+			if errMsg != "" {
+				t.Fatalf("unexpected error: %s", errMsg)
+			}
+			if filePath != tt.filePath {
+				t.Fatalf("filePath mismatch: want=%q got=%q", tt.filePath, filePath)
+			}
+			if strict != tt.strict {
+				t.Fatalf("strict mismatch: want=%v got=%v", tt.strict, strict)
+			}
+		})
+	}
+}
+
 func captureCommandOutput(t *testing.T, fn func() int) (int, string, string) {
 	t.Helper()
 

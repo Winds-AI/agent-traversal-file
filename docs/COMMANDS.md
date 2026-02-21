@@ -15,17 +15,25 @@ go build -o ../iatf .
 
 ## Core Commands
 
-### `iatf rebuild <file>`
+### `iatf rebuild <file> [--strict]`
 
 Regenerates INDEX from CONTENT for one file.
 
+Behavior notes:
+- Rebuild runs from CONTENT first (it does not require an already-valid INDEX).
+- After writing INDEX, the file is validated and rebuild exits non-zero if validation errors remain.
+- `--strict` enables fail-fast mode: validate first, and abort rebuild if the file is already invalid.
+
 ```bash
 iatf rebuild my-doc.iatf
+iatf rebuild my-doc.iatf --strict
 ```
 
 ### `iatf rebuild-all <directory>`
 
 Recursively rebuilds all `.iatf` files.
+
+Each file is rebuilt from CONTENT first, then validated. Files that remain invalid are reported as failures.
 
 ```bash
 iatf rebuild-all ./docs
@@ -134,6 +142,8 @@ Notes:
 
 Watches one file and rebuilds after debounce on save.
 
+Watch mode rebuilds first, then validates. In `--debug`, post-rebuild validation failures are printed.
+
 ```bash
 iatf watch my-doc.iatf
 iatf watch my-doc.iatf --debug
@@ -142,6 +152,8 @@ iatf watch my-doc.iatf --debug
 ### `iatf watch-dir <dir> [--debug]`
 
 Watches all `.iatf` files under a directory tree.
+
+Directory watch follows the same rebuild-then-validate flow used by `watch`.
 
 ```bash
 iatf watch-dir ./docs

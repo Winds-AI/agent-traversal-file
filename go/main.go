@@ -240,12 +240,16 @@ func main() {
 		fmt.Printf("IATF Tools v%s\n", Version)
 		os.Exit(0)
 	case "rebuild":
-		if len(os.Args) < 3 {
-			fmt.Fprintln(os.Stderr, "Error: Missing file argument")
-			fmt.Fprintln(os.Stderr, "Usage: iatf rebuild <file>")
+		filePath, strict, errMsg := parseRebuildArgs(os.Args[2:])
+		if errMsg != "" || filePath == "" {
+			if errMsg == "" {
+				errMsg = "Error: Missing file argument"
+			}
+			fmt.Fprintln(os.Stderr, errMsg)
+			fmt.Fprintln(os.Stderr, "Usage: iatf rebuild <file> [--strict]")
 			os.Exit(1)
 		}
-		os.Exit(rebuildCommand(os.Args[2]))
+		os.Exit(rebuildCommand(filePath, strict))
 	case "rebuild-all":
 		directory := "."
 		if len(os.Args) >= 3 {
@@ -371,7 +375,7 @@ func printUsage() {
 	fmt.Printf(`IATF Tools v%s
 
 	Usage:
-	    iatf rebuild <file>              Rebuild index for a single file
+	    iatf rebuild <file> [--strict]   Rebuild index for a single file
 	    iatf rebuild-all [directory]     Rebuild all .iatf files in directory
 	    iatf watch <file> [--debug]      Watch file and auto-rebuild on changes
 	    iatf watch-dir <dir> [--debug]   Watch directory tree for .iatf files
@@ -396,6 +400,7 @@ Daemon Commands:
 
 Examples:
     iatf rebuild document.iatf
+    iatf rebuild document.iatf --strict
     iatf rebuild-all ./docs
     iatf watch api-reference.iatf
     iatf watch api-reference.iatf --debug
@@ -863,7 +868,32 @@ func rebuildIndex(filePath string) error {
 	return os.WriteFile(filePath, []byte(newContent), 0644)
 }
 
-func rebuildCommand(filePath string) int {
+func parseRebuildArgs(args []string) (string, bool, string) {
+	filePath := ""
+	strict := false
+
+	for _, arg := range args {
+		if arg == "--strict" {
+			strict = true
+			continue
+		}
+		if strings.HasPrefix(arg, "--") {
+			return "", false, fmt.Sprintf("Error: Unknown flag for rebuild: %s", arg)
+		}
+		if filePath != "" {
+			return "", false, "Error: Too many arguments for rebuild"
+		}
+		filePath = arg
+	}
+
+	if filePath == "" {
+		return "", false, "Error: Missing file argument"
+	}
+
+	return filePath, strict, ""
+}
+
+func rebuildCommand(filePath string, strict bool) int {
 	if _, err := os.Stat(filePath); os.IsNotExist(err) {
 		fmt.Fprintf(os.Stderr, "Error: File not found: %s\n", filePath)
 		return 1
@@ -874,19 +904,30 @@ func rebuildCommand(filePath string) int {
 		return 1
 	}
 
-	valid, errors := validateFileQuiet(filePath)
-	if !valid {
-		fmt.Fprintln(os.Stderr, "[ERROR] Rebuild aborted: file validation failed")
-		for _, e := range errors {
-			fmt.Fprintf(os.Stderr, "  - %s\n", e)
+	if strict {
+		valid, errors := validateFileQuiet(filePath)
+		if !valid {
+			fmt.Fprintln(os.Stderr, "[ERROR] Rebuild aborted (--strict): file validation failed")
+			for _, e := range errors {
+				fmt.Fprintf(os.Stderr, "  - %s\n", e)
+			}
+			return 1
 		}
-		return 1
 	}
 
 	fmt.Printf("Rebuilding index: %s\n", filePath)
 
 	if err := rebuildIndex(filePath); err != nil {
 		fmt.Fprintf(os.Stderr, "[ERROR] Failed to rebuild index: %v\n", err)
+		return 1
+	}
+
+	valid, errors := validateFileQuiet(filePath)
+	if !valid {
+		fmt.Fprintln(os.Stderr, "[ERROR] Index rebuilt, but file is still invalid")
+		for _, e := range errors {
+			fmt.Fprintf(os.Stderr, "  - %s\n", e)
+		}
 		return 1
 	}
 
@@ -926,20 +967,22 @@ func rebuildAllCommand(directory string) int {
 	successCount := 0
 	for _, file := range iatfFiles {
 		fmt.Printf("\nProcessing: %s\n", file)
+		if err := rebuildIndex(file); err != nil {
+			fmt.Printf("  [ERROR] Failed: %v\n", err)
+			continue
+		}
+
 		valid, errors := validateFileQuiet(file)
 		if !valid {
-			fmt.Println("  [ERROR] Validation failed:")
+			fmt.Println("  [ERROR] Rebuilt, but file is still invalid:")
 			for _, e := range errors {
 				fmt.Printf("    - %s\n", e)
 			}
 			continue
 		}
-		if err := rebuildIndex(file); err != nil {
-			fmt.Printf("  [ERROR] Failed: %v\n", err)
-		} else {
-			fmt.Println("  [OK] Success")
-			successCount++
-		}
+
+		fmt.Println("  [OK] Success")
+		successCount++
 	}
 
 	fmt.Printf("\nCompleted: %d/%d files rebuilt successfully\n", successCount, len(iatfFiles))
@@ -1156,26 +1199,28 @@ func watchCommand(filePath string, debug bool) int {
 	}
 }
 
-// processFileForWatch validates and rebuilds a single file
+// processFileForWatch rebuilds and validates a single file
 func processFileForWatch(filePath string, debug bool) {
-	valid, errors := validateFileQuiet(filePath)
-	if !valid {
-		if debug {
-			fmt.Printf("[%s] Validation failed:\n", filepath.Base(filePath))
-			for _, e := range errors {
-				fmt.Printf("  - %s\n", e)
-			}
-		}
-		return
-	}
 	if err := rebuildIndex(filePath); err != nil {
 		if debug {
 			fmt.Printf("[%s] Rebuild failed: %v\n", filepath.Base(filePath), err)
 		}
 		return
 	}
+
+	valid, errors := validateFileQuiet(filePath)
+	if !valid {
+		if debug {
+			fmt.Printf("[%s] Rebuilt, but validation failed:\n", filepath.Base(filePath))
+			for _, e := range errors {
+				fmt.Printf("  - %s\n", e)
+			}
+		}
+		return
+	}
+
 	if debug {
-		fmt.Printf("[%s] Index rebuilt\n", filepath.Base(filePath))
+		fmt.Printf("[%s] Index rebuilt and validated\n", filepath.Base(filePath))
 	}
 }
 
@@ -1612,19 +1657,19 @@ func watchMultipleDirs(paths []string, debug bool) {
 						}
 						pathCopy := path
 						state.timer = time.AfterFunc(3*time.Second, func() {
+							if err := rebuildIndex(pathCopy); err != nil {
+								fmt.Printf("[%s] Rebuild failed: %s - %v\n", time.Now().Format(time.RFC3339), pathCopy, err)
+								return
+							}
 							valid, errors := validateFileQuiet(pathCopy)
 							if !valid {
-								fmt.Printf("[%s] Validation failed: %s\n", time.Now().Format(time.RFC3339), pathCopy)
+								fmt.Printf("[%s] Rebuilt, but validation failed: %s\n", time.Now().Format(time.RFC3339), pathCopy)
 								for _, e := range errors {
 									fmt.Printf("  - %s\n", e)
 								}
 								return
 							}
-							if err := rebuildIndex(pathCopy); err != nil {
-								fmt.Printf("[%s] Rebuild failed: %s - %v\n", time.Now().Format(time.RFC3339), pathCopy, err)
-								return
-							}
-							fmt.Printf("[%s] Rebuilt: %s\n", time.Now().Format(time.RFC3339), pathCopy)
+							fmt.Printf("[%s] Rebuilt and validated: %s\n", time.Now().Format(time.RFC3339), pathCopy)
 						})
 					}
 					filesMu.Unlock()

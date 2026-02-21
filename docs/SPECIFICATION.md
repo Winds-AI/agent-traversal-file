@@ -162,6 +162,11 @@ Fenced code behavior:
 3. Computes per-section word counts and content hash.
 4. Updates INDEX entries and metadata.
 5. Writes `Generated` and `Content-Hash` comments.
+6. Runs full-file validation after rebuild and exits non-zero if validation errors remain.
+
+Note:
+- Rebuild is CONTENT-first and does not require pre-existing INDEX/CONTENT consistency.
+- `iatf rebuild --strict` is fail-fast and validates before rebuild.
 
 Modification tracking:
 - `Created` is initialized when first indexed.
